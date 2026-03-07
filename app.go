@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+
+	"go.uber.org/zap"
 )
 
 // App struct
@@ -12,6 +14,7 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp() *App {
+	zap.S().Info("Creating new app")
 	return &App{}
 }
 
