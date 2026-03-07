@@ -1,4 +1,4 @@
-package alibaba_oss
+package sftp
 
 import (
 	"context"
@@ -7,17 +7,20 @@ import (
 )
 
 func init() {
-	folder.RegisterDriver[Options]("oss", New)
+	folder.RegisterDriver[Options]("sftp", New)
 }
 
-// Driver implements folder.Manager for Alibaba Cloud OSS backends.
+// Driver implements folder.Manager for SFTP backends.
 type Driver struct {
 	folder.BaseDriver
 	cfg *Options
 }
 
-// New creates a new OSS driver. Called automatically by the registry.
+// New creates a new SFTP driver. Called automatically by the registry.
 func New(_ context.Context, opt *folder.DriverOptions, cfg *Options) (folder.Manager, error) {
+	if cfg.Port == 0 {
+		cfg.Port = 22
+	}
 	return &Driver{
 		BaseDriver: folder.NewBaseDriver(opt),
 		cfg:        cfg,
@@ -28,5 +31,6 @@ func (d *Driver) Capabilities() folder.Capabilities {
 	caps := folder.BaseCapabilities()
 	caps.CanRead = true
 	caps.CanWrite = true
+	caps.AtomicMove = true
 	return caps
 }

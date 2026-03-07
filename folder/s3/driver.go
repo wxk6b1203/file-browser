@@ -1,4 +1,4 @@
-package alibaba_oss
+package s3
 
 import (
 	"context"
@@ -7,16 +7,16 @@ import (
 )
 
 func init() {
-	folder.RegisterDriver[Options]("oss", New)
+	folder.RegisterDriver[Options]("s3", New)
 }
 
-// Driver implements folder.Manager for Alibaba Cloud OSS backends.
+// Driver implements folder.Manager for Amazon S3 backends.
 type Driver struct {
 	folder.BaseDriver
 	cfg *Options
 }
 
-// New creates a new OSS driver. Called automatically by the registry.
+// New creates a new S3 driver. Called automatically by the registry.
 func New(_ context.Context, opt *folder.DriverOptions, cfg *Options) (folder.Manager, error) {
 	return &Driver{
 		BaseDriver: folder.NewBaseDriver(opt),
