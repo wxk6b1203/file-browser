@@ -8,7 +8,9 @@ type Capabilities struct {
 	CanDelete       bool
 	CanCopy         bool
 	CanMove         bool
+	CanRename       bool
 	CanMkdir        bool
+	CanPresign      bool
 	AtomicMove      bool
 	SupportsVersion bool
 }
@@ -19,6 +21,7 @@ func BaseCapabilities() Capabilities {
 		CanDelete: true,
 		CanCopy:   true,
 		CanMove:   true,
+		CanRename: true,
 		CanMkdir:  true,
 	}
 }

@@ -3,6 +3,7 @@ package folder
 import (
 	"context"
 	"io"
+	"time"
 )
 
 type PathOp struct {
@@ -21,6 +22,11 @@ type WriteOptions struct {
 	Metadata    map[string]string
 }
 
+type PresignOptions struct {
+	// Expires is how long the pre-signed URL stays valid. Zero means backend default.
+	Expires time.Duration
+}
+
 // Manager defines common file-system operations across local/remote backends.
 type Manager interface {
 	Name() string
@@ -28,6 +34,8 @@ type Manager interface {
 
 	List(ctx context.Context, path string, opt *ListOptions) ([]*FileInfo, error)
 	Stat(ctx context.Context, path string) (*FileInfo, error)
+	Exist(ctx context.Context, path string) (bool, error)
+	Rename(ctx context.Context, path string, newName string) error
 	Delete(ctx context.Context, path string) error
 	Copy(ctx context.Context, op PathOp) error
 	Move(ctx context.Context, op PathOp) error
@@ -42,6 +50,13 @@ type Reader interface {
 // Writer is an optional capability for backends that support file upload/streaming.
 type Writer interface {
 	Write(ctx context.Context, path string, body io.Reader, opt *WriteOptions) (*FileInfo, error)
+}
+
+// Presigner is an optional capability for backends that can generate pre-signed URLs
+// (e.g. S3, OSS). Useful for letting the frontend download/upload directly.
+type Presigner interface {
+	PresignRead(ctx context.Context, path string, opt *PresignOptions) (url string, err error)
+	PresignWrite(ctx context.Context, path string, opt *PresignOptions) (url string, err error)
 }
 
 // HealthChecker is an optional capability for connection-level readiness checks.
@@ -90,6 +105,31 @@ func (b *BaseDriver) List(_ context.Context, _ string, _ *ListOptions) ([]*FileI
 
 func (b *BaseDriver) Stat(_ context.Context, _ string) (*FileInfo, error) {
 	return nil, ErrUnsupported
+}
+
+func (b *BaseDriver) Exist(_ context.Context, _ string) (bool, error) {
+	return false, ErrUnsupported
+}
+
+// ExistViaStat is a helper that concrete drivers can call in their Exist()
+// to reuse their own Stat implementation. Usage:
+//
+//	func (d *Driver) Exist(ctx context.Context, p string) (bool, error) {
+//	    return folder.ExistViaStat(d, ctx, p)
+//	}
+func ExistViaStat(m Manager, ctx context.Context, path string) (bool, error) {
+	_, err := m.Stat(ctx, path)
+	if err != nil {
+		if IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func (b *BaseDriver) Rename(_ context.Context, _ string, _ string) error {
+	return ErrUnsupported
 }
 
 func (b *BaseDriver) Delete(_ context.Context, _ string) error {
