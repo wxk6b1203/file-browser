@@ -1,5 +1,7 @@
 package s3
 
+import "strings"
+
 // Options holds S3-specific connection parameters.
 // All credential fields are passed explicitly — no environment variable fallback.
 type Options struct {
@@ -16,4 +18,14 @@ type Options struct {
 	DisableSSL bool `yaml:"disableSSL,omitempty" json:"disableSSL,omitempty"`
 	// Prefix is prepended to every key, acting as a virtual sub-directory.
 	Prefix string `yaml:"prefix,omitempty" json:"prefix,omitempty"`
+}
+
+func (o *Options) TrimSpace() {
+	o.Region = strings.TrimSpace(o.Region)
+	o.Bucket = strings.TrimSpace(o.Bucket)
+	o.AccessKeyID = strings.TrimSpace(o.AccessKeyID)
+	o.AccessKeySecret = strings.TrimSpace(o.AccessKeySecret)
+	o.SessionToken = strings.TrimSpace(o.SessionToken)
+	o.Endpoint = strings.TrimSpace(o.Endpoint)
+	o.Prefix = strings.TrimSpace(o.Prefix)
 }
