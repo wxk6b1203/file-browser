@@ -30,9 +30,10 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
+		Menu: app.RegisterMenu(),
 	})
 
-	logging.InitLogging(&logging.LogOptions{Level: "info", Path: []string{"stdout", "gg.txt"}})
+	logging.InitLogging(&logging.LogOptions{Level: "info", Path: []string{"stdout"}})
 	zap.S().Info("GG?")
 
 	if err != nil {
