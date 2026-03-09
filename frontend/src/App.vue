@@ -6,7 +6,6 @@ import { ElConfigProvider } from 'element-plus'
 
 <template>
   <el-config-provider>
-
   <RouterView />
   </el-config-provider>
 </template>
