@@ -61,6 +61,10 @@ func New(_ context.Context, opt *folder.DriverOptions, cfg *Options) (folder.Man
 
 	d.client = d.buildClient()
 
+	if d.client == nil {
+		return nil, fmt.Errorf("s3: failed to create client")
+	}
+
 	return d, nil
 }
 
