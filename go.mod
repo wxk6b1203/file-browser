@@ -4,6 +4,7 @@ go 1.24
 
 require (
 	github.com/DeRuina/timberjack v1.3.9
+	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.4.0
 	github.com/aws/aws-sdk-go-v2 v1.41.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.11
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.96.4
@@ -50,6 +51,7 @@ require (
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/time v0.8.0 // indirect
 )
 
 // replace github.com/wailsapp/wails/v2 v2.11.0 => C:\Users\wxk6b\Documents\gohome\pkg\mod

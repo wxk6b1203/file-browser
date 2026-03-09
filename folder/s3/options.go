@@ -1,6 +1,9 @@
 package s3
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // Options holds S3-specific connection parameters.
 // All credential fields are passed explicitly — no environment variable fallback.
@@ -20,7 +23,16 @@ type Options struct {
 	Prefix string `yaml:"prefix,omitempty" json:"prefix,omitempty"`
 }
 
-func (o *Options) TrimSpace() {
+func (o *Options) Validate() error {
+	if o.Region == "" {
+		return fmt.Errorf("s3: region is required")
+	}
+	if o.Bucket == "" {
+		return fmt.Errorf("s3: bucket is required")
+	}
+	if o.AccessKeyID == "" || o.AccessKeySecret == "" {
+		return fmt.Errorf("s3: accessKeyID and accessKeySecret are required")
+	}
 	o.Region = strings.TrimSpace(o.Region)
 	o.Bucket = strings.TrimSpace(o.Bucket)
 	o.AccessKeyID = strings.TrimSpace(o.AccessKeyID)
@@ -28,4 +40,10 @@ func (o *Options) TrimSpace() {
 	o.SessionToken = strings.TrimSpace(o.SessionToken)
 	o.Endpoint = strings.TrimSpace(o.Endpoint)
 	o.Prefix = strings.TrimSpace(o.Prefix)
+
+	// Normalize prefix: ensure it ends with "/" if non-empty.
+	if o.Prefix != "" {
+		o.Prefix = strings.TrimRight(o.Prefix, "/") + "/"
+	}
+	return nil
 }

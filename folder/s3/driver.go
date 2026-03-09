@@ -33,19 +33,12 @@ type Driver struct {
 
 // New creates a new S3 driver. AK/SK/Region/Bucket are mandatory.
 func New(_ context.Context, opt *folder.DriverOptions, cfg *Options) (folder.Manager, error) {
-	if cfg.Region == "" {
-		return nil, fmt.Errorf("s3: region is required")
-	}
-	if cfg.Bucket == "" {
-		return nil, fmt.Errorf("s3: bucket is required")
-	}
-	if cfg.AccessKeyID == "" || cfg.AccessKeySecret == "" {
-		return nil, fmt.Errorf("s3: accessKeyID and accessKeySecret are required")
+	if cfg == nil {
+		return nil, fmt.Errorf("s3: missing configuration")
 	}
 
-	// Normalize prefix: ensure it ends with "/" if non-empty.
-	if cfg.Prefix != "" {
-		cfg.Prefix = strings.TrimRight(cfg.Prefix, "/") + "/"
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf("s3: invalid configuration: %w", err)
 	}
 
 	// Merge DriverOptions.Root into prefix when specified.
@@ -60,7 +53,6 @@ func New(_ context.Context, opt *folder.DriverOptions, cfg *Options) (folder.Man
 	}
 
 	d.client = d.buildClient()
-
 	if d.client == nil {
 		return nil, fmt.Errorf("s3: failed to create client")
 	}
@@ -131,10 +123,36 @@ func (d *Driver) Exist(ctx context.Context, filePath string) (bool, error) {
 func (d *Driver) Rename(ctx context.Context, filePath string, newName string) error {
 	dir := path.Dir(filePath)
 	newPath := path.Join(dir, newName)
+
+	// S3 Express One Zone directory buckets support a native RenameObject API
+	// that is atomic and avoids the extra copy. Detect by the mandatory suffix.
+	// All other buckets (standard, MinIO, R2, …) fall back to Copy + Delete.
+	if strings.HasSuffix(d.cfg.Bucket, "--x-s3") {
+		return d.renameObject(ctx, filePath, newPath)
+	}
+
 	if err := d.Copy(ctx, folder.PathOp{SrcPath: filePath, DstPath: newPath}); err != nil {
 		return fmt.Errorf("s3: rename %q -> %q: %w", filePath, newName, err)
 	}
 	return d.Delete(ctx, filePath)
+}
+
+// renameObject uses the S3 Express One Zone native RenameObject API.
+// Only call this for directory buckets (bucket name ends with "--x-s3").
+func (d *Driver) renameObject(ctx context.Context, srcPath, dstPath string) error {
+	src := d.fullKey(srcPath)
+	dst := d.fullKey(dstPath)
+	client := d.s3Client()
+
+	_, err := client.RenameObject(ctx, &s3.RenameObjectInput{
+		Bucket:       aws.String(d.cfg.Bucket),
+		Key:          aws.String(dst),
+		RenameSource: aws.String(src),
+	})
+	if err != nil {
+		return fmt.Errorf("s3: rename %q -> %q: %w", srcPath, dstPath, err)
+	}
+	return nil
 }
 
 func (d *Driver) List(ctx context.Context, dir string, opt *folder.ListOptions) ([]*folder.FileInfo, error) {
@@ -163,8 +181,8 @@ func (d *Driver) List(ctx context.Context, dir string, opt *folder.ListOptions) 
 		input.MaxKeys = aws.Int32(int32(opt.Limit))
 	}
 
-	var result []*folder.FileInfo
 	client := d.s3Client()
+	var result []*folder.FileInfo
 
 	paginator := s3.NewListObjectsV2Paginator(client, input)
 	for paginator.HasMorePages() {
@@ -357,9 +375,12 @@ func (d *Driver) Copy(ctx context.Context, op folder.PathOp) error {
 
 func (d *Driver) Move(ctx context.Context, op folder.PathOp) error {
 	if err := d.Copy(ctx, op); err != nil {
-		return err
+		return fmt.Errorf("s3: move %q -> %q: %w", op.SrcPath, op.DstPath, err)
 	}
-	return d.Delete(ctx, op.SrcPath)
+	if err := d.Delete(ctx, op.SrcPath); err != nil {
+		return fmt.Errorf("s3: move %q -> %q: delete source: %w", op.SrcPath, op.DstPath, err)
+	}
+	return nil
 }
 
 func (d *Driver) Mkdir(ctx context.Context, dir string) error {
@@ -428,13 +449,12 @@ func (d *Driver) Write(ctx context.Context, filePath string, body io.Reader, opt
 		return nil, fmt.Errorf("s3: write %q: %w", filePath, err)
 	}
 
-	fi := &folder.FileInfo{
+	return &folder.FileInfo{
 		Name: path.Base(filePath),
 		Path: filePath,
 		Type: folder.EntryTypeFile,
 		ETag: strings.Trim(aws.ToString(out.ETag), "\""),
-	}
-	return fi, nil
+	}, nil
 }
 
 // -----------------------------------------------------------------------
@@ -469,7 +489,7 @@ func (d *Driver) Close() error {
 
 const defaultPresignExpires = 15 * time.Minute
 
-func (d *Driver) presignExpires(opt *folder.PresignOptions) time.Duration {
+func presignExpires(opt *folder.PresignOptions) time.Duration {
 	if opt != nil && opt.Expires > 0 {
 		return opt.Expires
 	}
@@ -484,7 +504,7 @@ func (d *Driver) PresignRead(ctx context.Context, filePath string, opt *folder.P
 	out, err := presigner.PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(d.cfg.Bucket),
 		Key:    aws.String(key),
-	}, s3.WithPresignExpires(d.presignExpires(opt)))
+	}, s3.WithPresignExpires(presignExpires(opt)))
 	if err != nil {
 		return "", fmt.Errorf("s3: presign read %q: %w", filePath, err)
 	}
@@ -499,7 +519,7 @@ func (d *Driver) PresignWrite(ctx context.Context, filePath string, opt *folder.
 	out, err := presigner.PresignPutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(d.cfg.Bucket),
 		Key:    aws.String(key),
-	}, s3.WithPresignExpires(d.presignExpires(opt)))
+	}, s3.WithPresignExpires(presignExpires(opt)))
 	if err != nil {
 		return "", fmt.Errorf("s3: presign write %q: %w", filePath, err)
 	}

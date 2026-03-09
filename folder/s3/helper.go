@@ -1,6 +1,9 @@
 package s3
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
 
 // -----------------------------------------------------------------------
 // helpers
@@ -14,26 +17,8 @@ func isNotFound(err error) bool {
 		HTTPStatusCode() int
 	}
 	var re httpResponseError
-	if ok := asError(err, &re); ok {
+	if errors.As(err, &re) {
 		return re.HTTPStatusCode() == http.StatusNotFound
-	}
-	return false
-}
-
-// asError is a tiny generic helper to avoid importing errors in every call site.
-func asError[T any](err error, target *T) bool {
-	// This is equivalent to errors.As but generic.
-	for err != nil {
-		if t, ok := any(err).(T); ok { //nolint:errorlint
-			*target = t
-			return true
-		}
-		// unwrap
-		u, ok := err.(interface{ Unwrap() error })
-		if !ok {
-			return false
-		}
-		err = u.Unwrap()
 	}
 	return false
 }
