@@ -32,11 +32,17 @@ const props = withDefaults(
     lazy?: boolean
     /** Gap between panels in px (default 0) */
     gap?: number
+    /** Indicator thickness (the short side), CSS value e.g. '2px', '0.2em'. Default '2px' */
+    indicatorWidth?: string
+    /** Indicator length (the long side), CSS value e.g. '24px', '50%'. Default '24px' */
+    indicatorHeight?: string
   }>(),
   {
     layout: 'horizontal',
     lazy: false,
     gap: 0,
+    indicatorWidth: '2px',
+    indicatorHeight: '24px',
   },
 )
 
@@ -54,6 +60,9 @@ const emit = defineEmits<{
 const layout = toRef(props, 'layout')
 const lazy = toRef(props, 'lazy')
 const gap = toRef(props, 'gap')
+
+// Indicator size: [width(short side), height(long side)]
+const indicatorSize = computed<[string, string]>(() => [props.indicatorWidth, props.indicatorHeight])
 
 // Container size tracking
 const { containerEl, containerSize } = useContainer(layout)
@@ -161,6 +170,7 @@ provide(splitPaneContextKey, {
   layout,
   lazy,
   gap,
+  indicatorSize,
   panels,
   pxSizes,
   percentSizes,

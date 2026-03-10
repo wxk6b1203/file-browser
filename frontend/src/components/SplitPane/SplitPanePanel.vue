@@ -14,6 +14,8 @@
     :gap="context.gap.value"
     :inset-start="dividerInset[0]"
     :inset-end="dividerInset[1]"
+    :indicator-width="context.indicatorSize.value[0]"
+    :indicator-height="context.indicatorSize.value[1]"
     @move-start="context.onMoveStart"
     @moving="context.onMoving"
     @move-end="context.onMoveEnd"

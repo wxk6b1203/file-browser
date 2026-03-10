@@ -19,6 +19,7 @@ export interface SplitPaneContext {
   layout: Ref<SplitLayout>
   lazy: Ref<boolean>
   gap: Ref<number>
+  indicatorSize: Ref<[string, string]>
   panels: Ref<PanelState[]>
   pxSizes: Ref<number[]>
   percentSizes: Ref<number[]>

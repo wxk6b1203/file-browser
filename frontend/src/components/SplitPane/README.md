@@ -42,6 +42,8 @@ import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
 | `layout` | `'horizontal' \| 'vertical'` | `'horizontal'` | 分割方向：`horizontal` 为左右分割，`vertical` 为上下分割 |
 | `lazy` | `boolean` | `false` | 开启后面板尺寸仅在拖拽结束时才更新（适用于面板内容渲染开销较大的场景） |
 | `gap` | `number` | `0` | 面板之间的间隔距离（像素）。间隔空间不参与面板大小分配 |
+| `indicatorWidth` | `string` | `'2px'` | 分隔条指示器的粗细（短边），CSS 值，如 `'3px'`、`'0.2em'` |
+| `indicatorHeight` | `string` | `'24px'` | 分隔条指示器的长度（长边），CSS 值，如 `'40px'`、`'50%'` |
 
 ### `<SplitPane>` Events
 

@@ -15,6 +15,7 @@
     >
       <div
         :class="['split-pane-divider__indicator', `split-pane-divider__indicator--${layout}`]"
+        :style="indicatorStyle"
         @dblclick.stop="onIndicatorDblClick"
       />
     </div>
@@ -35,12 +36,18 @@ const props = withDefaults(
     insetStart?: number
     /** Inset from the end edge (bottom for horizontal, right for vertical) in px */
     insetEnd?: number
+    /** Indicator thickness (short side), CSS value */
+    indicatorWidth?: string
+    /** Indicator length (long side), CSS value */
+    indicatorHeight?: string
   }>(),
   {
     resizable: true,
     gap: 0,
     insetStart: 0,
     insetEnd: 0,
+    indicatorWidth: '2px',
+    indicatorHeight: '24px',
   },
 )
 
@@ -52,6 +59,15 @@ const emit = defineEmits<{
 }>()
 
 const isHorizontal = computed(() => props.layout === 'horizontal')
+
+// Indicator style: for horizontal, width=short side, height=long side; for vertical, swap
+const indicatorStyle = computed(() => {
+  if (isHorizontal.value) {
+    return { width: props.indicatorWidth, height: props.indicatorHeight }
+  } else {
+    return { width: props.indicatorHeight, height: props.indicatorWidth }
+  }
+})
 
 const wrapStyle = computed(() => {
   return isHorizontal.value
@@ -194,15 +210,6 @@ function onIndicatorDblClick() {
   transition: background-color 0.15s ease;
 }
 
-.split-pane-divider__indicator--horizontal {
-  width: 20%;
-  height: 30%;
-}
-
-.split-pane-divider__indicator--vertical {
-  width: 30%;
-  height: 20%;
-}
 
 .split-pane-divider__dragger:hover .split-pane-divider__indicator,
 .split-pane-divider--active .split-pane-divider__indicator {
