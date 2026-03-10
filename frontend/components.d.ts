@@ -12,6 +12,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ElInputNumber: typeof import('element-plus/es')['ElInputNumber']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     IconCommunity: typeof import('./src/components/icons/IconCommunity.vue')['default']
     IconDocumentation: typeof import('./src/components/icons/IconDocumentation.vue')['default']
@@ -20,6 +21,9 @@ declare module 'vue' {
     IconTooling: typeof import('./src/components/icons/IconTooling.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SplitPane: typeof import('./src/components/SplitPane/SplitPane.vue')['default']
+    SplitPaneDivider: typeof import('./src/components/SplitPane/SplitPaneDivider.vue')['default']
+    SplitPanePanel: typeof import('./src/components/SplitPane/SplitPanePanel.vue')['default']
     TheWelcome: typeof import('./src/components/TheWelcome.vue')['default']
     WelcomeItem: typeof import('./src/components/WelcomeItem.vue')['default']
   }
@@ -27,6 +31,7 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const ElInputNumber: typeof import('element-plus/es')['ElInputNumber']
   const HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
   const IconCommunity: typeof import('./src/components/icons/IconCommunity.vue')['default']
   const IconDocumentation: typeof import('./src/components/icons/IconDocumentation.vue')['default']
@@ -35,6 +40,9 @@ declare global {
   const IconTooling: typeof import('./src/components/icons/IconTooling.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
+  const SplitPane: typeof import('./src/components/SplitPane/SplitPane.vue')['default']
+  const SplitPaneDivider: typeof import('./src/components/SplitPane/SplitPaneDivider.vue')['default']
+  const SplitPanePanel: typeof import('./src/components/SplitPane/SplitPanePanel.vue')['default']
   const TheWelcome: typeof import('./src/components/TheWelcome.vue')['default']
   const WelcomeItem: typeof import('./src/components/WelcomeItem.vue')['default']
 }
