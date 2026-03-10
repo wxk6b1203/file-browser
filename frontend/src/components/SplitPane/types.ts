@@ -12,6 +12,8 @@ export interface PanelState {
   maxSize?: number | string
   resizable: boolean
   borderRadius?: string
+  /** DOM element reference for DOM-order sorting */
+  el?: HTMLElement
 }
 
 /** Context provided by SplitPane to children */

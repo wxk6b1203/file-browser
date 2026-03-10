@@ -78,7 +78,7 @@ const availableSize = computed(() => {
 
 function registerPanel(panel: PanelState) {
   panels.value.push(panel)
-  reindex()
+  sortPanelsByDom()
 }
 
 function unregisterPanel(panel: PanelState) {
@@ -87,6 +87,19 @@ function unregisterPanel(panel: PanelState) {
     panels.value.splice(idx, 1)
     reindex()
   }
+}
+
+/** Sort panels array to match actual DOM order of their elements */
+function sortPanelsByDom() {
+  panels.value.sort((a, b) => {
+    if (!a.el || !b.el) return 0
+    // Node.DOCUMENT_POSITION_FOLLOWING = 4 means a is before b
+    const pos = a.el.compareDocumentPosition(b.el)
+    if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1
+    if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1
+    return 0
+  })
+  reindex()
 }
 
 function reindex() {

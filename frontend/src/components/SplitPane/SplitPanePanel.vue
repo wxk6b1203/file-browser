@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, reactive, ref, watch, type CSSProperties } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, reactive, ref, watch, type CSSProperties } from 'vue'
 import { splitPaneContextKey, type PanelState, type SplitPanePanelProps } from './types'
 import SplitPaneDivider from './SplitPaneDivider.vue'
 
@@ -108,7 +108,10 @@ watch(
 )
 
 // Register / unregister
-context.registerPanel(panelState)
+onMounted(() => {
+  panelState.el = panelEl.value
+  context.registerPanel(panelState)
+})
 onBeforeUnmount(() => context.unregisterPanel(panelState))
 
 // Computed: this panel's pixel size

@@ -12,7 +12,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    ElInputNumber: typeof import('element-plus/es')['ElInputNumber']
+    ElButton: typeof import('element-plus/es')['ElButton']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     IconCommunity: typeof import('./src/components/icons/IconCommunity.vue')['default']
     IconDocumentation: typeof import('./src/components/icons/IconDocumentation.vue')['default']
@@ -24,6 +24,12 @@ declare module 'vue' {
     SplitPane: typeof import('./src/components/SplitPane/SplitPane.vue')['default']
     SplitPaneDivider: typeof import('./src/components/SplitPane/SplitPaneDivider.vue')['default']
     SplitPanePanel: typeof import('./src/components/SplitPane/SplitPanePanel.vue')['default']
+    TabBar: typeof import('./src/components/Tabs/TabBar.vue')['default']
+    TabDropOverlay: typeof import('./src/components/Tabs/TabDropOverlay.vue')['default']
+    TabGroup: typeof import('./src/components/Tabs/TabGroup.vue')['default']
+    TabHeader: typeof import('./src/components/Tabs/TabHeader.vue')['default']
+    TabNodeRenderer: typeof import('./src/components/Tabs/TabNodeRenderer.vue')['default']
+    Tabs: typeof import('./src/components/Tabs/Tabs.vue')['default']
     TheWelcome: typeof import('./src/components/TheWelcome.vue')['default']
     WelcomeItem: typeof import('./src/components/WelcomeItem.vue')['default']
   }
@@ -31,7 +37,7 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
-  const ElInputNumber: typeof import('element-plus/es')['ElInputNumber']
+  const ElButton: typeof import('element-plus/es')['ElButton']
   const HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
   const IconCommunity: typeof import('./src/components/icons/IconCommunity.vue')['default']
   const IconDocumentation: typeof import('./src/components/icons/IconDocumentation.vue')['default']
@@ -43,6 +49,12 @@ declare global {
   const SplitPane: typeof import('./src/components/SplitPane/SplitPane.vue')['default']
   const SplitPaneDivider: typeof import('./src/components/SplitPane/SplitPaneDivider.vue')['default']
   const SplitPanePanel: typeof import('./src/components/SplitPane/SplitPanePanel.vue')['default']
+  const TabBar: typeof import('./src/components/Tabs/TabBar.vue')['default']
+  const TabDropOverlay: typeof import('./src/components/Tabs/TabDropOverlay.vue')['default']
+  const TabGroup: typeof import('./src/components/Tabs/TabGroup.vue')['default']
+  const TabHeader: typeof import('./src/components/Tabs/TabHeader.vue')['default']
+  const TabNodeRenderer: typeof import('./src/components/Tabs/TabNodeRenderer.vue')['default']
+  const Tabs: typeof import('./src/components/Tabs/Tabs.vue')['default']
   const TheWelcome: typeof import('./src/components/TheWelcome.vue')['default']
   const WelcomeItem: typeof import('./src/components/WelcomeItem.vue')['default']
 }

@@ -95,9 +95,7 @@ const draggerStyle = computed(() => {
       style.transform = 'translateX(-50%)'
     } else {
       style.height = '100%'
-      if (overflows) {
-        style.transform = 'translateX(-50%)'
-      }
+      // Parent flex (justify-content:center) handles centering when dragger overflows gap
     }
   } else {
     style.height = `${size}px`
@@ -111,9 +109,7 @@ const draggerStyle = computed(() => {
       style.transform = 'translateY(-50%)'
     } else {
       style.width = '100%'
-      if (overflows) {
-        style.transform = 'translateY(-50%)'
-      }
+      // Parent flex (align-items:center) handles centering when dragger overflows gap
     }
   }
 
