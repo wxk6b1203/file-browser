@@ -18,7 +18,11 @@ import (
 )
 
 func init() {
-	folder.RegisterDriver[Options]("oss", New)
+	folder.RegisterDriver[Options]("OSS",
+		"Alibaba Cloud Object Storage Service (OSS) — a massive, secure, low-cost, and highly reliable "+
+			"cloud storage service provided by Alibaba Cloud.",
+		New,
+	)
 }
 
 // Driver implements folder.Manager, folder.Reader, folder.Writer,

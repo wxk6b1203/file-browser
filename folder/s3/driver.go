@@ -18,7 +18,11 @@ import (
 )
 
 func init() {
-	folder.RegisterDriver[Options]("s3", New)
+	folder.RegisterDriver[Options]("S3",
+		"Amazon Simple Storage Service (S3) — a scalable object storage service provided by AWS, "+
+			"widely adopted as the de facto standard interface for cloud object storage.",
+		New,
+	)
 }
 
 // Driver implements folder.Manager, folder.Reader, folder.Writer,

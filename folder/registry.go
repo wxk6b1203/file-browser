@@ -44,8 +44,15 @@ func (o *DriverOptions) normalize(driverName, instanceName string) *DriverOption
 type DriverFactory func(ctx context.Context, opt *DriverOptions) (Manager, error)
 
 type driverEntry struct {
-	factory   DriverFactory
-	instances map[string]Manager
+	description string
+	factory     DriverFactory
+	instances   map[string]Manager
+}
+
+// DriverInfo holds the name and description of a registered driver type.
+type DriverInfo struct {
+	Name        string `json:"name" yaml:"name"`
+	Description string `json:"description" yaml:"description"`
 }
 
 var (
@@ -57,8 +64,8 @@ var (
 // Driver type registration
 // ---------------------------------------------------------------------------
 
-// Register registers a driver factory under the given name.
-func Register(name string, factory DriverFactory) error {
+// Register registers a driver factory under the given name with a description.
+func Register(name, description string, factory DriverFactory) error {
 	if name == "" {
 		return fmt.Errorf("register driver: name cannot be empty")
 	}
@@ -72,13 +79,13 @@ func Register(name string, factory DriverFactory) error {
 	if _, ok := registry[name]; ok {
 		return fmt.Errorf("register driver %q: already registered", name)
 	}
-	registry[name] = &driverEntry{factory: factory, instances: make(map[string]Manager)}
+	registry[name] = &driverEntry{description: description, factory: factory, instances: make(map[string]Manager)}
 	return nil
 }
 
 // MustRegister is like Register but panics on error.
-func MustRegister(name string, factory DriverFactory) {
-	if err := Register(name, factory); err != nil {
+func MustRegister(name, description string, factory DriverFactory) {
+	if err := Register(name, description, factory); err != nil {
 		panic(err)
 	}
 }
@@ -88,9 +95,9 @@ func MustRegister(name string, factory DriverFactory) {
 //
 // Usage (in driver init):
 //
-//	folder.RegisterDriver[sftp.Options]("sftp", sftp.New)
-func RegisterDriver[T any](name string, newFn func(context.Context, *DriverOptions, *T) (Manager, error)) {
-	MustRegister(name, func(ctx context.Context, opt *DriverOptions) (Manager, error) {
+//	folder.RegisterDriver[sftp.Options]("sftp", "...", sftp.New)
+func RegisterDriver[T any](name, description string, newFn func(context.Context, *DriverOptions, *T) (Manager, error)) {
+	MustRegister(name, description, func(ctx context.Context, opt *DriverOptions) (Manager, error) {
 		cfg := new(T)
 		if opt != nil && opt.Config != nil {
 			if err := DecodeConfig(opt.Config, cfg); err != nil {
@@ -123,6 +130,32 @@ func RegisteredDrivers() []string {
 	}
 	sort.Strings(names)
 	return names
+}
+
+// RegisteredDriverInfo returns metadata (name + description) for every
+// registered driver type, sorted by name.
+func RegisteredDriverInfo() []DriverInfo {
+	registryMu.RLock()
+	defer registryMu.RUnlock()
+
+	infos := make([]DriverInfo, 0, len(registry))
+	for name, entry := range registry {
+		infos = append(infos, DriverInfo{Name: name, Description: entry.description})
+	}
+	sort.Slice(infos, func(i, j int) bool { return infos[i].Name < infos[j].Name })
+	return infos
+}
+
+// DriverDescription returns the description of a registered driver type.
+func DriverDescription(name string) (string, error) {
+	registryMu.RLock()
+	defer registryMu.RUnlock()
+
+	entry, ok := registry[name]
+	if !ok {
+		return "", fmt.Errorf("%w: %s", ErrUnsupported, name)
+	}
+	return entry.description, nil
 }
 
 // ---------------------------------------------------------------------------

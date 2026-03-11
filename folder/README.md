@@ -49,14 +49,7 @@ Unified file-system abstraction for local and remote backends.
 
 ```go
 func init() {
-    folder.RegisterDriver[mypackage.Options]("my-driver", mypackage.New)
-}
-
-func New(ctx context.Context, opt *folder.DriverOptions, cfg *Options) (folder.Manager, error) {
-    return &Driver{
-        BaseDriver: folder.NewBaseDriver(opt),
-        cfg:        cfg,
-    }, nil
+    folder.RegisterDriver[mypackage.Options]("my-driver", "A brief description of what this driver does.", mypackage.New)
 }
 ```
 
