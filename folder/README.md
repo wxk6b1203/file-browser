@@ -18,7 +18,7 @@ Unified file-system abstraction for local and remote backends.
 - `ID`: stable identifier
 - `Name`: instance name
 - `Description`: human-readable description
-- `Driver`: driver type (`oss`, `s3`, `sftp`, ...)
+- `Driver`: driver type (`oss`, `s3`, `sftp`, `local`, ...)
 - `Root`: logical root path/prefix
 - `Enabled`: enable/disable flag
 - `ReadOnly`: forbid mutating operations in driver implementation
@@ -36,6 +36,7 @@ Unified file-system abstraction for local and remote backends.
 
 ## Built-in driver names
 
+- `local` — Local file system
 - `oss` — Alibaba Cloud OSS
 - `s3` — Amazon S3
 - `sftp` — SFTP
