@@ -9,6 +9,8 @@ Unified file-system abstraction for local and remote backends.
 - `FileInfo`: normalized file metadata (`Name`, `Size`, `LastModified`, `Owner`, ...)
 - `Capabilities`: capability flags for backend-specific behavior
 - `Reader` / `Writer`: optional streaming interfaces
+- `Transferer`: optional interface for optimized (multipart) upload/download with progress tracking
+- `TransferManager`: coordinates async transfers across all drivers with progress, cancellation, and speed tracking
 - `HealthChecker` / `Closer`: optional connection lifecycle hooks (`Ping`, `Close`)
 
 ## Common driver options
@@ -57,3 +59,59 @@ func init() {
 5. Create instances:
    - `folder.NewManager(ctx, "my-driver", options)`
    - `folder.CreateInstance(ctx, "my-driver", "instance-a", options)`
+
+## Async transfer (upload / download) with progress
+
+The `TransferManager` manages async file transfers with progress tracking, speed computation, and cancellation support.
+
+### Quick start
+
+```go
+tm := folder.NewTransferManager()
+
+// Submit an upload task — returns immediately with a task ID.
+taskID, err := tm.Submit(mgr, "S3", "my-bucket", folder.TransferUpload, &folder.TransferRequest{
+    RemotePath: "data/report.csv",
+    LocalPath:  "/tmp/report.csv",
+    PartSize:   10 * 1024 * 1024, // 10 MiB parts (0 = backend default)
+    Concurrency: 5,               // parallel parts (0 = backend default)
+})
+
+// Query progress at any time.
+task := tm.Progress(taskID)
+fmt.Printf("%.1f%% — %d B/s\n",
+    float64(task.BytesTransferred)/float64(task.TotalBytes)*100,
+    task.BytesPerSecond)
+
+// Cancel a running task.
+tm.Cancel(taskID)
+
+// List all tasks.
+tasks := tm.List()
+
+// Clean up finished tasks.
+tm.RemoveAll()
+```
+
+### How driver dispatch works
+
+| Driver implements `Transferer`? | Upload | Download |
+|---|---|---|
+| **Yes** (S3, OSS) | Multipart upload via SDK manager | S3: parallel range download; OSS: single-stream + progress |
+| **No** (SFTP, Local) | Single-stream via `Writer.Write` + progress reader | Single-stream via `Reader.Read` + progress writer |
+
+### Adding `Transferer` to a custom driver
+
+Implement two methods on your driver struct:
+
+```go
+func (d *Driver) Upload(ctx context.Context, req *folder.TransferRequest, fn folder.ProgressFunc) error { ... }
+func (d *Driver) Download(ctx context.Context, req *folder.TransferRequest, fn folder.ProgressFunc) error { ... }
+```
+
+Set `CanTransfer = true` in `Capabilities()` and add a compile-time check:
+
+```go
+var _ folder.Transferer = (*Driver)(nil)
+```
+

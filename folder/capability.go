@@ -11,6 +11,7 @@ type Capabilities struct {
 	CanRename       bool
 	CanMkdir        bool
 	CanPresign      bool
+	CanTransfer     bool // optimized multipart upload/download
 	AtomicMove      bool
 	SupportsVersion bool
 }

@@ -124,6 +124,7 @@ func (d *Driver) Capabilities() folder.Capabilities {
 	caps.CanRead = true
 	caps.CanWrite = true
 	caps.CanPresign = true
+	caps.CanTransfer = true // multipart upload via OSS Uploader
 	caps.AtomicMove = false
 	caps.SupportsVersion = true
 	return caps

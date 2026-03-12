@@ -114,6 +114,7 @@ func (d *Driver) Capabilities() folder.Capabilities {
 	caps.CanRead = true
 	caps.CanWrite = true
 	caps.CanPresign = true
+	caps.CanTransfer = true // multipart upload/download via S3 Transfer Manager
 	// S3 has native copy; move is copy+delete (non-atomic).
 	caps.AtomicMove = false
 	caps.SupportsVersion = true
