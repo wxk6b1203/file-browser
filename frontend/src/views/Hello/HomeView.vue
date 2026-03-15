@@ -13,7 +13,7 @@
       <el-dropdown trigger="click" @command="onThemeCommand">
         <el-button size="small">
           {{ currentTheme.dark ? '🌙' : '☀️' }} {{ currentTheme.label }}
-          <el-icon class="el-icon--right"><arrow-down /></el-icon>
+          <el-icon class="el-icon--right"><i-ep-arrow-down /></el-icon>
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
@@ -59,7 +59,6 @@
 import { ref, defineComponent, h, markRaw } from 'vue'
 import { Tabs, genId, type TabNode, type TabItem } from '@/components/Tabs'
 import { useTheme } from '@/composables/useTheme'
-import { ArrowDown } from '@element-plus/icons-vue'
 
 const { mode, themes, resolvedTheme, currentTheme, isDark, setTheme, SYSTEM_THEME } = useTheme()
 

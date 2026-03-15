@@ -5,6 +5,11 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/blank',
+      name: 'blank',
+      component: () => import('@/views/Blank')
+    },
+    {
       path: '/',
       name: 'home',
       component: HomeView,

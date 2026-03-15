@@ -9,6 +9,8 @@ import tailwindcss from '@tailwindcss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import Icons from 'unplugin-icons/vite'
+import IconsResolver from 'unplugin-icons/resolver'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 
 // https://vite.dev/config/
@@ -19,10 +21,22 @@ export default defineConfig({
     vueDevTools(),
     tailwindcss(),
     AutoImport({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [
+        ElementPlusResolver(),
+        // Auto-import icon components as e.g. `IEpEdit`, `IEpSearch`
+        IconsResolver({ prefix: 'Icon' }),
+      ],
     }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [
+        ElementPlusResolver(),
+        // Auto-register icon components as e.g. `<i-ep-edit />`, `<i-mdi-home />`
+        IconsResolver({ enabledCollections: ['ep', 'mdi'] }),
+      ],
+    }),
+    Icons({
+      autoInstall: true,
+      compiler: 'vue3',
     }),
     VueI18nPlugin({
       /* options */
