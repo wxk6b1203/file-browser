@@ -121,20 +121,20 @@ function onClose() {
   user-select: none;
   white-space: nowrap;
   font-size: 13px;
-  color: #555;
+  color: var(--theme-color-text);
   border-bottom: 2px solid transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, color 0.15s ease;
   flex-shrink: 0;
   position: relative;
 }
 
 .tab-header:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: var(--theme-color-bg-hover);
 }
 
 .tab-header--active {
-  color: #1677ff;
-  border-bottom-color: #1677ff;
+  color: var(--theme-color-primary);
+  border-bottom-color: var(--theme-color-primary);
 }
 
 .tab-header--dragging {
@@ -151,13 +151,13 @@ function onClose() {
   line-height: 1;
   border-radius: 3px;
   cursor: pointer;
-  color: #999;
+  color: var(--theme-color-text-secondary);
   transition: background-color 0.15s, color 0.15s;
 }
 
 .tab-header__close:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-  color: #333;
+  background-color: var(--theme-color-close-hover);
+  color: var(--theme-color-text-base);
 }
 </style>
 

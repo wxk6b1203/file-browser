@@ -1,0 +1,63 @@
+/*
+ * ─── Light Theme (Default) ──────────────────────────────────
+ *
+ * :root provides the pre-JS fallback so the page isn't unstyled
+ * before the Pinia store sets data-theme.
+ * html[data-theme="light"] provides the explicit high-specificity
+ * selector that the theme switcher activates.
+ */
+:root,
+html[data-theme="light"] {
+  /* ── Brand / Primary ── */
+  --theme-color-primary: #1677ff;
+  --theme-color-primary-hover: #4096ff;
+  --theme-color-primary-active: #0958d9;
+  --theme-color-primary-light: rgba(22, 119, 255, 0.12);
+
+  /* ── Semantic: Success / Warning / Danger / Info ── */
+  --theme-color-success: #52c41a;
+  --theme-color-warning: #faad14;
+  --theme-color-danger: #ff4d4f;
+  --theme-color-info: #1677ff;
+
+  /* ── Text ── */
+  --theme-color-text-base: #333333;
+  --theme-color-text: #555555;
+  --theme-color-text-secondary: #999999;
+  --theme-color-text-placeholder: #bbbbbb;
+  --theme-color-text-disabled: #c0c4cc;
+
+  /* ── Background ── */
+  --theme-color-bg-base: #ffffff;
+  --theme-color-bg-surface: #fafafa;
+  --theme-color-bg-overlay: #ffffff;
+  --theme-color-bg-hover: rgba(0, 0, 0, 0.04);
+  --theme-color-bg-active: rgba(0, 0, 0, 0.06);
+
+  /* ── Border ── */
+  --theme-color-border: #e8e8e8;
+  --theme-color-border-light: #f0f0f0;
+  --theme-color-border-dark: #d9d9d9;
+
+  /* ── Divider (SplitPane) ── */
+  --theme-color-divider: #d1d5db;
+  --theme-color-divider-active: #3b82f6;
+  --theme-color-divider-hover-bg: rgba(59, 130, 246, 0.12);
+
+  /* ── Misc UI ── */
+  --theme-color-close-hover: rgba(0, 0, 0, 0.1);
+  --theme-color-scrollbar: #cccccc;
+  --theme-color-scrollbar-hover: #aaaaaa;
+
+  /* ── Shadows ── */
+  --theme-shadow-float: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --theme-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --theme-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+
+  /* ── Radius ── */
+  --theme-radius-sm: 4px;
+  --theme-radius-md: 6px;
+  --theme-radius-lg: 8px;
+}
+
+

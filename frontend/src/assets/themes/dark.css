@@ -1,0 +1,52 @@
+/*
+ * ─── Dark Theme ─────────────────────────────────────────────
+ */
+html[data-theme="dark"] {
+  /* ── Brand / Primary ── */
+  --theme-color-primary: #3b82f6;
+  --theme-color-primary-hover: #60a5fa;
+  --theme-color-primary-active: #2563eb;
+  --theme-color-primary-light: rgba(59, 130, 246, 0.18);
+
+  /* ── Semantic ── */
+  --theme-color-success: #6ee7b7;
+  --theme-color-warning: #fbbf24;
+  --theme-color-danger: #f87171;
+  --theme-color-info: #60a5fa;
+
+  /* ── Text ── */
+  --theme-color-text-base: #e5e7eb;
+  --theme-color-text: #d1d5db;
+  --theme-color-text-secondary: #9ca3af;
+  --theme-color-text-placeholder: #6b7280;
+  --theme-color-text-disabled: #4b5563;
+
+  /* ── Background ── */
+  --theme-color-bg-base: #1a1a2e;
+  --theme-color-bg-surface: #20213a;
+  --theme-color-bg-overlay: #2a2b45;
+  --theme-color-bg-hover: rgba(255, 255, 255, 0.06);
+  --theme-color-bg-active: rgba(255, 255, 255, 0.1);
+
+  /* ── Border ── */
+  --theme-color-border: #3d3e5c;
+  --theme-color-border-light: #2e2f4a;
+  --theme-color-border-dark: #4a4b6a;
+
+  /* ── Divider ── */
+  --theme-color-divider: #4b5563;
+  --theme-color-divider-active: #60a5fa;
+  --theme-color-divider-hover-bg: rgba(96, 165, 250, 0.18);
+
+  /* ── Misc UI ── */
+  --theme-color-close-hover: rgba(255, 255, 255, 0.12);
+  --theme-color-scrollbar: #4b5563;
+  --theme-color-scrollbar-hover: #6b7280;
+
+  /* ── Shadows ── */
+  --theme-shadow-float: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --theme-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --theme-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.35);
+}
+
+

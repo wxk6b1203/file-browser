@@ -1,0 +1,63 @@
+/*
+ * ─── VS Code Dark+ Theme ───────────────────────────────────
+ *
+ * Faithfully reproduces the Visual Studio Code "Dark+" (default dark)
+ * color scheme. Palette reference:
+ *   - editor.background         #1e1e1e
+ *   - sideBar.background        #252526
+ *   - activityBar.background    #333333
+ *   - editorGroupHeader.tabs    #252526
+ *   - tab.activeBackground      #1e1e1e
+ *   - tab.inactiveBackground    #2d2d2d
+ *   - titleBar.activeBackground #3c3c3c
+ *   - focusBorder               #007fd4
+ *   - foreground                #cccccc
+ *   - button.background         #0e639c
+ */
+html[data-theme="vscode-dark"] {
+  /* ── Brand / Primary (VS Code blue) ── */
+  --theme-color-primary: #007acc;
+  --theme-color-primary-hover: #1a8ad4;
+  --theme-color-primary-active: #005fa3;
+  --theme-color-primary-light: rgba(0, 122, 204, 0.18);
+
+  /* ── Semantic ── */
+  --theme-color-success: #4ec9b0;
+  --theme-color-warning: #cca700;
+  --theme-color-danger: #f44747;
+  --theme-color-info: #3794ff;
+
+  /* ── Text ── */
+  --theme-color-text-base: #cccccc;
+  --theme-color-text: #bbbbbb;
+  --theme-color-text-secondary: #858585;
+  --theme-color-text-placeholder: #5a5a5a;
+  --theme-color-text-disabled: #474747;
+
+  /* ── Background ── */
+  --theme-color-bg-base: #1e1e1e;
+  --theme-color-bg-surface: #252526;
+  --theme-color-bg-overlay: #2d2d2d;
+  --theme-color-bg-hover: rgba(255, 255, 255, 0.05);
+  --theme-color-bg-active: rgba(255, 255, 255, 0.08);
+
+  /* ── Border ── */
+  --theme-color-border: #474747;
+  --theme-color-border-light: #3c3c3c;
+  --theme-color-border-dark: #545454;
+
+  /* ── Divider ── */
+  --theme-color-divider: #474747;
+  --theme-color-divider-active: #007acc;
+  --theme-color-divider-hover-bg: rgba(0, 122, 204, 0.18);
+
+  /* ── Misc UI ── */
+  --theme-color-close-hover: rgba(255, 255, 255, 0.1);
+  --theme-color-scrollbar: rgba(121, 121, 121, 0.4);
+  --theme-color-scrollbar-hover: rgba(100, 100, 100, 0.7);
+
+  /* ── Shadows ── */
+  --theme-shadow-float: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --theme-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --theme-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+}

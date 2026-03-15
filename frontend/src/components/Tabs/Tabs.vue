@@ -336,12 +336,12 @@ provide(tabsContextKey, context)
   display: inline-flex;
   align-items: center;
   padding: 6px 14px;
-  background: #fff;
-  border: 1px solid #d9d9d9;
+  background: var(--theme-color-bg-overlay);
+  border: 1px solid var(--theme-color-border-dark);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--theme-shadow-float);
   font-size: 13px;
-  color: #333;
+  color: var(--theme-color-text-base);
   white-space: nowrap;
   user-select: none;
   opacity: 0.92;

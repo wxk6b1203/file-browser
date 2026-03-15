@@ -60,7 +60,7 @@ const overlayOpacity = computed(() => ctx.overlayOpacity.value)
 
 .tab-drop-overlay__zone {
   position: absolute;
-  background-color: #1677ff;
+  background-color: var(--theme-color-primary);
   border-radius: 4px;
   transition: all 0.15s ease;
 }

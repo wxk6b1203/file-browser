@@ -186,10 +186,11 @@ defineExpose({ barEl })
   align-items: stretch;
   overflow-x: auto;
   overflow-y: hidden;
-  background-color: #fafafa;
-  border-bottom: 1px solid #e8e8e8;
+  background-color: var(--theme-color-bg-surface);
+  border-bottom: 1px solid var(--theme-color-border);
   flex-shrink: 0;
   position: relative;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .tab-bar::-webkit-scrollbar {
@@ -197,7 +198,7 @@ defineExpose({ barEl })
 }
 
 .tab-bar::-webkit-scrollbar-thumb {
-  background-color: #ccc;
+  background-color: var(--theme-color-scrollbar);
   border-radius: 1px;
 }
 </style>

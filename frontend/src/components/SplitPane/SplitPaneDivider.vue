@@ -188,7 +188,7 @@ function onIndicatorDblClick() {
 
 .split-pane-divider__dragger:hover,
 .split-pane-divider--active .split-pane-divider__dragger {
-  background-color: rgba(59, 130, 246, 0.12);
+  background-color: var(--theme-color-divider-hover-bg);
 }
 
 .split-pane-divider--disabled .split-pane-divider__dragger {
@@ -202,18 +202,18 @@ function onIndicatorDblClick() {
 .split-pane-divider__indicator {
   flex-shrink: 0;
   border-radius: 1px;
-  background-color: #d1d5db;
+  background-color: var(--theme-color-divider);
   transition: background-color 0.15s ease;
 }
 
 
 .split-pane-divider__dragger:hover .split-pane-divider__indicator,
 .split-pane-divider--active .split-pane-divider__indicator {
-  background-color: #3b82f6;
+  background-color: var(--theme-color-divider-active);
 }
 
 .split-pane-divider--disabled .split-pane-divider__dragger:hover .split-pane-divider__indicator {
-  background-color: #d1d5db;
+  background-color: var(--theme-color-divider);
 }
 </style>
 

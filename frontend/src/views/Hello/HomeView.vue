@@ -1,20 +1,42 @@
 <template>
-  <div style="width: 100%; height: 100vh; display: flex; flex-direction: column;">
+  <div class="home-view">
     <!-- Toolbar -->
-    <div style="padding: 8px 16px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;">
+    <div class="home-view__toolbar">
       <el-button size="small" @click="addTab">+ 添加标签</el-button>
       <el-button size="small" @click="resetLayout">重置布局</el-button>
-      <span style="font-size: 12px; color: #999;">
+      <span class="home-view__hint">
         拖拽标签头排序 · 拖到内容区上/下/左/右分屏 · 关闭标签自动合并
       </span>
+
+      <!-- 主题切换 -->
+      <div class="home-view__toolbar-spacer" />
+      <el-dropdown trigger="click" @command="onThemeCommand">
+        <el-button size="small">
+          {{ currentTheme.dark ? '🌙' : '☀️' }} {{ currentTheme.label }}
+          <el-icon class="el-icon--right"><arrow-down /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item
+              v-for="t in themes"
+              :key="t.id"
+              :command="t.id"
+              :class="{ 'is-active': t.id === resolvedTheme }"
+            >
+              {{ t.dark ? '🌙' : '☀️' }} {{ t.label }}
+            </el-dropdown-item>
+            <el-dropdown-item divided :command="SYSTEM_THEME" :class="{ 'is-active': mode === SYSTEM_THEME }">
+              🖥️ 跟随系统
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </div>
 
     <!-- Tabs -->
     <div style="flex: 1; overflow: hidden;">
       <Tabs
         v-model="layout"
-        bar-background="#fafafa"
-        tab-background="#ffffff"
         :overlay-opacity="0.18"
         :min-split-width="120"
         :min-split-height="100"
@@ -26,9 +48,9 @@
     </div>
 
     <!-- Event log -->
-    <div style="height: 120px; overflow-y: auto; border-top: 1px solid #e8e8e8; padding: 8px 16px; font-size: 12px; font-family: monospace; background: #fafafa; flex-shrink: 0;">
-      <div v-for="(log, i) in logs" :key="i" style="color: #666;">{{ log }}</div>
-      <div v-if="logs.length === 0" style="color: #bbb;">事件日志将显示在这里...</div>
+    <div class="home-view__log">
+      <div v-for="(log, i) in logs" :key="i" class="home-view__log-item">{{ log }}</div>
+      <div v-if="logs.length === 0" class="home-view__log-empty">事件日志将显示在这里...</div>
     </div>
   </div>
 </template>
@@ -36,6 +58,14 @@
 <script setup lang="ts">
 import { ref, defineComponent, h, markRaw } from 'vue'
 import { Tabs, genId, type TabNode, type TabItem } from '@/components/Tabs'
+import { useTheme } from '@/composables/useTheme'
+import { ArrowDown } from '@element-plus/icons-vue'
+
+const { mode, themes, resolvedTheme, currentTheme, isDark, setTheme, SYSTEM_THEME } = useTheme()
+
+function onThemeCommand(command: string) {
+  setTheme(command)
+}
 
 // ─── Sample content components ──────────────────────────────
 
@@ -62,7 +92,7 @@ const DemoPanel = markRaw(defineComponent({
             backgroundColor: props.color,
             fontSize: '18px',
             fontWeight: '500',
-            color: '#555',
+            color: 'var(--theme-color-text)',
             userSelect: 'none',
             gap: '8px',
           },
@@ -70,7 +100,7 @@ const DemoPanel = markRaw(defineComponent({
         [
           h('div', { style: { fontSize: '32px' } }, '📄'),
           h('div', {}, props.title),
-          h('div', { style: { fontSize: '12px', color: '#aaa' } }, '拖拽标签头试试'),
+          h('div', { style: { fontSize: '12px', color: 'var(--theme-color-text-secondary)' } }, '拖拽标签头试试'),
         ],
       )
   },
@@ -165,4 +195,50 @@ function onSplit(tabId: string, zone: string) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.home-view {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--theme-color-bg-base);
+}
+
+.home-view__toolbar {
+  padding: 8px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid var(--theme-color-border);
+  flex-shrink: 0;
+}
+
+.home-view__toolbar-spacer {
+  flex: 1;
+}
+
+.home-view__hint {
+  font-size: 12px;
+  color: var(--theme-color-text-secondary);
+}
+
+.home-view__log {
+  height: 120px;
+  overflow-y: auto;
+  border-top: 1px solid var(--theme-color-border);
+  padding: 8px 16px;
+  font-size: 12px;
+  font-family: monospace;
+  background: var(--theme-color-bg-surface);
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.home-view__log-item {
+  color: var(--theme-color-text);
+}
+
+.home-view__log-empty {
+  color: var(--theme-color-text-placeholder);
+}
+</style>
