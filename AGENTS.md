@@ -6,8 +6,10 @@ Wails v2 desktop app: Go backend + Vue 3 frontend. The Go side exposes methods t
 
 ### Backend (Go)
 
-- **`folder/`** — Core abstraction layer. `Manager` interface (`driver.go`) defines unified file operations (List, Stat, Copy, Move, Delete, Mkdir). Optional interfaces: `Reader`, `Writer`, `Presigner`, `HealthChecker`, `Closer`.
-- **`folder/<backend>/`** — Concrete drivers: `s3`, `alibaba-oss` (registered as `"oss"`), `sftp`. Each lives in its own sub-package.
+- **`folder/`** — Core abstraction layer. `Manager` interface (`driver.go`) defines unified file operations (List, Stat, Exist, Copy, Move, Rename, Delete, Mkdir). Optional interfaces: `Reader`, `Writer`, `Presigner`, `Transferer`, `HealthChecker`, `Closer`. `Capabilities` struct (`capability.go`) lets callers query backend-specific constraints at runtime.
+- **`folder/<backend>/`** — Concrete drivers: `s3` (registered as `"S3"`), `alibaba-oss` (registered as `"OSS"`), `sftp` (registered as `"SFTP"`), `local` (registered as `"Local"`). Each lives in its own sub-package.
+- **`folder/transfer_manager.go`** — `TransferManager` coordinates async upload/download tasks with progress tracking, speed computation, and cancellation. Uses `Transferer` interface for optimized multipart transfers; falls back to `Reader`/`Writer` single-stream path.
+- **`shortcut/`** — Keyboard shortcut (accelerator) framework. Go-side `Dispatcher` receives `"shortcut:fired"` events from the frontend and dispatches to registered Go handlers (`d.On("save", func(){ … })`). The frontend `useShortcut` composable owns all shortcut definitions, handles `keydown` listening, and accelerator matching; it emits `"shortcut:fired"` to Go on every match. `Dispatcher.Emit()` lets Go programmatically trigger shortcuts on the frontend.
 - **`config/`** — App-level config structs (`AppOptions`, `FolderOptions`).
 - **`logging/`** — Zap-based logging with rotating file support via `timberjack`. Call `logging.InitLogging()` once. Uses `zap.S()` / `zap.L()` globally.
 
@@ -15,8 +17,10 @@ Wails v2 desktop app: Go backend + Vue 3 frontend. The Go side exposes methods t
 
 - Vite + Vue 3 Composition API (`<script setup lang="ts">`)
 - Element Plus (auto-imported via `unplugin-vue-components`), Tailwind CSS v4
+- `unplugin-icons` with `@iconify-json/ep` and `@iconify-json/mdi` icon sets (use `<i-ep-edit />` or auto-imported `IEpEdit`)
 - vue-i18n with locale JSONs in `src/locales/{en,zh}.json` (default locale: `zh`)
 - Pinia for state, vue-router for routing
+- Multi-theme system: `stores/theme.ts` (`BUILTIN_THEMES`, system preference support), `composables/useTheme.ts`, CSS files in `src/assets/themes/`
 - Custom components: `SplitPane` and `Tabs` (drag-to-split tab system) in `src/components/`
 
 ## Key Patterns
@@ -42,7 +46,7 @@ Every driver follows the same pattern (see `folder/sftp/driver.go` as the simple
 
 ### Error sentinels
 
-Use the sentinel errors in `folder/errors.go` (`ErrNotFound`, `ErrAlreadyExist`, `ErrUnsupported`, `ErrReadOnly`, `ErrInvalidPath`). Wrap with `%w` for `errors.Is()` compatibility. Helper: `folder.IsNotFound(err)`.
+Use the sentinel errors in `folder/errors.go` (`ErrNotFound`, `ErrAlreadyExist`, `ErrUnsupported`, `ErrReadOnly`, `ErrInvalidPath`, `ErrTransferCancelled`). Wrap with `%w` for `errors.Is()` compatibility. Helper: `folder.IsNotFound(err)`.
 
 ### Wails bindings
 
@@ -65,9 +69,12 @@ npm run test:unit  # vitest
 
 ## Testing
 
-Driver tests (`folder/s3/driver_test.go`, `folder/alibaba-oss/driver_test.go`) are **integration tests** that require real credentials via environment variables and skip automatically when unset:
+Driver tests (`folder/s3/driver_test.go`, `folder/alibaba-oss/driver_test.go`, `folder/sftp/driver_test.go`) are **integration tests** that require real credentials via environment variables and skip automatically when unset:
 - S3: `S3_ACCESS_KEY_ID`, `S3_ACCESS_KEY_SECRET`, `S3_REGION`, `S3_BUCKET`
 - OSS: `OSS_ACCESS_KEY_ID`, `OSS_ACCESS_KEY_SECRET`, `OSS_REGION`, `OSS_BUCKET`
+- SFTP: `SFTP_ADDRESS`, `SFTP_USERNAME`, `SFTP_PASSWORD` or `SFTP_PRIVATE_KEY`
+
+`folder/local/driver_test.go` uses `t.TempDir()` — pure unit tests, no credentials needed.
 
 Test helpers: `envOrSkip(t, key)` skips gracefully; `testDir(t)` generates collision-free paths.
 

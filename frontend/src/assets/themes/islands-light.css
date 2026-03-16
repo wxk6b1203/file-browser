@@ -1,0 +1,66 @@
+/*
+ * ─── Islands Light Theme ────────────────────────────────────
+ *
+ * GoLand New UI Light–inspired foundation with island teal accent.
+ * Clean low-saturation gray backgrounds (subtle cool tint),
+ * crisp text hierarchy, and minimal shadows — à la JetBrains.
+ * The teal primary gives it the tropical-island identity,
+ * mirroring islands-dark in a light palette.
+ *
+ * Palette reference (GoLand Light ↔ Islands mapping):
+ *   - Editor bg       GoLand #ffffff → #f9fafb (cool whisper)
+ *   - Tool window     GoLand #f7f8fa → #f1f3f6
+ *   - Popup/overlay   GoLand #ffffff → #ffffff
+ *   - Accent          GoLand #3574f0 → #0d9488 (island teal, darkened for light bg)
+ *   - Foreground      GoLand #1e1f22 → #1c1f24
+ *   - Muted text      GoLand #6f737a → #6e7480
+ *   - Border          GoLand #d1d5db → #d0d5dd
+ */
+html[data-theme="islands-light"] {
+  /* ── Brand / Primary (Island Teal — darkened for readable contrast on light bg) ── */
+  --theme-color-primary: #0d9488;
+  --theme-color-primary-hover: #14b8a6;
+  --theme-color-primary-active: #0f766e;
+  --theme-color-primary-light: rgba(13, 148, 136, 0.10);
+
+  /* ── Semantic (GoLand-tuned, slightly tropical shift) ── */
+  --theme-color-success: #16a34a;
+  --theme-color-warning: #d97706;
+  --theme-color-danger: #dc2626;
+  --theme-color-info: #2563eb;
+
+  /* ── Text (GoLand hierarchy: dark → medium → muted) ── */
+  --theme-color-text-base: #1c1f24;
+  --theme-color-text: #3b404a;
+  --theme-color-text-secondary: #6e7480;
+  --theme-color-text-placeholder: #a0a6b1;
+  --theme-color-text-disabled: #c4c9d2;
+
+  /* ── Background (GoLand layering with subtle cool tint) ── */
+  --theme-color-bg-base: #f9fafb;
+  --theme-color-bg-surface: #f1f3f6;
+  --theme-color-bg-overlay: #ffffff;
+  --theme-color-bg-hover: rgba(13, 148, 136, 0.05);
+  --theme-color-bg-active: rgba(13, 148, 136, 0.10);
+
+  /* ── Border (GoLand-subtle, low contrast) ── */
+  --theme-color-border: #d0d5dd;
+  --theme-color-border-light: #e2e6ec;
+  --theme-color-border-dark: #b8bfc9;
+
+  /* ── Divider ── */
+  --theme-color-divider: #d0d5dd;
+  --theme-color-divider-active: #0d9488;
+  --theme-color-divider-hover-bg: rgba(13, 148, 136, 0.10);
+
+  /* ── Misc UI ── */
+  --theme-color-close-hover: rgba(0, 0, 0, 0.06);
+  --theme-color-scrollbar: rgba(0, 0, 0, 0.14);
+  --theme-color-scrollbar-hover: rgba(0, 0, 0, 0.26);
+
+  /* ── Shadows (GoLand-minimal) ── */
+  --theme-shadow-float: 0 4px 12px rgba(0, 0, 0, 0.10);
+  --theme-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --theme-shadow-md: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+

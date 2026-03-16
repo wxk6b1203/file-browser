@@ -15,10 +15,11 @@ export interface ThemeDefinition {
 
 /** All built-in themes. To add one: create the CSS file, then add an entry here. */
 export const BUILTIN_THEMES: ThemeDefinition[] = [
-  { id: 'light',        label: '浅色',          dark: false },
-  { id: 'dark',         label: '深色',          dark: true  },
-  { id: 'vscode-dark',  label: 'VS Code Dark',  dark: true  },
-  { id: 'islands-dark', label: 'Islands Dark',   dark: true  },
+  { id: 'light',         label: '浅色',           dark: false },
+  { id: 'dark',          label: '深色',           dark: true  },
+  { id: 'vscode-dark',   label: 'VS Code Dark',   dark: true  },
+  { id: 'islands-light', label: 'Islands Light',   dark: false },
+  { id: 'islands-dark',  label: 'Islands Dark',    dark: true  },
 ]
 
 /**

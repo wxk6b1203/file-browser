@@ -23,6 +23,7 @@
 @import "./themes/dark.css";
 @import "./themes/vscode-dark.css";
 @import "./themes/islands-dark.css";
+@import "./themes/islands-light.css";
 
 /*
  * ─── Element Plus variable bridge ───────────────────────────

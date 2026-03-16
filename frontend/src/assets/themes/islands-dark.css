@@ -36,7 +36,7 @@ html[data-theme="islands-dark"] {
   --theme-color-text-disabled: #3f434a;
 
   /* ── Background (GoLand layering with subtle cool tint) ── */
-  --theme-color-bg-base: #1c1f24;
+  --theme-color-bg-base: #26282b;
   --theme-color-bg-surface: #262a30;
   --theme-color-bg-overlay: #2c3038;
   --theme-color-bg-hover: rgba(45, 212, 191, 0.05);

@@ -59,6 +59,7 @@
 import { ref, defineComponent, h, markRaw } from 'vue'
 import { Tabs, genId, type TabNode, type TabItem } from '@/components/Tabs'
 import { useTheme } from '@/composables/useTheme'
+import { useShortcutMap } from '@/composables/useShortcut'
 
 const { mode, themes, resolvedTheme, currentTheme, isDark, setTheme, SYSTEM_THEME } = useTheme()
 
@@ -176,6 +177,13 @@ function addLog(msg: string) {
   logs.value.unshift(`[${time}] ${msg}`)
   if (logs.value.length > 50) logs.value.pop()
 }
+
+// ─── Test shortcut callbacks ────────────────────────────────
+
+useShortcutMap({
+  'new-folder':  () => addLog('⌨️ 快捷键触发: Ctrl+Shift+N (新建文件夹)'),
+  'open-remote': () => addLog('⌨️ 快捷键触发: Ctrl+Shift+O (打开远程)'),
+})
 
 function onDragStart(tab: TabItem, groupId: string) {
   addLog(`🟢 拖拽开始: "${tab.label}" (组: ${groupId})`)

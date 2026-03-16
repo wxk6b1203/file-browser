@@ -13,10 +13,10 @@ import (
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
+	logging.InitLogging(&logging.LogOptions{Level: "info", Path: []string{"stdout"}})
+
 	app := NewApp()
 
-	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "file-browser",
 		Width:  1024,
@@ -26,12 +26,11 @@ func main() {
 		},
 		BackgroundColour: &options.RGBA{R: 255, G: 255, B: 255, A: 1},
 		OnStartup:        app.startup,
+		OnShutdown:       app.shutdown,
 		Bind: []interface{}{
 			app,
 		},
 	})
-
-	logging.InitLogging(&logging.LogOptions{Level: "info", Path: []string{"stdout"}})
 
 	if err != nil {
 		println("Error:", err.Error())
