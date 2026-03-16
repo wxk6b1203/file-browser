@@ -168,10 +168,12 @@ function installListener() {
   document.addEventListener('keydown', onKeyDown, true)
 
   // Also listen for Go-triggered shortcuts (Go → frontend via Emit)
-  EventsOn(SHORTCUT_FIRED_EVENT, (id: string) => {
-    const fns = handlers.get(id)
-    if (fns) fns.forEach((fn) => fn())
-  })
+  if (import.meta.env.VITE_APP_ENV !== 'internal') {
+    EventsOn(SHORTCUT_FIRED_EVENT, (id: string) => {
+      const fns = handlers.get(id)
+      if (fns) fns.forEach((fn) => fn())
+    })
+  }
 }
 
 // ---------------------------------------------------------------------------

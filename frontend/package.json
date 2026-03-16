@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:internal": "vite --mode internal",
+    "dev:public": "vite --mode public",
     "build": "run-p type-check \"build-only {@}\" --",
+    "build:internal": "run-p type-check \"build-only --mode internal\" --",
+    "build:public": "run-p type-check \"build-only --mode public\" --",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",

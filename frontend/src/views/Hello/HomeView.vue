@@ -183,6 +183,7 @@ function addLog(msg: string) {
 useShortcutMap({
   'new-folder':  () => addLog('⌨️ 快捷键触发: Ctrl+Shift+N (新建文件夹)'),
   'open-remote': () => addLog('⌨️ 快捷键触发: Ctrl+Shift+O (打开远程)'),
+  'rename': () => addLog('⌨️ 快捷键触发: F2 (重命名)'),
 })
 
 function onDragStart(tab: TabItem, groupId: string) {
