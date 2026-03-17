@@ -1,7 +1,7 @@
 <template>
   <div
     ref="panelEl"
-    :class="['split-pane-panel', props.customClass]"
+    :class="['split-pane-panel', props.customClass, { 'split-pane-panel--minimized': panelState.minimized }]"
     :style="panelStyle"
   >
     <slot />
@@ -30,10 +30,12 @@ import SplitPaneDivider from './SplitPaneDivider.vue'
 
 const props = withDefaults(defineProps<SplitPanePanelProps>(), {
   resizable: true,
+  minimized: false,
 })
 
 const emit = defineEmits<{
   'update:size': [value: number]
+  'update:minimized': [value: boolean]
 }>()
 
 const context = inject(splitPaneContextKey)!
@@ -54,6 +56,7 @@ const panelState: PanelState = reactive({
   maxSize: props.maxSize,
   resizable: props.resizable ?? true,
   borderRadius: props.borderRadius,
+  minimized: props.minimized ?? false,
 })
 
 // Sync props to panel state
@@ -88,6 +91,28 @@ watch(
   },
 )
 
+// Sync minimized prop → call context minimize/restore
+watch(
+  () => props.minimized,
+  (val) => {
+    if (val && !panelState.minimized) {
+      context.minimizePanel(panelState.uid)
+    } else if (!val && panelState.minimized) {
+      context.restorePanel(panelState.uid)
+    }
+  },
+)
+
+// Sync internal minimized state → emit update:minimized (for v-model support)
+watch(
+  () => panelState.minimized,
+  (val) => {
+    if (val !== (props.minimized ?? false)) {
+      emit('update:minimized', val)
+    }
+  },
+)
+
 // Keep local index in sync
 watch(
   () => panelState.index,
@@ -119,16 +144,30 @@ const pxSize = computed(() => {
   return context.pxSizes.value[panelIndex.value] ?? 0
 })
 
-// Whether to show divider after this panel
+/** Find the next non-minimized panel after this one */
+function findNextVisible(): PanelState | null {
+  for (let i = panelIndex.value + 1; i < context.panels.value.length; i++) {
+    const p = context.panels.value[i]
+    if (p && !p.minimized) return p
+  }
+  return null
+}
+
+// Whether to show divider after this panel.
+// A non-minimized panel shows a divider when there is at least one
+// non-minimized panel somewhere after it (skipping minimized ones).
 const showDivider = computed(() => {
-  return panelIndex.value < context.panels.value.length - 1
+  if (panelIndex.value >= context.panels.value.length - 1) return false
+  if (panelState.minimized) return false
+  return findNextVisible() !== null
 })
 
-// Whether resize is allowed (both this and next must be resizable)
+// Whether resize is allowed (both this and the effective next visible panel must be resizable)
 const isResizable = computed(() => {
-  const nextPanel = context.panels.value[panelIndex.value + 1]
-  if (!nextPanel) return false
-  return (props.resizable ?? true) && nextPanel.resizable
+  if (panelState.minimized) return false
+  const nextVisible = findNextVisible()
+  if (!nextVisible) return false
+  return (props.resizable ?? true) && nextVisible.resizable
 })
 
 /**
@@ -171,7 +210,7 @@ function parseBorderRadius(val?: string): [number, number, number, number] {
 // For horizontal: insetStart = top inset, insetEnd = bottom inset
 // For vertical:   insetStart = left inset, insetEnd = right inset
 const dividerInset = computed<[number, number]>(() => {
-  const nextPanel = context.panels.value[panelIndex.value + 1]
+  const nextPanel = findNextVisible()
   if (!nextPanel) return [0, 0]
 
   const isH = context.layout.value === 'horizontal'
@@ -199,10 +238,15 @@ const dividerInset = computed<[number, number]>(() => {
 // Merged style for the panel
 const panelStyle = computed<CSSProperties>(() => {
   const base: CSSProperties = {
-    flexBasis: `${pxSize.value}px`,
+    flexBasis: panelState.minimized ? '0px' : `${pxSize.value}px`,
     flexGrow: 0,
     flexShrink: 0,
     overflow: 'hidden',
+  }
+  if (panelState.minimized) {
+    // Ensure the panel can fully collapse even if content has min-width/height
+    base.minWidth = '0px'
+    base.minHeight = '0px'
   }
   if (props.borderRadius) {
     base.borderRadius = props.borderRadius
@@ -223,6 +267,10 @@ defineExpose({ panelEl })
 .split-pane-panel {
   position: relative;
   box-sizing: border-box;
+}
+
+.split-pane-panel--minimized {
+  pointer-events: none;
 }
 </style>
 

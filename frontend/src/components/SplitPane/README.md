@@ -53,6 +53,19 @@ import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
 | `resize` | `(index: number, sizes: number[])` | 拖拽中持续触发（`lazy` 模式下不触发） |
 | `resizeEnd` | `(index: number, sizes: number[])` | 拖拽结束，`sizes` 为最终像素尺寸 |
 | `resetCenter` | `(index: number, sizes: number[])` | 双击分隔条指示器后触发，两侧面板被重置为等宽/等高 |
+| `panelMinimized` | `(index: number)` | 面板被最小化时触发，`index` 为该面板的索引 |
+| `panelRestored` | `(index: number)` | 面板从最小化状态恢复时触发 |
+
+### `<SplitPane>` Exposed Methods
+
+通过模板 ref 调用：
+
+| 方法 | 签名 | 说明 |
+|---|---|---|
+| `minimizePanel` | `(index: number) => void` | 按索引最小化面板（折叠至 0 大小） |
+| `restorePanel` | `(index: number) => void` | 按索引恢复最小化的面板 |
+| `togglePanel` | `(index: number) => void` | 按索引切换面板的最小化 / 恢复状态 |
+| `isPanelMinimized` | `(index: number) => boolean` | 查询面板是否处于最小化状态 |
 
 ### `<SplitPanePanel>` Props
 
@@ -66,12 +79,14 @@ import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
 | `backgroundColor` | `string` | — | 面板背景色，例如 `'#f5f5f5'`、`'rgba(0,0,0,0.05)'` |
 | `customStyle` | `CSSProperties` | — | 自定义行内样式对象，会与内部样式合并 |
 | `customClass` | `string` | — | 自定义 CSS 类名 |
+| `minimized` | `boolean` | `false` | 是否最小化面板（折叠至 0 大小）。支持 `v-model:minimized` 双向绑定 |
 
 ### `<SplitPanePanel>` Events
 
 | 事件名 | 回调参数 | 说明 |
 |---|---|---|
 | `update:size` | `(value: number)` | 面板大小因拖拽改变时触发，可配合 `v-model:size` 使用 |
+| `update:minimized` | `(value: boolean)` | 面板最小化状态改变时触发，可配合 `v-model:minimized` 使用 |
 
 ---
 
@@ -295,6 +310,108 @@ const sidebarWidth = ref(300)
   </SplitPanePanel>
 </SplitPane>
 ```
+
+### 12. 面板最小化 — 使用 `v-model:minimized` 外部控制
+
+通过 `v-model:minimized` 可以双向绑定面板的最小化状态。最小化后面板折叠至 0 大小，相邻面板自动填充空间。
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
+
+const sidebarMinimized = ref(false)
+</script>
+
+<template>
+  <div>
+    <button @click="sidebarMinimized = !sidebarMinimized">
+      {{ sidebarMinimized ? '展开侧栏' : '收起侧栏' }}
+    </button>
+
+    <SplitPane layout="horizontal" style="height: 400px">
+      <SplitPanePanel
+        v-model:minimized="sidebarMinimized"
+        size="250px"
+        min-size="150px"
+      >
+        侧栏内容
+      </SplitPanePanel>
+      <SplitPanePanel>
+        主内容
+      </SplitPanePanel>
+    </SplitPane>
+  </div>
+</template>
+```
+
+### 13. 面板最小化 — 使用 ref 命令式控制
+
+通过 `SplitPane` 的 `ref` 可以调用 `minimizePanel` / `restorePanel` / `togglePanel` 方法，按面板索引（0-based）操控。
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
+
+const splitRef = ref<InstanceType<typeof SplitPane>>()
+</script>
+
+<template>
+  <div>
+    <button @click="splitRef?.togglePanel(0)">切换左侧面板</button>
+    <button @click="splitRef?.togglePanel(2)">切换右侧面板</button>
+
+    <SplitPane ref="splitRef" layout="horizontal" style="height: 400px">
+      <SplitPanePanel size="25%">左侧面板</SplitPanePanel>
+      <SplitPanePanel>主内容</SplitPanePanel>
+      <SplitPanePanel size="25%">右侧面板</SplitPanePanel>
+    </SplitPane>
+  </div>
+</template>
+```
+
+### 14. 最小化后窗口变化 → 恢复时自动居中
+
+当面板处于最小化状态期间，如果窗口 / 容器大小发生了变化，恢复面板时会自动将所有可见面板等分（居中处理），避免出现不合理的尺寸分配。
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
+
+const splitRef = ref<InstanceType<typeof SplitPane>>()
+
+function onMinimized(index: number) {
+  console.log(`面板 ${index} 已最小化`)
+}
+function onRestored(index: number) {
+  console.log(`面板 ${index} 已恢复`)
+}
+</script>
+
+<template>
+  <div>
+    <button @click="splitRef?.togglePanel(0)">切换侧栏</button>
+    <p style="font-size: 12px; color: #999">
+      提示：最小化侧栏后，拖动浏览器窗口改变大小，再恢复侧栏 → 观察所有面板自动等分
+    </p>
+
+    <SplitPane
+      ref="splitRef"
+      layout="horizontal"
+      style="height: 400px"
+      @panel-minimized="onMinimized"
+      @panel-restored="onRestored"
+    >
+      <SplitPanePanel size="30%">侧栏</SplitPanePanel>
+      <SplitPanePanel>主内容</SplitPanePanel>
+    </SplitPane>
+  </div>
+</template>
+```
+
+> **注意**：最小化中间面板（非首尾面板）时，该面板两侧的分隔条均会被隐藏。建议优先用于首尾面板的折叠场景。
 
 ---
 

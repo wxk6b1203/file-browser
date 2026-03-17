@@ -12,6 +12,8 @@ export interface PanelState {
   maxSize?: number | string
   resizable: boolean
   borderRadius?: string
+  /** Whether the panel is minimized (collapsed to 0 size) */
+  minimized: boolean
   /** DOM element reference for DOM-order sorting */
   el?: HTMLElement
 }
@@ -33,6 +35,12 @@ export interface SplitPaneContext {
   onMoving: (index: number, offset: number) => void
   onMoveEnd: (index: number) => void
   onDblClick: (index: number) => void
+  /** Minimize a panel by uid */
+  minimizePanel: (uid: number) => void
+  /** Restore a minimized panel by uid */
+  restorePanel: (uid: number) => void
+  /** Toggle minimize state by uid */
+  togglePanel: (uid: number) => void
 }
 
 /** Injection key for provide/inject */
@@ -56,5 +64,7 @@ export interface SplitPanePanelProps {
   customStyle?: CSSProperties
   /** Custom CSS class */
   customClass?: string
+  /** Whether the panel is minimized (collapsed to 0). Supports v-model:minimized */
+  minimized?: boolean
 }
 

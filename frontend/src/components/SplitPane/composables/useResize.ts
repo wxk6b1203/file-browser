@@ -33,12 +33,18 @@ export function useResize(
     // Determine the actual panel being resized based on drag direction
     if ((!movingIndex.value || !movingIndex.value.confirmed) && offset !== 0) {
       if (offset > 0) {
-        confirmedIndex = index
-        movingIndex.value = { index, confirmed: true }
-      } else {
-        // Find the first non-zero-sized panel at or before this index
+        // Find the first non-minimized, non-zero-sized panel at or before this index
         for (let i = index; i >= 0; i--) {
-          if ((cachePxSizes[i] ?? 0) > 0) {
+          if (!panels.value[i]?.minimized && (cachePxSizes[i] ?? 0) >= 0) {
+            confirmedIndex = i
+            movingIndex.value = { index: i, confirmed: true }
+            break
+          }
+        }
+      } else {
+        // Find the first non-minimized, non-zero-sized panel at or before this index
+        for (let i = index; i >= 0; i--) {
+          if (!panels.value[i]?.minimized && (cachePxSizes[i] ?? 0) > 0) {
             confirmedIndex = i
             movingIndex.value = { index: i, confirmed: true }
             break
@@ -49,9 +55,17 @@ export function useResize(
 
     const mergedIndex = confirmedIndex ?? movingIndex.value?.index ?? index
     const numSizes = [...cachePxSizes]
-    const nextIndex = mergedIndex + 1
 
-    if (nextIndex >= numSizes.length) return
+    // Find the next non-minimized panel after mergedIndex
+    let nextIndex = -1
+    for (let i = mergedIndex + 1; i < panels.value.length; i++) {
+      if (!panels.value[i]?.minimized) {
+        nextIndex = i
+        break
+      }
+    }
+
+    if (nextIndex < 0 || nextIndex >= numSizes.length) return
 
     const currentSize = numSizes[mergedIndex] ?? 0
     const nextSize = numSizes[nextIndex] ?? 0

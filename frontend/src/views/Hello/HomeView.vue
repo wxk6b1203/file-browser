@@ -33,10 +33,104 @@
       </el-dropdown>
     </div>
 
+    <!-- ─── SplitPane Minimize Demo ─────────────────────── -->
+    <div class="home-view__split-demo">
+      <div class="home-view__split-toolbar">
+        <strong>SplitPane 最小化演示</strong>
+        <el-button size="small" @click="leftMin = !leftMin">
+          {{ leftMin ? '↔ 展开左侧栏' : '← 最小化左侧栏' }}
+        </el-button>
+        <el-button size="small" @click="rightMin = !rightMin">
+          {{ rightMin ? '↔ 展开右侧栏' : '→ 最小化右侧栏' }}
+        </el-button>
+        <el-button size="small" @click="splitRef?.togglePanel(1)">
+          ref 切换中间面板
+        </el-button>
+        <el-button size="small" @click="bottomMin = !bottomMin">
+          {{ bottomMin ? '↕ 展开底栏' : '↓ 最小化底栏' }}
+        </el-button>
+        <span style="font-size:12px;color:var(--theme-color-text-secondary)">
+          提示：最小化后拖动窗口大小再还原 → 自动居中
+        </span>
+      </div>
+
+      <!-- 外层水平分割：左侧栏 | 中间（含垂直分割） | 右侧�� -->
+      <SplitPane
+        ref="splitRef"
+        layout="horizontal"
+        :gap="6"
+        class="home-view__split-container"
+        @panel-minimized="(i: number) => addLog(`📌 水平面板 ${i} 最小化`)"
+        @panel-restored="(i: number) => addLog(`📌 水平面板 ${i} 已还原`)"
+      >
+        <SplitPanePanel
+          v-model:minimized="leftMin"
+          size="20%"
+          min-size="80px"
+          border-radius="8px"
+          background-color="var(--theme-color-bg-surface)"
+        >
+          <div class="demo-panel">
+            <div style="font-size:24px">📂</div>
+            <div>左侧栏</div>
+            <div class="demo-panel__sub">horizontal → 向左折叠</div>
+          </div>
+        </SplitPanePanel>
+
+        <SplitPanePanel border-radius="8px">
+          <!-- 内层垂直分割：主区域 | 底栏 -->
+          <SplitPane
+            layout="vertical"
+            :gap="6"
+            @panel-minimized="(i: number) => addLog(`📌 垂直面板 ${i} 最小化`)"
+            @panel-restored="(i: number) => addLog(`📌 垂直面板 ${i} 已还原`)"
+          >
+            <SplitPanePanel
+              border-radius="8px"
+              background-color="var(--theme-color-bg-surface)"
+            >
+              <div class="demo-panel">
+                <div style="font-size:24px">📝</div>
+                <div>主内容区</div>
+              </div>
+            </SplitPanePanel>
+
+            <SplitPanePanel
+              v-model:minimized="bottomMin"
+              size="30%"
+              min-size="50px"
+              border-radius="8px"
+              background-color="var(--theme-color-bg-surface)"
+            >
+              <div class="demo-panel">
+                <div style="font-size:24px">💻</div>
+                <div>底栏</div>
+                <div class="demo-panel__sub">vertical → 向下折叠</div>
+              </div>
+            </SplitPanePanel>
+          </SplitPane>
+        </SplitPanePanel>
+
+        <SplitPanePanel
+          v-model:minimized="rightMin"
+          size="20%"
+          min-size="80px"
+          border-radius="8px"
+          background-color="var(--theme-color-bg-surface)"
+        >
+          <div class="demo-panel">
+            <div style="font-size:24px">🔍</div>
+            <div>右侧栏</div>
+            <div class="demo-panel__sub">horizontal → 向右折叠</div>
+          </div>
+        </SplitPanePanel>
+      </SplitPane>
+    </div>
+
     <!-- Tabs -->
     <div style="flex: 1; overflow: hidden;">
       <Tabs
-        v-model="layout"
+        v-model="tabLayout"
         :overlay-opacity="0.18"
         :min-split-width="120"
         :min-split-height="100"
@@ -58,6 +152,7 @@
 <script setup lang="ts">
 import { ref, defineComponent, h, markRaw } from 'vue'
 import { Tabs, genId, type TabNode, type TabItem } from '@/components/Tabs'
+import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
 import { useTheme } from '@/composables/useTheme'
 import { useShortcutMap } from '@/composables/useShortcut'
 
@@ -66,6 +161,13 @@ const { mode, themes, resolvedTheme, currentTheme, isDark, setTheme, SYSTEM_THEM
 function onThemeCommand(command: string) {
   setTheme(command)
 }
+
+// ─── SplitPane minimize demo ────────────────────────────────
+
+const splitRef = ref<InstanceType<typeof SplitPane>>()
+const leftMin = ref(false)
+const rightMin = ref(false)
+const bottomMin = ref(false)
 
 // ─── Sample content components ──────────────────────────────
 
@@ -138,12 +240,12 @@ if (initialLayout.type === 'tabs') {
   initialLayout.activeId = initialLayout.tabs[0]?.id ?? ''
 }
 
-const layout = ref<TabNode>(initialLayout)
+const tabLayout = ref<TabNode>(initialLayout)
 
 function addTab() {
   const tab = makeTab()
   // Find the first group node and add the tab there
-  const node = findFirstGroup(layout.value)
+  const node = findFirstGroup(tabLayout.value)
   if (node) {
     node.tabs.push(tab)
     node.activeId = tab.id
@@ -160,10 +262,13 @@ function findFirstGroup(node: TabNode): (TabNode & { type: 'tabs' }) | null {
 }
 
 function resetLayout() {
-  layout.value = makeInitialLayout()
-  if (layout.value.type === 'tabs') {
-    layout.value.activeId = layout.value.tabs[0]?.id ?? ''
+  tabLayout.value = makeInitialLayout()
+  if (tabLayout.value.type === 'tabs') {
+    tabLayout.value.activeId = tabLayout.value.tabs[0]?.id ?? ''
   }
+  leftMin.value = false
+  rightMin.value = false
+  bottomMin.value = false
   logs.value = []
   addLog('🔄 布局已重置')
 }
@@ -229,6 +334,48 @@ function onSplit(tabId: string, zone: string) {
   font-size: 12px;
   color: var(--theme-color-text-secondary);
 }
+
+/* ── SplitPane demo ───────────────────────────────── */
+
+.home-view__split-demo {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--theme-color-border);
+}
+
+.home-view__split-toolbar {
+  padding: 6px 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.home-view__split-container {
+  height: 240px;
+  padding: 4px;
+}
+
+.demo-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--theme-color-text);
+}
+
+.demo-panel__sub {
+  font-size: 11px;
+  color: var(--theme-color-text-secondary);
+}
+
+/* ── Log / Tabs ───────────────────────────────────── */
 
 .home-view__log {
   height: 120px;
