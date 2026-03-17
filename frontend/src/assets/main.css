@@ -3,7 +3,9 @@
 
 /* 基础样式 - 所有屏幕尺寸生效 */
 body {
+    height: 100%;
     margin: 0;
+    padding: 0;
     line-height: 1.6;
     font-family: Inter,
         -apple-system,

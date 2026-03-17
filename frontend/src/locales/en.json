@@ -1,3 +1,18 @@
 {
-  "hello": "Hello"
+  "hello": "Hello",
+  "welcome": {
+    "title": "Welcome to File Manager",
+    "subtitle": "Select a connection to start browsing files",
+    "footerHint": "Use keyboard shortcuts for quick actions"
+  },
+  "shortcuts": {
+    "newConnection": "New Connection",
+    "openConnection": "Open Connection",
+    "settings": "Settings",
+    "commandPalette": "Command Palette"
+  },
+  "actions": {
+    "newConnection": "New Connection",
+    "settings": "Settings"
+  }
 }

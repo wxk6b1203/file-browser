@@ -15,9 +15,13 @@ import (
 const (
 	// EventShortcutFired is emitted by the frontend composable when a
 	// shortcut's keydown is matched. Go listens for this via Dispatcher.
-	// Go can also emit this to programmatically trigger a shortcut on
-	// the frontend side.
 	EventShortcutFired = "shortcut:fired"
+
+	// EventShortcutTrigger is emitted by Go to programmatically trigger a
+	// shortcut on the frontend side. Using a separate event name prevents
+	// the frontend's own EventsEmit from echoing back through EventsOn and
+	// causing double-invocation in the Wails runtime.
+	EventShortcutTrigger = "shortcut:trigger"
 )
 
 // ---------------------------------------------------------------------------
@@ -85,8 +89,10 @@ func (d *Dispatcher) Stop() {
 
 // Emit lets Go programmatically trigger a shortcut on the frontend side.
 // The frontend composable will invoke any registered JS callbacks for this ID.
+// Uses EventShortcutTrigger (not EventShortcutFired) so the frontend's own
+// keydown→EventsEmit path does not echo back and double-fire.
 func (d *Dispatcher) Emit(ctx context.Context, shortcutID string) {
-	wailsRuntime.EventsEmit(ctx, EventShortcutFired, shortcutID)
+	wailsRuntime.EventsEmit(ctx, EventShortcutTrigger, shortcutID)
 }
 
 // dispatch invokes all registered handlers for the given shortcut ID.

@@ -2,10 +2,18 @@ import { onMounted, onUnmounted } from 'vue'
 import { EventsEmit, EventsOn } from '../../wailsjs/runtime/runtime'
 
 // ---------------------------------------------------------------------------
-// Event constant — mirrors Go shortcut.EventShortcutFired
+// Event constants — mirror Go shortcut.EventShortcutFired / EventShortcutTrigger
 // ---------------------------------------------------------------------------
 
+/** Emitted by the frontend to notify Go that a shortcut was pressed. */
 export const SHORTCUT_FIRED_EVENT = 'shortcut:fired'
+
+/**
+ * Emitted by Go to programmatically trigger a shortcut on the frontend.
+ * Kept separate from SHORTCUT_FIRED_EVENT so the frontend's own
+ * EventsEmit does NOT echo back through EventsOn and double-fire handlers.
+ */
+export const SHORTCUT_TRIGGER_EVENT = 'shortcut:trigger'
 
 // ---------------------------------------------------------------------------
 // Shortcut definition type
@@ -168,8 +176,15 @@ function installListener() {
   document.addEventListener('keydown', onKeyDown, true)
 
   // Also listen for Go-triggered shortcuts (Go → frontend via Emit)
+  // Note: we listen on SHORTCUT_TRIGGER_EVENT, NOT SHORTCUT_FIRED_EVENT.
+  // In the Wails runtime, EventsEmit from the frontend is broadcast to ALL
+  // listeners including frontend EventsOn callbacks. If we listened on
+  // SHORTCUT_FIRED_EVENT here, every keydown would fire handlers twice:
+  // once directly in onKeyDown, and once via the echo-back event.
+  // SHORTCUT_TRIGGER_EVENT is only ever emitted by Go (Dispatcher.Emit),
+  // so this callback is exclusively for Go-originated programmatic triggers.
   if (import.meta.env.VITE_APP_ENV !== 'internal') {
-    EventsOn(SHORTCUT_FIRED_EVENT, (id: string) => {
+    EventsOn(SHORTCUT_TRIGGER_EVENT, (id: string) => {
       const fns = handlers.get(id)
       if (fns) fns.forEach((fn) => fn())
     })
