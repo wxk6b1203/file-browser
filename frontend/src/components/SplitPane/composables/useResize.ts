@@ -7,6 +7,7 @@ export function useResize(
   containerSize: Ref<number>,
   pxSizes: Ref<number[]>,
   lazy: Ref<boolean>,
+  maxPanelSizePx?: Ref<number>,
 ) {
   const lazyOffset = ref(0)
   const movingIndex = ref<{ index: number; confirmed: boolean } | null>(null)
@@ -86,6 +87,15 @@ export function useResize(
       mergedOffset = startMaxSize - currentSize
     if (nextSize - mergedOffset > endMaxSize)
       mergedOffset = nextSize - endMaxSize
+
+    // Clamp by global maxPanelSize
+    if (maxPanelSizePx && isFinite(maxPanelSizePx.value)) {
+      const mps = maxPanelSizePx.value
+      if (currentSize + mergedOffset > mps)
+        mergedOffset = mps - currentSize
+      if (nextSize - mergedOffset > mps)
+        mergedOffset = nextSize - mps
+    }
 
     numSizes[mergedIndex] = currentSize + mergedOffset
     numSizes[nextIndex] = nextSize - mergedOffset

@@ -54,7 +54,7 @@
         </span>
       </div>
 
-      <!-- 外层水平分割：左侧栏 | 中间（含垂直分割） | 右侧�� -->
+      <!-- 外层水平分割：左侧栏 | 中间（含垂直分割） | 右侧栏 -->
       <SplitPane
         ref="splitRef"
         layout="horizontal"
@@ -122,6 +122,55 @@
             <div style="font-size:24px">🔍</div>
             <div>右侧栏</div>
             <div class="demo-panel__sub">horizontal → 向右折叠</div>
+          </div>
+        </SplitPanePanel>
+      </SplitPane>
+    </div>
+
+    <!-- ─── SplitPane maxPanelSize Demo ─────────────────────── -->
+    <div class="home-view__split-demo">
+      <div class="home-view__split-toolbar">
+        <strong>maxPanelSize 最大宽度限制演示</strong>
+        <span style="font-size:12px;color:var(--theme-color-text-secondary)">
+          max-panel-size="60%" — 拖拽时任何面板都不超过容器的 60%；双击分割线居中同样受限
+        </span>
+      </div>
+      <SplitPane
+        layout="horizontal"
+        :gap="6"
+        max-panel-size="60%"
+        class="home-view__split-container"
+        @resize-end="(_i: number, sizes: number[]) => addLog(`📏 maxPanel resize: [${sizes.map(s => Math.round(s)).join(', ')}]`)"
+        @reset-center="(_i: number, sizes: number[]) => addLog(`📏 maxPanel dblclick: [${sizes.map(s => Math.round(s)).join(', ')}]`)"
+      >
+        <SplitPanePanel
+          border-radius="8px"
+          background-color="var(--theme-color-bg-surface)"
+        >
+          <div class="demo-panel">
+            <div style="font-size:24px">🅰️</div>
+            <div>面板 A</div>
+            <div class="demo-panel__sub">max 60%</div>
+          </div>
+        </SplitPanePanel>
+        <SplitPanePanel
+          border-radius="8px"
+          background-color="var(--theme-color-bg-surface)"
+        >
+          <div class="demo-panel">
+            <div style="font-size:24px">🅱️</div>
+            <div>面板 B</div>
+            <div class="demo-panel__sub">max 60%</div>
+          </div>
+        </SplitPanePanel>
+        <SplitPanePanel
+          border-radius="8px"
+          background-color="var(--theme-color-bg-surface)"
+        >
+          <div class="demo-panel">
+            <div style="font-size:24px">©️</div>
+            <div>面板 C</div>
+            <div class="demo-panel__sub">max 60%</div>
           </div>
         </SplitPanePanel>
       </SplitPane>

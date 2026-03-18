@@ -44,6 +44,7 @@ import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
 | `gap` | `number` | `0` | 面板之间的间隔距离（像素）。间隔空间不参与面板大小分配 |
 | `indicatorWidth` | `string` | `'2px'` | 分隔条指示器的粗细（短边），CSS 值，如 `'3px'`、`'0.2em'` |
 | `indicatorHeight` | `string` | `'24px'` | 分隔条指示器的长度（长边），CSS 值，如 `'40px'`、`'50%'` |
+| `maxPanelSize` | `number \| string` | — | 全局最大面板尺寸限制（拖拽方向）。支持像素 `'400px'`、百分比 `'60%'`、纯数字（按 px）。拖拽和双击居中均受此约束，任何面板都不会超过该值 |
 
 ### `<SplitPane>` Events
 
@@ -412,6 +413,48 @@ function onRestored(index: number) {
 ```
 
 > **注意**：最小化中间面板（非首尾面板）时，该面板两侧的分隔条均会被隐藏。建议优先用于首尾面板的折叠场景。
+
+### 15. 全局最大面板尺寸限制（maxPanelSize）
+
+设置 `maxPanelSize` 后，拖拽分隔条和双击居中时，任何面板在拖拽方向上的尺寸都不会超过该值。
+
+- 水平分割：限制每个面板的最大**宽度**
+- 垂直分割：限制每个面板的最大**高度**
+
+支持像素值 `'400px'`、百分比 `'60%'` 或纯数字（按 px 处理）。
+
+```vue
+<script setup lang="ts">
+import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
+</script>
+
+<template>
+  <!-- 每个面板最多占容器的 60% -->
+  <SplitPane layout="horizontal" max-panel-size="60%" style="height: 300px">
+    <SplitPanePanel border-radius="8px" background-color="#f0f9ff">
+      面板 A — 拖拽到 60% 后无法继续放大
+    </SplitPanePanel>
+    <SplitPanePanel border-radius="8px" background-color="#fef9f0">
+      面板 B — 同样受限于 60%
+    </SplitPanePanel>
+  </SplitPane>
+
+  <!-- 三栏布局：每个面板最多 500px -->
+  <SplitPane layout="horizontal" :max-panel-size="500" :gap="8" style="height: 300px">
+    <SplitPanePanel border-radius="8px" background-color="#f5f5f5">
+      侧栏
+    </SplitPanePanel>
+    <SplitPanePanel border-radius="8px">
+      主内容
+    </SplitPanePanel>
+    <SplitPanePanel border-radius="8px" background-color="#f5f5f5">
+      详情
+    </SplitPanePanel>
+  </SplitPane>
+</template>
+```
+
+> `maxPanelSize` 与每个面板自身的 `maxSize` 属性会同时生效，取两者中更小的值作为实际上限。双击分隔条居中时也会遵守此约束。
 
 ---
 

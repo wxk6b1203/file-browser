@@ -36,6 +36,8 @@ const props = withDefaults(
     indicatorWidth?: string
     /** Indicator length (the long side), CSS value e.g. '24px', '50%'. Default '24px' */
     indicatorHeight?: string
+    /** Global max panel size in the drag direction. CSS value e.g. '400px', '60%', or number (px). Each panel cannot exceed this during drag or double-click reset. */
+    maxPanelSize?: number | string
   }>(),
   {
     layout: 'horizontal',
@@ -127,12 +129,19 @@ watch(panels, () => {
 // Size calculation
 const { percentSizes, pxSizes } = useSize(panels, availableSize)
 
+// Global max panel size in px
+const maxPanelSizePx = computed(() => {
+  if (props.maxPanelSize === undefined || props.maxPanelSize === null) return Infinity
+  return parseSizeToPx(props.maxPanelSize, availableSize.value, Infinity)
+})
+
 // Resize logic
 const { lazyOffset, movingIndex, onMoveStart, onMoving, onMoveEnd } = useResize(
   panels,
   availableSize,
   pxSizes,
   lazy,
+  maxPanelSizePx,
 )
 
 // Event wrappers
@@ -188,6 +197,13 @@ const onResetCenter = (index: number) => {
   // Clamp right panel (total - half)
   if (total - half < rightMin) half = total - rightMin
   if (total - half > rightMax) half = total - rightMax
+
+  // Clamp by global maxPanelSize
+  const mps = maxPanelSizePx.value
+  if (isFinite(mps)) {
+    if (half > mps) half = mps
+    if (total - half > mps) half = total - mps
+  }
 
   leftPanel.size = half
   rightPanel.size = total - half
