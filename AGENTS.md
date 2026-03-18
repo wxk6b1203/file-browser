@@ -52,7 +52,7 @@ Use the sentinel errors in `folder/errors.go` (`ErrNotFound`, `ErrAlreadyExist`,
 
 Public methods on `App` struct in `app.go` are auto-bound. After adding/changing a method, regenerate bindings with `wails generate module`. Generated TS stubs land in `frontend/wailsjs/go/main/`.
 
-## Build & Dev Commands
+## Build & Dev Commands 
 
 ```bash
 wails dev          # live-reload dev mode (Go + Vite HMR)

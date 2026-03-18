@@ -126,8 +126,8 @@ watch(panels, () => {
   reindex()
 })
 
-// Size calculation
-const { percentSizes, pxSizes } = useSize(panels, availableSize)
+// Size calculation (raw — may violate min/max after container resize)
+const { pxSizes: rawPxSizes } = useSize(panels, availableSize)
 
 // Global max panel size in px
 const maxPanelSizePx = computed(() => {
@@ -135,7 +135,67 @@ const maxPanelSizePx = computed(() => {
   return parseSizeToPx(props.maxPanelSize, availableSize.value, Infinity)
 })
 
-// Resize logic
+// ─── Clamped sizes (always respect min/max) ─────────────────────────────────
+// useSize stores ratios → when the container grows, px sizes scale proportionally
+// and can exceed per-panel maxSize or global maxPanelSize. Instead of trying to
+// fix this reactively via a watcher (which has timing races), we wrap the raw
+// pxSizes in a computed that clamps and redistributes on every read.
+
+const pxSizes = computed(() => {
+  const raw = [...rawPxSizes.value]
+  const avail = availableSize.value
+  if (avail <= 0) return raw
+
+  const nonMin = panels.value.filter((p) => !p.minimized)
+  if (nonMin.length < 2) return raw
+
+  const globalMax = maxPanelSizePx.value
+  let totalExcess = 0
+  let totalDeficit = 0
+  const clamped = new Set<number>()
+
+  // Pass 1 — detect violations
+  for (const p of nonMin) {
+    const i = p.index
+    const maxPx = parseSizeToPx(p.maxSize, avail, Infinity)
+    const minPx = parseSizeToPx(p.minSize, avail, 0)
+    const effectiveMax = Math.min(maxPx, isFinite(globalMax) ? globalMax : Infinity)
+
+    if (isFinite(effectiveMax) && raw[i]! > effectiveMax + 0.5) {
+      totalExcess += raw[i]! - effectiveMax
+      raw[i] = effectiveMax
+      clamped.add(i)
+    } else if (raw[i]! < minPx - 0.5) {
+      totalDeficit += minPx - raw[i]!
+      raw[i] = minPx
+      clamped.add(i)
+    }
+  }
+
+  if (clamped.size === 0) return raw
+
+  // Pass 2 — redistribute the net delta to unclamped panels proportionally
+  const delta = totalExcess - totalDeficit
+  const unclamped = nonMin.map((p) => p.index).filter((i) => !clamped.has(i))
+
+  if (unclamped.length > 0 && Math.abs(delta) > 0.5) {
+    const unclampedTotal = unclamped.reduce((sum, i) => sum + raw[i]!, 0)
+    for (const i of unclamped) {
+      const share = unclampedTotal > 0 ? raw[i]! / unclampedTotal : 1 / unclamped.length
+      raw[i] = raw[i]! + delta * share
+    }
+  }
+
+  return raw
+})
+
+// Clamped percent sizes derived from clamped px sizes
+const percentSizes = computed(() => {
+  const avail = availableSize.value
+  return pxSizes.value.map((px) => (avail > 0 ? px / avail : 0))
+})
+
+// Resize logic (uses clamped pxSizes so drag always starts from a valid state)
 const { lazyOffset, movingIndex, onMoveStart, onMoving, onMoveEnd } = useResize(
   panels,
   availableSize,
