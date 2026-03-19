@@ -179,6 +179,7 @@
     <!-- Tabs -->
     <div style="flex: 1; overflow: hidden;">
       <Tabs
+        ref="tabsRef"
         v-model="tabLayout"
         :overlay-opacity="0.18"
         :min-split-width="120"
@@ -187,6 +188,8 @@
         @tab-drag-end="onDragEnd"
         @tab-reorder="onReorder"
         @tab-split="onSplit"
+        @tab-activate="onTabActivate"
+        @update:model-value="onTabLayoutChange"
       />
     </div>
 
@@ -199,7 +202,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineComponent, h, markRaw } from 'vue'
+import { ref, nextTick, defineComponent, h, markRaw } from 'vue'
 import { Tabs, genId, type TabNode, type TabItem } from '@/components/Tabs'
 import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
 import { useTheme } from '@/composables/useTheme'
@@ -213,6 +216,7 @@ function onThemeCommand(command: string) {
 
 // ─── SplitPane minimize demo ────────────────────────────────
 
+const tabsRef = ref<InstanceType<typeof Tabs>>()
 const splitRef = ref<InstanceType<typeof SplitPane>>()
 const leftMin = ref(false)
 const rightMin = ref(false)
@@ -354,6 +358,37 @@ function onReorder(groupId: string, oldIndex: number, newIndex: number) {
 
 function onSplit(tabId: string, zone: string) {
   addLog(`✂️ 分屏: 标签 ${tabId}, 方向: ${zone}`)
+  // 树变更后 DOM 在下一 tick 才刷新，必须等 nextTick 再查
+  nextTick(() => {
+    if (!tabsRef.value) return
+    const rects = tabsRef.value.getAllNodeRects()
+    console.log(`📐 分屏后所有节点 Rect (${rects.size} 个):`, rects)
+    rects.forEach((rect, id) => {
+      console.log(
+        `  ${id}: x=${Math.round(rect.x)}, y=${Math.round(rect.y)}, ` +
+          `w=${Math.round(rect.width)}, h=${Math.round(rect.height)}`,
+      )
+    })
+  })
+}
+
+function onTabActivate(tab: TabItem, groupId: string) {
+  addLog(`🔘 选中: "${tab.label}" (组: ${groupId})`)
+  nextTick(() => {
+    if (!tabsRef.value) return
+    const rect = tabsRef.value.getNodeRect(groupId)
+    if (rect) {
+      console.log(
+        `📐 [${tab.label}] 所在组 ${groupId} 的 Rect:`,
+        `x=${Math.round(rect.x)}, y=${Math.round(rect.y)}, ` +
+          `w=${Math.round(rect.width)}, h=${Math.round(rect.height)}`,
+      )
+    }
+  })
+}
+
+function onTabLayoutChange(_newTree: TabNode) {
+  // tree changed (drag / split / reorder) — no-op, just for v-model sync
 }
 </script>
 

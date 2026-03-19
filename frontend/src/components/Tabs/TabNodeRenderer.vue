@@ -3,12 +3,14 @@
     v-if="node.type === 'tabs'"
     :node="node"
     :key="node.id"
+    :data-node-id="node.id"
   />
   <SplitPane
     v-else
     :layout="splitNode.layout"
     :gap="4"
     :key="node.id"
+    :data-node-id="node.id"
   >
     <SplitPanePanel
       v-for="(child, i) in splitNode.children"

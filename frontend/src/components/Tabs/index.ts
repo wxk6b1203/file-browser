@@ -11,6 +11,7 @@ export type {
   DropZone,
   DragState,
   TabsContext,
+  NodeRect,
 } from './types'
 export { tabsContextKey, genId } from './types'
 

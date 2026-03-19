@@ -67,6 +67,10 @@ const contentStyle = computed<CSSProperties>(() => {
 
 function onActivate(tabId: string) {
   ctx.setActive(props.node.id, tabId)
+  const tab = props.node.tabs.find((t) => t.id === tabId)
+  if (tab) {
+    ctx.emitTabActivate(tab, props.node.id)
+  }
 }
 
 function onClose(tab: TabItem) {

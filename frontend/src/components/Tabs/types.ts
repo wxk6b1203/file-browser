@@ -95,9 +95,24 @@ export interface TabsContext {
   emitTabDragEnd: (tab: TabItem, groupId: string) => void
   emitTabReorder: (groupId: string, oldIndex: number, newIndex: number) => void
   emitTabSplit: (tabId: string, zone: 'top' | 'bottom' | 'left' | 'right') => void
+  emitTabActivate: (tab: TabItem, groupId: string) => void
 }
 
 export const tabsContextKey: InjectionKey<TabsContext> = Symbol('tabsContext')
+
+// ─── Node rect ───────────────────────────────────────────────
+
+/** Bounding rectangle of a rendered tree node */
+export interface NodeRect {
+  /** X position relative to the viewport */
+  x: number
+  /** Y position relative to the viewport */
+  y: number
+  /** Rendered width in px */
+  width: number
+  /** Rendered height in px */
+  height: number
+}
 
 // ─── Utility: generate IDs ──────────────────────────────────
 

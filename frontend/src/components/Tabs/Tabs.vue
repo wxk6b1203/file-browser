@@ -33,7 +33,7 @@ import {
   watch,
   type CSSProperties,
 } from 'vue'
-import type { TabNode, TabItem, DragState, TabsContext, TabGroupNode } from './types'
+import type { TabNode, TabItem, DragState, TabsContext, TabGroupNode, NodeRect } from './types'
 import { tabsContextKey } from './types'
 import { useTabTree } from './composables/useTabTree'
 import { calcDropZone } from './composables/useDropZone'
@@ -70,6 +70,8 @@ const emit = defineEmits<{
   tabDragEnd: [tab: TabItem, groupId: string]
   tabReorder: [groupId: string, oldIndex: number, newIndex: number]
   tabSplit: [tabId: string, zone: 'top' | 'bottom' | 'left' | 'right']
+  /** Fired when a tab is activated (clicked / selected) */
+  tabActivate: [tab: TabItem, groupId: string]
 }>()
 
 // ─── Tree state ──────────────────────────────────────────────
@@ -322,9 +324,70 @@ const context: TabsContext = {
   emitTabDragEnd: (tab, groupId) => emit('tabDragEnd', tab, groupId),
   emitTabReorder: (groupId, oldIndex, newIndex) => emit('tabReorder', groupId, oldIndex, newIndex),
   emitTabSplit: (tabId, zone) => emit('tabSplit', tabId, zone),
+  emitTabActivate: (tab, groupId) => emit('tabActivate', tab, groupId),
 }
 
 provide(tabsContextKey, context)
+
+// ─── Public imperative API ───────────────────────────────────
+
+/**
+ * Get the bounding rectangle of a tree node by its ID.
+ * Works for both TabGroupNode (type 'tabs') and TabSplitNode (type 'split').
+ * Returns null if the node is not found or not currently rendered.
+ */
+function getNodeRect(nodeId: string): NodeRect | null {
+  if (!rootEl.value) return null
+  const el = rootEl.value.querySelector<HTMLElement>(`[data-node-id="${nodeId}"]`)
+  if (!el) return null
+  const rect = el.getBoundingClientRect()
+  return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+}
+
+/**
+ * Collect all node IDs in the tree and return a map of id → NodeRect.
+ * Useful for getting the layout of the entire tree at once.
+ */
+function getAllNodeRects(): Map<string, NodeRect> {
+  const result = new Map<string, NodeRect>()
+  if (!rootEl.value) return result
+  const els = rootEl.value.querySelectorAll<HTMLElement>('[data-node-id]')
+  for (const el of els) {
+    const id = el.getAttribute('data-node-id')
+    if (!id) continue
+    const rect = el.getBoundingClientRect()
+    result.set(id, { x: rect.x, y: rect.y, width: rect.width, height: rect.height })
+  }
+  return result
+}
+
+/**
+ * Recursively find a node by ID in the tree.
+ */
+function findNodeById(nodeId: string): TabNode | null {
+  function walk(node: TabNode): TabNode | null {
+    if (node.id === nodeId) return node
+    if (node.type === 'split') {
+      for (const child of node.children) {
+        const found = walk(child)
+        if (found) return found
+      }
+    }
+    return null
+  }
+  return walk(treeRef.value)
+}
+
+defineExpose({
+  /** Get bounding rect of a single tree node by ID */
+  getNodeRect,
+  /** Get bounding rects of all rendered tree nodes */
+  getAllNodeRects,
+  /** Find a tree node object by ID */
+  findNodeById,
+  /** The reactive tree ref */
+  treeRef,
+})
 </script>
 
 <style scoped>
