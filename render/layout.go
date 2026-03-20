@@ -17,7 +17,7 @@ import (
 //
 //	const rects = tabsRef.getAllNodeRects()
 //	await GoRender.OnLayoutChange(Object.fromEntries(rects))
-func (m *Manager) OnLayoutChange(rects NodeRectMap) error {
+func (m *Manager) OnLayoutChange(rects map[string]*NodeRect) error {
 	zap.S().Infow("Layout change received",
 		"node_count", len(rects),
 	)

@@ -26,6 +26,3 @@ type DragSignal struct {
 	Paths []string `json:"paths,omitempty"`
 }
 
-// NodeRectMap is a map of node ID to its rectangle
-// Mirrors Map<string, NodeRect> from frontend
-type NodeRectMap map[string]*NodeRect

@@ -27,8 +27,14 @@ func main() {
 		BackgroundColour: &options.RGBA{R: 255, G: 255, B: 255, A: 1},
 		OnStartup:        app.startup,
 		OnShutdown:       app.shutdown,
+		// DragAndDrop enables OS-level file drag-and-drop into the window.
+		// The frontend registers handlers via runtime.OnFileDrop().
+		DragAndDrop: &options.DragAndDrop{
+			EnableFileDrop: true,
+		},
 		Bind: []interface{}{
 			app,
+			app.rm,
 		},
 	})
 

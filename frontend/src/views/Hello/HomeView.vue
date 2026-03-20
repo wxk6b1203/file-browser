@@ -1,4 +1,11 @@
 <template>
+  <!-- OS file drag-and-drop mask overlay -->
+  <Teleport to="body">
+    <div v-if="isDragging" class="file-drag-mask">
+      <div class="file-drag-mask__label">松开以导入文件</div>
+    </div>
+  </Teleport>
+
   <div class="home-view">
     <!-- Toolbar -->
     <div class="home-view__toolbar">
@@ -207,8 +214,11 @@ import { Tabs, genId, type TabNode, type TabItem } from '@/components/Tabs'
 import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
 import { useTheme } from '@/composables/useTheme'
 import { useShortcutMap } from '@/composables/useShortcut'
+import { useFileDrop } from '@/composables/useFileDrop'
+import { OnLayoutChange } from '../../../wailsjs/go/render/Manager'
 
 const { mode, themes, resolvedTheme, currentTheme, isDark, setTheme, SYSTEM_THEME } = useTheme()
+const { isDragging } = useFileDrop()
 
 function onThemeCommand(command: string) {
   setTheme(command)
@@ -363,12 +373,8 @@ function onSplit(tabId: string, zone: string) {
     if (!tabsRef.value) return
     const rects = tabsRef.value.getAllNodeRects()
     console.log(`📐 分屏后所有节点 Rect (${rects.size} 个):`, rects)
-    rects.forEach((rect, id) => {
-      console.log(
-        `  ${id}: x=${Math.round(rect.x)}, y=${Math.round(rect.y)}, ` +
-          `w=${Math.round(rect.width)}, h=${Math.round(rect.height)}`,
-      )
-    })
+    // 将 Map<string, NodeRect> 转为普通对象后发给 Go 后端
+    OnLayoutChange(Object.fromEntries(rects))
   })
 }
 
@@ -479,5 +485,29 @@ function onTabLayoutChange(_newTree: TabNode) {
 
 .home-view__log-empty {
   color: var(--theme-color-text-placeholder);
+}
+
+/* ── OS file drag-and-drop mask ─────────────────────── */
+
+.file-drag-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--theme-color-primary, #409eff) 15%, transparent);
+  border: 3px dashed var(--theme-color-primary, #409eff);
+  pointer-events: none;
+}
+
+.file-drag-mask__label {
+  padding: 12px 24px;
+  background: var(--theme-color-bg-overlay, rgba(255 255 255 / 0.9));
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-color-primary, #409eff);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
 }
 </style>
