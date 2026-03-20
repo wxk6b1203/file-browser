@@ -25,7 +25,9 @@ export function useFileDrop() {
     dragCounter++
     if (dragCounter === 1) {
       isDragging.value = true
-      OnDragSignal(new render.DragSignal({ type: 'enter', x: e.clientX, y: e.clientY }))
+      if (import.meta.env.VITE_APP_ENV !== 'internal') {
+        OnDragSignal(new render.DragSignal({ type: 'enter', x: e.clientX, y: e.clientY }))
+      }
     }
   }
 
@@ -41,7 +43,9 @@ export function useFileDrop() {
     dragCounter = Math.max(0, dragCounter - 1)
     if (dragCounter === 0) {
       isDragging.value = false
-      OnDragSignal(new render.DragSignal({ type: 'leave', x: e.clientX, y: e.clientY }))
+      if (import.meta.env.VITE_APP_ENV !== 'internal') {
+        OnDragSignal(new render.DragSignal({ type: 'leave', x: e.clientX, y: e.clientY }))
+      }
     }
   }
 
@@ -62,10 +66,12 @@ export function useFileDrop() {
     // Wails runtime callback — fires after a successful drop with real OS paths.
     // useDropTarget=false means we accept drops anywhere in the window (not just
     // elements with the --wails-drop-target CSS custom property).
-    OnFileDrop((x: number, y: number, paths: string[]) => {
-      isDragging.value = false
-      OnDragSignal(new render.DragSignal({ type: 'drop', x, y, paths }))
-    }, false)
+    if (import.meta.env.VITE_APP_ENV !== 'internal') {
+      OnFileDrop((x: number, y: number, paths: string[]) => {
+        isDragging.value = false
+        OnDragSignal(new render.DragSignal({ type: 'drop', x, y, paths }))
+      }, false)
+    }
   })
 
   onBeforeUnmount(() => {

@@ -374,7 +374,9 @@ function onSplit(tabId: string, zone: string) {
     const rects = tabsRef.value.getAllNodeRects()
     console.log(`📐 分屏后所有节点 Rect (${rects.size} 个):`, rects)
     // 将 Map<string, NodeRect> 转为普通对象后发给 Go 后端
-    OnLayoutChange(Object.fromEntries(rects))
+    if (import.meta.env.VITE_APP_ENV !== 'internal') {
+      OnLayoutChange(Object.fromEntries(rects))
+    }
   })
 }
 
