@@ -35,12 +35,12 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.sc.Listen(ctx)
-	a.rm.Startup(ctx)
+	render.Start(a.rm, ctx)
 }
 
 func (a *App) shutdown(ctx context.Context) {
 	a.sc.Stop()
-	a.rm.Shutdown()
+	render.Stop(a.rm)
 	zap.S().Info("App is shutting down")
 }
 

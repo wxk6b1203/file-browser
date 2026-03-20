@@ -25,11 +25,3 @@ export function OnPanelActivate(arg1, arg2) {
 export function OnPanelResize(arg1, arg2) {
   return window['go']['render']['Manager']['OnPanelResize'](arg1, arg2);
 }
-
-export function Shutdown() {
-  return window['go']['render']['Manager']['Shutdown']();
-}
-
-export function Startup(arg1) {
-  return window['go']['render']['Manager']['Startup'](arg1);
-}

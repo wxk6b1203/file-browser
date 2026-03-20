@@ -18,13 +18,16 @@ func NewManager() *Manager {
 	return &Manager{}
 }
 
-// Startup is called when the app starts
-func (m *Manager) Startup(ctx context.Context) {
+// Start initialises the Manager with the Wails app context.
+// Defined as a package-level function (not a method) so Wails does not bind
+// it to the frontend.
+func Start(m *Manager, ctx context.Context) {
 	m.ctx = ctx
 	zap.S().Info("Render manager started")
 }
 
-// Shutdown is called when the app shuts down
-func (m *Manager) Shutdown() {
+// Stop cleans up the Manager on application shutdown.
+// Defined as a package-level function for the same reason as Start.
+func Stop(m *Manager) {
 	zap.S().Info("Render manager stopped")
 }
