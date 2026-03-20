@@ -14,6 +14,7 @@
       @pointerdown="onPointerDown"
     >
       <div
+        ref="indicatorRef"
         :class="['split-pane-divider__indicator', `split-pane-divider__indicator--${layout}`]"
         :style="indicatorStyle"
       />
@@ -115,6 +116,7 @@ const draggerStyle = computed(() => {
   return style
 })
 
+const indicatorRef = ref<HTMLElement | null>(null)
 const isDragging = ref(false)
 let startPos: [number, number] | null = null
 
@@ -122,7 +124,9 @@ let startPos: [number, number] | null = null
 // WebKit on macOS suppresses native dblclick when pointerdown calls
 // preventDefault() + setPointerCapture(). We detect double-click ourselves
 // by tracking the timestamp and position of the last pointerup.
-const DBLCLICK_INTERVAL = 400 // ms
+// Only the indicator (the visible bar) supports double-click-to-center;
+// clicking the wider dragger hit-area does NOT trigger it.
+const DBLCLICK_INTERVAL = 300 // ms
 const DBLCLICK_DISTANCE = 7  // px – max movement between two clicks
 let lastUpTime = 0
 let lastUpPos: [number, number] = [0, 0]
@@ -131,22 +135,27 @@ function onPointerDown(e: PointerEvent) {
   if (!props.resizable) return
   e.preventDefault()
 
-  // Check for double-click: quick second tap near the same spot
-  const now = performance.now()
-  const dx = e.pageX - lastUpPos[0]
-  const dy = e.pageY - lastUpPos[1]
-  const dist = Math.sqrt(dx * dx + dy * dy)
+  const isOnIndicator = indicatorRef.value?.contains(e.target as Node) ?? false
 
-  if (now - lastUpTime < DBLCLICK_INTERVAL && dist < DBLCLICK_DISTANCE) {
-    // Treat as double-click — reset lastUpTime so a third tap doesn't re-trigger
-    lastUpTime = 0
-    emit('dblclick', props.index)
-    return
+  // Check for double-click: only when clicking on the indicator
+  if (isOnIndicator) {
+    const now = performance.now()
+    const dx = e.pageX - lastUpPos[0]
+    const dy = e.pageY - lastUpPos[1]
+    const dist = Math.sqrt(dx * dx + dy * dy)
+
+    if (now - lastUpTime < DBLCLICK_INTERVAL && dist < DBLCLICK_DISTANCE) {
+      // Treat as double-click — reset lastUpTime so a third tap doesn't re-trigger
+      lastUpTime = 0
+      emit('dblclick', props.index)
+      return
+    }
   }
 
   ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
   isDragging.value = true
   startPos = [e.pageX, e.pageY]
+  let hasMoved = false
   emit('moveStart', props.index)
 
   const target = e.target as HTMLElement
@@ -155,6 +164,7 @@ function onPointerDown(e: PointerEvent) {
     const offset = isHorizontal.value
       ? ev.pageX - startPos[0]
       : ev.pageY - startPos[1]
+    if (Math.abs(offset) > 2) hasMoved = true
     emit('moving', props.index, offset)
   }
 
@@ -162,9 +172,14 @@ function onPointerDown(e: PointerEvent) {
     target.releasePointerCapture(ev.pointerId)
     isDragging.value = false
     startPos = null
-    // Record position and time for double-click detection
-    lastUpTime = performance.now()
-    lastUpPos = [ev.pageX, ev.pageY]
+    // Only record for double-click detection if no actual dragging occurred
+    // and the original pointerdown was on the indicator
+    if (!hasMoved && isOnIndicator) {
+      lastUpTime = performance.now()
+      lastUpPos = [ev.pageX, ev.pageY]
+    } else {
+      lastUpTime = 0
+    }
     emit('moveEnd', props.index)
     target.removeEventListener('pointermove', onPointerMove)
     target.removeEventListener('pointerup', onPointerUp)
