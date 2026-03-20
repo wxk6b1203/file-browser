@@ -16,7 +16,6 @@
       <div
         :class="['split-pane-divider__indicator', `split-pane-divider__indicator--${layout}`]"
         :style="indicatorStyle"
-        @dblclick.stop="onIndicatorDblClick"
       />
     </div>
   </div>
@@ -119,9 +118,32 @@ const draggerStyle = computed(() => {
 const isDragging = ref(false)
 let startPos: [number, number] | null = null
 
+// ─── Manual double-click detection ─────────────────────────────────────────
+// WebKit on macOS suppresses native dblclick when pointerdown calls
+// preventDefault() + setPointerCapture(). We detect double-click ourselves
+// by tracking the timestamp and position of the last pointerup.
+const DBLCLICK_INTERVAL = 400 // ms
+const DBLCLICK_DISTANCE = 7  // px – max movement between two clicks
+let lastUpTime = 0
+let lastUpPos: [number, number] = [0, 0]
+
 function onPointerDown(e: PointerEvent) {
   if (!props.resizable) return
   e.preventDefault()
+
+  // Check for double-click: quick second tap near the same spot
+  const now = performance.now()
+  const dx = e.pageX - lastUpPos[0]
+  const dy = e.pageY - lastUpPos[1]
+  const dist = Math.sqrt(dx * dx + dy * dy)
+
+  if (now - lastUpTime < DBLCLICK_INTERVAL && dist < DBLCLICK_DISTANCE) {
+    // Treat as double-click — reset lastUpTime so a third tap doesn't re-trigger
+    lastUpTime = 0
+    emit('dblclick', props.index)
+    return
+  }
+
   ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
   isDragging.value = true
   startPos = [e.pageX, e.pageY]
@@ -140,6 +162,9 @@ function onPointerDown(e: PointerEvent) {
     target.releasePointerCapture(ev.pointerId)
     isDragging.value = false
     startPos = null
+    // Record position and time for double-click detection
+    lastUpTime = performance.now()
+    lastUpPos = [ev.pageX, ev.pageY]
     emit('moveEnd', props.index)
     target.removeEventListener('pointermove', onPointerMove)
     target.removeEventListener('pointerup', onPointerUp)
@@ -149,11 +174,6 @@ function onPointerDown(e: PointerEvent) {
   target.addEventListener('pointermove', onPointerMove)
   target.addEventListener('pointerup', onPointerUp)
   target.addEventListener('pointercancel', onPointerUp)
-}
-
-function onIndicatorDblClick() {
-  if (!props.resizable) return
-  emit('dblclick', props.index)
 }
 </script>
 
