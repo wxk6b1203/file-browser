@@ -37,6 +37,7 @@ go test ./...      # Run all Go tests (integration tests skip without credential
 - **`app.go`**, **`main.go`**: Wails app entry point. Public methods on `App` struct are auto-bound to frontend.
 - **`folder/`**: Core abstraction layer. `Manager` interface defines unified file operations (List, Stat, Copy, Move, Delete, Mkdir).
 - **`folder/<backend>/`**: Concrete drivers: `s3`, `alibaba-oss` (registered as `"oss"`), `sftp`.
+- **`render/`**: Frontend rendering state and OS-level drag-drop coordination. `Manager` handles layout change signals and file drop events from the frontend.
 - **`config/`**: App-level config structs (`AppOptions`, `FolderOptions`).
 - **`logging/`**: Zap-based logging with rotating file support. Call `logging.InitLogging()` once.
 
@@ -46,6 +47,8 @@ go test ./...      # Run all Go tests (integration tests skip without credential
 - vue-i18n with locale JSONs in `src/locales/{en,zh}.json` (default: `zh`)
 - Pinia for state, vue-router for routing
 - Custom components: `SplitPane` and `Tabs` in `src/components/`
+  - `SplitPane`: Split panel layout with draggable dividers, supports horizontal/vertical layouts
+  - `Tabs`: Recursive tab tree with drag-drop reordering and split-to-panel functionality
 
 ### Wails Bindings
 After adding/changing a method in `app.go`, regenerate bindings:
@@ -53,6 +56,11 @@ After adding/changing a method in `app.go`, regenerate bindings:
 wails generate module
 ```
 Generated TS stubs land in `frontend/wailsjs/go/main/`.
+
+**Binding Rules:**
+- Only **exported methods** (capitalized) on bound structs are exposed to the frontend
+- Package-level functions and unexported methods are **not** bound — use these for lifecycle hooks that should not be callable from the frontend
+- `render.Manager` uses package-level functions `render.Start()` / `render.Stop()` for lifecycle management to avoid exposing them to the frontend
 
 ## Key Patterns
 
@@ -70,6 +78,19 @@ Generated TS stubs land in `frontend/wailsjs/go/main/`.
 
 ### Registry & Multi-Instance
 `folder/registry.go` manages driver factories and named instances. Use `CreateInstance` / `GetInstance` / `DeleteInstance`.
+
+### Render Package (`render/`)
+
+Manages frontend-backend coordination for UI state and OS-level file drag-drop.
+
+**Key Types:**
+- `DragSignal`: Frontend → Backend drag events (`enter`, `leave`, `drop` with coordinates and file paths)
+- `NodeRect`: Bounding rectangle of a tree node (`x`, `y`, `width`, `height`)
+
+**Frontend Coordination:**
+- `OnLayoutChange`: Receives layout rects from `Tabs.getAllNodeRects()` when split panels change
+- `OnDragSignal`: Receives drag-drop events coordinated with `runtime.OnFileDrop()`
+- `useFileDrop.ts` composable handles DOM drag events and coordinates with the backend
 
 ### Error Handling
 Use sentinel errors in `folder/errors.go` (`ErrNotFound`, `ErrAlreadyExist`, `ErrUnsupported`, etc.). Wrap with `%w` for `errors.Is()` compatibility.
