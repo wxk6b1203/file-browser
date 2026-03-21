@@ -1,4 +1,7 @@
 import type { CSSProperties, InjectionKey, Ref } from 'vue'
+import type { PanelDragPayload, PanelDropEvent } from '@/composables/splitPaneDragState'
+
+export type { PanelDragPayload, PanelDropEvent }
 
 /** Layout direction */
 export type SplitLayout = 'horizontal' | 'vertical'
@@ -24,6 +27,10 @@ export interface SplitPaneContext {
   lazy: Ref<boolean>
   gap: Ref<number>
   indicatorSize: Ref<[string, string]>
+  /** Whether OS file drag-drop overlays are enabled on panels (default false) */
+  enableFileDrop: Ref<boolean>
+  /** Whether internal panel-to-panel drag (via usePanelDraggable) is enabled (default false) */
+  enablePanelDrag: Ref<boolean>
   panels: Ref<PanelState[]>
   pxSizes: Ref<number[]>
   percentSizes: Ref<number[]>
@@ -41,10 +48,24 @@ export interface SplitPaneContext {
   restorePanel: (uid: number) => void
   /** Toggle minimize state by uid */
   togglePanel: (uid: number) => void
+  /**
+   * Called by SplitPanePanel when an internal panel-to-panel drop completes.
+   * SplitPane re-emits this as the public `panelDrop` event.
+   */
+  onPanelDrop: (event: PanelDropEvent) => void
 }
 
 /** Injection key for provide/inject */
 export const splitPaneContextKey: InjectionKey<SplitPaneContext> = Symbol('splitPaneContext')
+
+/**
+ * Injection key provided by SplitPanePanel to its slot children.
+ * Consumed by usePanelDraggable so draggable elements can tag their source panel.
+ */
+export const splitPanePanelKey: InjectionKey<{
+  readonly uid: number
+  readonly index: Ref<number>
+}> = Symbol('splitPanePanel')
 
 /** Props for SplitPanePanel */
 export interface SplitPanePanelProps {

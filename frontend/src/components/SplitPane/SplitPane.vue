@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { provide, toRef, watch, nextTick, computed } from 'vue'
-import { splitPaneContextKey, type PanelState, type SplitLayout } from './types'
+import { splitPaneContextKey, type PanelState, type PanelDropEvent, type SplitLayout } from './types'
 import { useContainer } from './composables/useContainer'
 import { useSize, parseSizeToPx } from './composables/useSize'
 import { useResize } from './composables/useResize'
@@ -38,6 +38,10 @@ const props = withDefaults(
     indicatorHeight?: string
     /** Global max panel size in the drag direction. CSS value e.g. '400px', '60%', or number (px). Each panel cannot exceed this during drag or double-click reset. */
     maxPanelSize?: number | string
+    /** Enable OS file drag-drop overlays on panels (default false). */
+    enableFileDrop?: boolean
+    /** Enable internal panel-to-panel drag via usePanelDraggable (default false). */
+    enablePanelDrag?: boolean
   }>(),
   {
     layout: 'horizontal',
@@ -45,6 +49,8 @@ const props = withDefaults(
     gap: 0,
     indicatorWidth: '2px',
     indicatorHeight: '24px',
+    enableFileDrop: false,
+    enablePanelDrag: false,
   },
 )
 
@@ -61,11 +67,22 @@ const emit = defineEmits<{
   panelMinimized: [index: number]
   /** Fired when a panel is restored from minimized state. Args: panel index */
   panelRestored: [index: number]
+  /**
+   * Fired when an element (dragged via usePanelDraggable) is dropped onto a different panel.
+   * Contains source panel index, target panel index, the drag payload, and drop coordinates.
+   */
+  panelDrop: [event: PanelDropEvent]
 }>()
 
 const layout = toRef(props, 'layout')
 const lazy = toRef(props, 'lazy')
 const gap = toRef(props, 'gap')
+const enableFileDrop = toRef(props, 'enableFileDrop')
+const enablePanelDrag = toRef(props, 'enablePanelDrag')
+
+function onPanelDrop(event: PanelDropEvent) {
+  emit('panelDrop', event)
+}
 
 // Indicator size: [width(short side), height(long side)]
 const indicatorSize = computed<[string, string]>(() => [props.indicatorWidth, props.indicatorHeight])
@@ -413,6 +430,8 @@ provide(splitPaneContextKey, {
   lazy,
   gap,
   indicatorSize,
+  enableFileDrop,
+  enablePanelDrag,
   panels,
   pxSizes,
   percentSizes,
@@ -427,6 +446,7 @@ provide(splitPaneContextKey, {
   minimizePanel: minimizePanelByUid,
   restorePanel: restorePanelByUid,
   togglePanel: togglePanelByUid,
+  onPanelDrop,
 })
 </script>
 

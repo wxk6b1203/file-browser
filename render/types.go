@@ -26,3 +26,17 @@ type DragSignal struct {
 	Paths []string `json:"paths,omitempty"`
 }
 
+// PanelDropSignal represents a file drop event on a specific SplitPane panel
+type PanelDropSignal struct {
+	// GroupID of the Tabs group node contained in the panel ("" if unavailable)
+	GroupID string `json:"groupId"`
+	// TabID of the active tab in the group ("" if unavailable)
+	TabID string `json:"tabId"`
+	// X position relative to viewport
+	X float64 `json:"x"`
+	// Y position relative to viewport
+	Y float64 `json:"y"`
+	// Absolute file paths being dropped
+	Paths []string `json:"paths,omitempty"`
+}
+

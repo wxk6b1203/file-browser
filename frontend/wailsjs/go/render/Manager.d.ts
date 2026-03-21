@@ -12,4 +12,6 @@ export function OnLayoutChange(arg1:Record<string, render.NodeRect>):Promise<voi
 
 export function OnPanelActivate(arg1:string,arg2:string):Promise<void>;
 
+export function OnPanelFileDrop(arg1:render.PanelDropSignal):Promise<void>;
+
 export function OnPanelResize(arg1:string,arg2:render.NodeRect):Promise<void>;

@@ -14,5 +14,8 @@
   "actions": {
     "newConnection": "新建连接",
     "settings": "设置"
+  },
+  "splitPane": {
+    "dropToPanel": "释放到此面板"
   }
 }

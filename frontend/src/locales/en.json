@@ -14,5 +14,8 @@
   "actions": {
     "newConnection": "New Connection",
     "settings": "Settings"
+  },
+  "splitPane": {
+    "dropToPanel": "Drop to This Panel"
   }
 }

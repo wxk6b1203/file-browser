@@ -1,5 +1,5 @@
 <template>
-  <div ref="groupEl" class="tab-group" :data-group-id="node.id" :style="groupStyle">
+  <div ref="groupEl" class="tab-group" :data-group-id="node.id" :data-active-tab-id="node.activeId" :style="groupStyle">
     <TabBar
       :tabs="node.tabs"
       :active-id="node.activeId"

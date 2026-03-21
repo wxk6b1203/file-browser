@@ -1,11 +1,4 @@
 <template>
-  <!-- OS file drag-and-drop mask overlay -->
-  <Teleport to="body">
-    <div v-if="isDragging" class="file-drag-mask">
-      <div class="file-drag-mask__label">松开以导入文件</div>
-    </div>
-  </Teleport>
-
   <div class="home-view">
     <!-- Toolbar -->
     <div class="home-view__toolbar">
@@ -40,100 +33,6 @@
       </el-dropdown>
     </div>
 
-    <!-- ─── SplitPane Minimize Demo ─────────────────────── -->
-    <div class="home-view__split-demo">
-      <div class="home-view__split-toolbar">
-        <strong>SplitPane 最小化演示</strong>
-        <el-button size="small" @click="leftMin = !leftMin">
-          {{ leftMin ? '↔ 展开左侧栏' : '← 最小化左侧栏' }}
-        </el-button>
-        <el-button size="small" @click="rightMin = !rightMin">
-          {{ rightMin ? '↔ 展开右侧栏' : '→ 最小化右侧栏' }}
-        </el-button>
-        <el-button size="small" @click="splitRef?.togglePanel(1)">
-          ref 切换中间面板
-        </el-button>
-        <el-button size="small" @click="bottomMin = !bottomMin">
-          {{ bottomMin ? '↕ 展开底栏' : '↓ 最小化底栏' }}
-        </el-button>
-        <span style="font-size:12px;color:var(--theme-color-text-secondary)">
-          提示：最小化后拖动窗口大小再还原 → 自动居中
-        </span>
-      </div>
-
-      <!-- 外层水平分割：左侧栏 | 中间（含垂直分割） | 右侧栏 -->
-      <SplitPane
-        ref="splitRef"
-        layout="horizontal"
-        :gap="6"
-        class="home-view__split-container"
-        @panel-minimized="(i: number) => addLog(`📌 水平面板 ${i} 最小化`)"
-        @panel-restored="(i: number) => addLog(`📌 水平面板 ${i} 已还原`)"
-      >
-        <SplitPanePanel
-          v-model:minimized="leftMin"
-          size="20%"
-          min-size="80px"
-          border-radius="8px"
-          background-color="var(--theme-color-bg-surface)"
-        >
-          <div class="demo-panel">
-            <div style="font-size:24px">📂</div>
-            <div>左侧栏</div>
-            <div class="demo-panel__sub">horizontal → 向左折叠</div>
-          </div>
-        </SplitPanePanel>
-
-        <SplitPanePanel border-radius="8px">
-          <!-- 内层垂直分割：主区域 | 底栏 -->
-          <SplitPane
-            layout="vertical"
-            :gap="6"
-            @panel-minimized="(i: number) => addLog(`📌 垂直面板 ${i} 最小化`)"
-            @panel-restored="(i: number) => addLog(`📌 垂直面板 ${i} 已还原`)"
-          >
-            <SplitPanePanel
-              border-radius="8px"
-              background-color="var(--theme-color-bg-surface)"
-            >
-              <div class="demo-panel">
-                <div style="font-size:24px">📝</div>
-                <div>主内容区</div>
-              </div>
-            </SplitPanePanel>
-
-            <SplitPanePanel
-              v-model:minimized="bottomMin"
-              size="30%"
-              min-size="50px"
-              border-radius="8px"
-              background-color="var(--theme-color-bg-surface)"
-            >
-              <div class="demo-panel">
-                <div style="font-size:24px">💻</div>
-                <div>底栏</div>
-                <div class="demo-panel__sub">vertical → 向下折叠</div>
-              </div>
-            </SplitPanePanel>
-          </SplitPane>
-        </SplitPanePanel>
-
-        <SplitPanePanel
-          v-model:minimized="rightMin"
-          size="20%"
-          min-size="80px"
-          border-radius="8px"
-          background-color="var(--theme-color-bg-surface)"
-        >
-          <div class="demo-panel">
-            <div style="font-size:24px">🔍</div>
-            <div>右侧栏</div>
-            <div class="demo-panel__sub">horizontal → 向右折叠</div>
-          </div>
-        </SplitPanePanel>
-      </SplitPane>
-    </div>
-
     <!-- ─── SplitPane maxPanelSize Demo ─────────────────────── -->
     <div class="home-view__split-demo">
       <div class="home-view__split-toolbar">
@@ -146,39 +45,21 @@
         layout="horizontal"
         :gap="6"
         max-panel-size="60%"
+        enable-file-drop
+        enable-panel-drag
         class="home-view__split-container"
         @resize-end="(_i: number, sizes: number[]) => addLog(`📏 maxPanel resize: [${sizes.map(s => Math.round(s)).join(', ')}]`)"
         @reset-center="(_i: number, sizes: number[]) => addLog(`📏 maxPanel dblclick: [${sizes.map(s => Math.round(s)).join(', ')}]`)"
+        @panel-drop="onSplitPanelDrop"
       >
-        <SplitPanePanel
-          border-radius="8px"
-          background-color="var(--theme-color-bg-surface)"
-        >
-          <div class="demo-panel">
-            <div style="font-size:24px">🅰️</div>
-            <div>面板 A</div>
-            <div class="demo-panel__sub">max 60%</div>
-          </div>
+        <SplitPanePanel border-radius="8px" background-color="var(--theme-color-bg-surface)">
+          <DragDemoPanel icon="🅰️" title="面板 A" sub="max 60%" />
         </SplitPanePanel>
-        <SplitPanePanel
-          border-radius="8px"
-          background-color="var(--theme-color-bg-surface)"
-        >
-          <div class="demo-panel">
-            <div style="font-size:24px">🅱️</div>
-            <div>面板 B</div>
-            <div class="demo-panel__sub">max 60%</div>
-          </div>
+        <SplitPanePanel border-radius="8px" background-color="var(--theme-color-bg-surface)">
+          <DragDemoPanel icon="🅱️" title="面板 B" sub="max 60%" />
         </SplitPanePanel>
-        <SplitPanePanel
-          border-radius="8px"
-          background-color="var(--theme-color-bg-surface)"
-        >
-          <div class="demo-panel">
-            <div style="font-size:24px">©️</div>
-            <div>面板 C</div>
-            <div class="demo-panel__sub">max 60%</div>
-          </div>
+        <SplitPanePanel border-radius="8px" background-color="var(--theme-color-bg-surface)">
+          <DragDemoPanel icon="©️" title="面板 C" sub="max 60%" />
         </SplitPanePanel>
       </SplitPane>
     </div>
@@ -211,26 +92,21 @@
 <script setup lang="ts">
 import { ref, nextTick, defineComponent, h, markRaw } from 'vue'
 import { Tabs, genId, type TabNode, type TabItem } from '@/components/Tabs'
-import { SplitPane, SplitPanePanel } from '@/components/SplitPane'
+import { SplitPane, SplitPanePanel, usePanelDraggable, type PanelDropEvent } from '@/components/SplitPane'
 import { useTheme } from '@/composables/useTheme'
 import { useShortcutMap } from '@/composables/useShortcut'
 import { useFileDrop } from '@/composables/useFileDrop'
 import { OnLayoutChange } from '../../../wailsjs/go/render/Manager'
 
 const { mode, themes, resolvedTheme, currentTheme, isDark, setTheme, SYSTEM_THEME } = useTheme()
-const { isDragging } = useFileDrop()
+// 保持 OnFileDrop 注册（去掉全局遮罩，但路径回调仍需注册）
+useFileDrop()
 
 function onThemeCommand(command: string) {
   setTheme(command)
 }
 
-// ─── SplitPane minimize demo ────────────────────────────────
-
 const tabsRef = ref<InstanceType<typeof Tabs>>()
-const splitRef = ref<InstanceType<typeof SplitPane>>()
-const leftMin = ref(false)
-const rightMin = ref(false)
-const bottomMin = ref(false)
 
 // ─── Sample content components ──────────────────────────────
 
@@ -266,6 +142,37 @@ const DemoPanel = markRaw(defineComponent({
           h('div', { style: { fontSize: '32px' } }, '📄'),
           h('div', {}, props.title),
           h('div', { style: { fontSize: '12px', color: 'var(--theme-color-text-secondary)' } }, '拖拽标签头试试'),
+        ],
+      )
+  },
+}))
+
+/**
+ * SplitPane demo panel with usePanelDraggable.
+ * Must be a separate component so inject(splitPanePanelKey) resolves from the parent SplitPanePanel.
+ */
+const DragDemoPanel = markRaw(defineComponent({
+  name: 'DragDemoPanel',
+  props: {
+    icon: { type: String, default: '📄' },
+    title: { type: String, default: '' },
+    sub: { type: String, default: '' },
+  },
+  setup(props) {
+    const { dragProps } = usePanelDraggable(() => ({ type: 'demo-panel', data: props.title }))
+    return () =>
+      h(
+        'div',
+        {
+          class: 'demo-panel',
+          ...dragProps,
+          style: { cursor: 'grab', width: '100%', height: '100%' },
+        },
+        [
+          h('div', { style: { fontSize: '24px' } }, props.icon),
+          h('div', {}, props.title),
+          props.sub ? h('div', { class: 'demo-panel__sub' }, props.sub) : null,
+          h('div', { class: 'demo-panel__sub' }, '⠿ 拖到其他面板'),
         ],
       )
   },
@@ -329,9 +236,6 @@ function resetLayout() {
   if (tabLayout.value.type === 'tabs') {
     tabLayout.value.activeId = tabLayout.value.tabs[0]?.id ?? ''
   }
-  leftMin.value = false
-  rightMin.value = false
-  bottomMin.value = false
   logs.value = []
   addLog('🔄 布局已重置')
 }
@@ -397,6 +301,13 @@ function onTabActivate(tab: TabItem, groupId: string) {
 
 function onTabLayoutChange(_newTree: TabNode) {
   // tree changed (drag / split / reorder) — no-op, just for v-model sync
+}
+
+// ─── SplitPane panel-to-panel drag ──────────────────────────
+
+function onSplitPanelDrop(event: PanelDropEvent) {
+  addLog(`🔀 面板拖拽: ${event.payload.data} 从面板 ${event.sourcePanelIndex} → 面板 ${event.targetPanelIndex}`)
+  console.log('[panel-drop]', event)
 }
 </script>
 
@@ -489,27 +400,4 @@ function onTabLayoutChange(_newTree: TabNode) {
   color: var(--theme-color-text-placeholder);
 }
 
-/* ── OS file drag-and-drop mask ─────────────────────── */
-
-.file-drag-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, var(--theme-color-primary, #409eff) 15%, transparent);
-  border: 3px dashed var(--theme-color-primary, #409eff);
-  pointer-events: none;
-}
-
-.file-drag-mask__label {
-  padding: 12px 24px;
-  background: var(--theme-color-bg-overlay, rgba(255 255 255 / 0.9));
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--theme-color-primary, #409eff);
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
-}
 </style>

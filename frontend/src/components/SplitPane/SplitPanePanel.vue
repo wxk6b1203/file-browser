@@ -5,6 +5,13 @@
     :style="panelStyle"
   >
     <slot />
+    <!-- OS drag-drop overlay (shown when enableFileDrop is true and something is dragged over) -->
+    <div v-if="isDragOver" class="split-pane-panel__drop-mask">
+      <div class="split-pane-panel__drop-mask-label">
+        <span class="split-pane-panel__drop-mask-icon">⬇</span>
+        {{ $t('splitPane.dropToPanel') }}
+      </div>
+    </div>
   </div>
   <SplitPaneDivider
     v-if="showDivider"
@@ -24,9 +31,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, reactive, ref, watch, type CSSProperties } from 'vue'
-import { splitPaneContextKey, type PanelState, type SplitPanePanelProps } from './types'
+import { computed, inject, onBeforeUnmount, onMounted, provide, reactive, ref, watch, type CSSProperties } from 'vue'
+import { splitPaneContextKey, splitPanePanelKey, type PanelState, type SplitPanePanelProps } from './types'
 import SplitPaneDivider from './SplitPaneDivider.vue'
+import { usePanelFileDrop } from '@/composables/usePanelFileDrop'
 
 const props = withDefaults(defineProps<SplitPanePanelProps>(), {
   resizable: true,
@@ -46,6 +54,19 @@ if (!context) {
 const panelEl = ref<HTMLElement>()
 const panelIndex = ref(0)
 const uid = Date.now() + Math.random()
+
+// Expose this panel's identity to slot children so usePanelDraggable can tag the source panel
+provide(splitPanePanelKey, { uid, index: panelIndex })
+
+// Drag-drop overlay (feature-gated by SplitPane props)
+const { isDragOver } = usePanelFileDrop(
+  panelEl,
+  uid,
+  panelIndex,
+  context.enableFileDrop,
+  context.enablePanelDrag,
+  (event) => context.onPanelDrop(event),
+)
 
 // Create the reactive panel state for registration
 const panelState: PanelState = reactive({
@@ -271,6 +292,39 @@ defineExpose({ panelEl })
 
 .split-pane-panel--minimized {
   pointer-events: none;
+}
+
+/* ── OS file drag-drop overlay ──────────────────────────────────────────── */
+
+.split-pane-panel__drop-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--theme-color-primary, #409eff) 14%, transparent);
+  border: 2px dashed var(--theme-color-primary, #409eff);
+  pointer-events: none;
+}
+
+.split-pane-panel__drop-mask-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: var(--theme-color-bg-overlay, rgba(255, 255, 255, 0.9));
+  border-radius: var(--theme-radius-md, 6px);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-color-primary, #409eff);
+  box-shadow: var(--theme-shadow-sm, 0 1px 4px rgba(0, 0, 0, 0.1));
+  user-select: none;
+}
+
+.split-pane-panel__drop-mask-icon {
+  font-size: 15px;
 }
 </style>
 

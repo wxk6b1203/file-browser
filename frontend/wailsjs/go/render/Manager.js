@@ -22,6 +22,10 @@ export function OnPanelActivate(arg1, arg2) {
   return window['go']['render']['Manager']['OnPanelActivate'](arg1, arg2);
 }
 
+export function OnPanelFileDrop(arg1) {
+  return window['go']['render']['Manager']['OnPanelFileDrop'](arg1);
+}
+
 export function OnPanelResize(arg1, arg2) {
   return window['go']['render']['Manager']['OnPanelResize'](arg1, arg2);
 }

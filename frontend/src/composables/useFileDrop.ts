@@ -1,7 +1,8 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { OnFileDrop, OnFileDropOff } from '../../wailsjs/runtime/runtime'
-import { OnDragSignal } from '../../wailsjs/go/render/Manager'
+import { OnDragSignal, OnPanelFileDrop } from '../../wailsjs/go/render/Manager'
 import { render } from '../../wailsjs/go/models'
+import { consumePendingPanelDropInfo } from './usePanelFileDrop'
 
 /**
  * Coordinates OS-level file drag-and-drop between the frontend and the Go backend.
@@ -24,6 +25,9 @@ export function useFileDrop() {
     e.preventDefault()
     dragCounter++
     if (dragCounter === 1) {
+      // Clear any stale panel info left over from a non-Wails drop (e.g. dragging a link),
+      // where usePanelFileDrop set pendingPanelDropInfo but OnFileDrop never fired.
+      consumePendingPanelDropInfo()
       isDragging.value = true
       if (import.meta.env.VITE_APP_ENV !== 'internal') {
         OnDragSignal(new render.DragSignal({ type: 'enter', x: e.clientX, y: e.clientY }))
@@ -69,6 +73,20 @@ export function useFileDrop() {
     if (import.meta.env.VITE_APP_ENV !== 'internal') {
       OnFileDrop((x: number, y: number, paths: string[]) => {
         isDragging.value = false
+        // If a panel registered itself as the drop target, report panel-level context.
+        const panelInfo = consumePendingPanelDropInfo()
+        if (panelInfo) {
+          console.log('[panel-file-drop] groupId:', panelInfo.groupId, 'tabId:', panelInfo.tabId, 'paths:', paths)
+          OnPanelFileDrop(
+            new render.PanelDropSignal({
+              groupId: panelInfo.groupId,
+              tabId: panelInfo.tabId,
+              x: panelInfo.x,
+              y: panelInfo.y,
+              paths,
+            }),
+          )
+        }
         OnDragSignal(new render.DragSignal({ type: 'drop', x, y, paths }))
       }, false)
     }

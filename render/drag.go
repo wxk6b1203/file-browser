@@ -45,6 +45,21 @@ func (m *Manager) OnDragSignal(signal DragSignal) error {
 	return nil
 }
 
+// OnPanelFileDrop is called when files are dropped onto a specific SplitPane panel.
+// GroupID and TabID identify which panel/tab received the drop (empty if unavailable).
+// Paths carry the dropped file paths (same as a concurrent OnDragSignal "drop" event).
+func (m *Manager) OnPanelFileDrop(signal PanelDropSignal) error {
+	zap.S().Infow("Panel file drop received",
+		"groupId", signal.GroupID,
+		"tabId", signal.TabID,
+		"x", signal.X,
+		"y", signal.Y,
+		"paths", signal.Paths,
+	)
+	// TODO: Route dropped files to the panel identified by GroupID/TabID
+	return nil
+}
+
 // OnExternalDragEnter is called when external files enter the window
 // This can be used to show a visual indicator that drop is allowed
 func (m *Manager) OnExternalDragEnter(x, y float64) error {
