@@ -11,6 +11,7 @@
     :gap="4"
     :key="node.id"
     :data-node-id="node.id"
+    @resize-end="onSplitResizeEnd"
   >
     <SplitPanePanel
       v-for="(child, i) in splitNode.children"
@@ -23,8 +24,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import type { TabNode, TabSplitNode } from './types'
+import { tabsContextKey } from './types'
 import TabGroup from './TabGroup.vue'
 import { SplitPane, SplitPanePanel } from '../SplitPane'
 
@@ -34,4 +36,14 @@ const props = defineProps<{
 
 /** Type-safe access for split nodes (only used in v-else branch) */
 const splitNode = computed(() => props.node as TabSplitNode)
+
+const ctx = inject(tabsContextKey)!
+
+function onSplitResizeEnd(_index: number, sizes: number[]) {
+  const total = sizes.reduce((sum, n) => sum + n, 0)
+  if (total <= 0) return
+  // Persist as percentages so layout restores proportionally across container sizes.
+  const percentSizes = sizes.map((n) => `${((n / total) * 100).toFixed(4)}%`)
+  ctx.setSplitSizes(splitNode.value.id, percentSizes)
+}
 </script>

@@ -89,6 +89,7 @@ export interface TabsContext {
   moveTab: (fromGroupId: string, tabId: string, toGroupId: string, newIndex: number) => void
   splitGroup: (groupId: string, tabId: string, zone: 'top' | 'bottom' | 'left' | 'right') => void
   removeTab: (groupId: string, tabId: string) => void
+  setSplitSizes: (splitId: string, sizes: (string | number)[]) => void
 
   // ── events ──
   emitTabDragStart: (tab: TabItem, groupId: string) => void
@@ -120,4 +121,3 @@ let _uid = 0
 export function genId(prefix = 'tab'): string {
   return `${prefix}-${++_uid}-${Date.now().toString(36)}`
 }
-

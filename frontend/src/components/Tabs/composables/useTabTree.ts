@@ -46,20 +46,58 @@ function findParent(root: TabNode, childId: string): TabSplitNode | null {
   return null
 }
 
+function parseSizeWeight(size: string | number | undefined): number {
+  if (typeof size === 'number') {
+    return Number.isFinite(size) && size > 0 ? size : 0
+  }
+  if (typeof size !== 'string') return 0
+
+  const trimmed = size.trim()
+  if (!trimmed) return 0
+
+  const numeric = Number.parseFloat(trimmed)
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0
+}
+
+function normalizeSizesByWeight(sizes: (string | number)[], count: number): string[] {
+  if (count <= 0) return []
+  if (count === 1) return ['100%']
+
+  const weights = sizes.slice(0, count).map((s) => parseSizeWeight(s))
+  const total = weights.reduce((sum, w) => sum + w, 0)
+  if (total <= 0) {
+    return Array.from({ length: count }, () => `${(100 / count).toFixed(4)}%`)
+  }
+  return weights.map((w) => `${((w / total) * 100).toFixed(4)}%`)
+}
+
 /** Replace a node inside the tree (returns new plain-object tree) */
 function replaceNode(root: TabNode, targetId: string, replacement: TabNode | null): TabNode | null {
   const raw = toRaw(root)
   if (raw.id === targetId) return replacement
   if (raw.type === 'split') {
+    const baseSizes = raw.sizes?.slice(0, raw.children.length) ?? []
     const newChildren: TabNode[] = []
-    for (const child of raw.children) {
+    const preservedSlotSizes: (string | number)[] = []
+    for (let i = 0; i < raw.children.length; i++) {
+      const child = raw.children[i]
       const result = replaceNode(toRaw(child), targetId, replacement)
-      if (result) newChildren.push(result)
+      if (result) {
+        newChildren.push(result)
+        const fallbackSize = `${100 / raw.children.length}%`
+        preservedSlotSizes.push(baseSizes[i] ?? fallbackSize)
+      }
     }
     // If only one child remains, collapse
     if (newChildren.length === 1) return newChildren[0]!
     if (newChildren.length === 0) return null
-    return { ...raw, children: newChildren, sizes: newChildren.map(() => `${100 / newChildren.length}%`) }
+
+    const nextSizes =
+      newChildren.length === raw.children.length
+        ? preservedSlotSizes
+        : normalizeSizesByWeight(preservedSlotSizes, newChildren.length)
+
+    return { ...raw, children: newChildren, sizes: nextSizes }
   }
   return raw
 }
@@ -189,5 +227,13 @@ export function useTabTree(tree: Ref<TabNode>) {
     }
   }
 
-  return { setActive, moveTab, splitGroup, removeTab, findNode, findParent }
+  /** Persist panel sizes for a split node (used by SplitPane resize-end). */
+  function setSplitSizes(splitId: string, sizes: (string | number)[]) {
+    const node = findNode(tree.value, splitId)
+    if (!node || node.type !== 'split') return
+    node.sizes = [...sizes]
+    tree.value = rawNode(tree.value)
+  }
+
+  return { setActive, moveTab, splitGroup, removeTab, setSplitSizes, findNode, findParent }
 }

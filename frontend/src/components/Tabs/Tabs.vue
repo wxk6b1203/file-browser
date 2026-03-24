@@ -102,7 +102,7 @@ watch(
   },
 )
 
-const { setActive, moveTab, splitGroup, removeTab } = useTabTree(treeRef)
+const { setActive, moveTab, splitGroup, removeTab, setSplitSizes } = useTabTree(treeRef)
 
 // ─── Drag state ──────────────────────────────────────────────
 
@@ -151,9 +151,11 @@ function onGlobalPointerMove(e: PointerEvent) {
   drag.pointerY = e.clientY
 }
 
-function onGlobalPointerUp(_e: PointerEvent) {
+function endDrag(commitDrop: boolean) {
   if (!drag.active) return
-  performDrop()
+  if (commitDrop) {
+    performDrop()
+  }
   const tab = drag.tab
   const sourceGroupId = drag.sourceGroupId
   drag.active = false
@@ -161,6 +163,28 @@ function onGlobalPointerUp(_e: PointerEvent) {
   drag.sourceGroupId = null
   if (tab && sourceGroupId) {
     emit('tabDragEnd', tab, sourceGroupId)
+  }
+}
+
+function onGlobalPointerUp(_e: PointerEvent) {
+  endDrag(true)
+}
+
+function onGlobalPointerCancel(_e: PointerEvent) {
+  // Pointer cancellation means the gesture was interrupted by the system.
+  // End drag without applying a drop target.
+  endDrag(false)
+}
+
+function onWindowBlur() {
+  // Releasing pointer outside the app window may skip pointerup.
+  // Blur is a reliable fallback to clear drag state.
+  endDrag(false)
+}
+
+function onVisibilityChange() {
+  if (document.visibilityState === 'hidden') {
+    endDrag(false)
   }
 }
 
@@ -299,11 +323,17 @@ function findGroupNodeById(node: TabNode, id: string): TabGroupNode | null {
 onMounted(() => {
   document.addEventListener('pointermove', onGlobalPointerMove)
   document.addEventListener('pointerup', onGlobalPointerUp)
+  document.addEventListener('pointercancel', onGlobalPointerCancel)
+  document.addEventListener('visibilitychange', onVisibilityChange)
+  window.addEventListener('blur', onWindowBlur)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('pointermove', onGlobalPointerMove)
   document.removeEventListener('pointerup', onGlobalPointerUp)
+  document.removeEventListener('pointercancel', onGlobalPointerCancel)
+  document.removeEventListener('visibilitychange', onVisibilityChange)
+  window.removeEventListener('blur', onWindowBlur)
 })
 
 // ─── Context ─────────────────────────────────────────────────
@@ -320,6 +350,7 @@ const context: TabsContext = {
   moveTab,
   splitGroup,
   removeTab,
+  setSplitSizes,
   emitTabDragStart: (tab, groupId) => emit('tabDragStart', tab, groupId),
   emitTabDragEnd: (tab, groupId) => emit('tabDragEnd', tab, groupId),
   emitTabReorder: (groupId, oldIndex, newIndex) => emit('tabReorder', groupId, oldIndex, newIndex),
@@ -410,8 +441,6 @@ defineExpose({
   opacity: 0.92;
 }
 </style>
-
-
 
 
 
