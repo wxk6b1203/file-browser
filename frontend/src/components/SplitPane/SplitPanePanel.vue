@@ -31,7 +31,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, provide, reactive, ref, watch, type CSSProperties } from 'vue'
+import {
+  computed,
+  inject,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+  watch,
+  type CSSProperties,
+} from 'vue'
 import { splitPaneContextKey, splitPanePanelKey, type PanelState, type SplitPanePanelProps } from './types'
 import SplitPaneDivider from './SplitPaneDivider.vue'
 import { usePanelFileDrop } from '@/composables/usePanelFileDrop'
@@ -157,6 +168,14 @@ watch(
 onMounted(() => {
   panelState.el = panelEl.value
   context.registerPanel(panelState)
+  // Apply initial minimized state after all sibling panels are registered.
+  if (props.minimized) {
+    nextTick(() => {
+      if (props.minimized) {
+        context.minimizePanel(panelState.uid)
+      }
+    })
+  }
 })
 onBeforeUnmount(() => context.unregisterPanel(panelState))
 
@@ -327,4 +346,3 @@ defineExpose({ panelEl })
   font-size: 15px;
 }
 </style>
-

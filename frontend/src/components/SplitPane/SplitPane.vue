@@ -166,41 +166,87 @@ const pxSizes = computed(() => {
   const nonMin = panels.value.filter((p) => !p.minimized)
   if (nonMin.length < 2) return raw
 
+  // EPS 是 “epsilon（极小容差）” 的缩写，在这里表示比较浮点数时允许的误差阈值（当前设为 0.5 像素）
+  const EPS = 0.5
   const globalMax = maxPanelSizePx.value
-  let totalExcess = 0
-  let totalDeficit = 0
-  const clamped = new Set<number>()
+  const indices = nonMin.map((p) => p.index)
+  const minLimits: number[] = []
+  const maxLimits: number[] = []
+  let targetTotal = 0
 
-  // Pass 1 — detect violations
+  // Pass 1 — clamp each panel to its own bounds.
   for (const p of nonMin) {
     const i = p.index
-    const maxPx = parseSizeToPx(p.maxSize, avail, Infinity)
-    const minPx = parseSizeToPx(p.minSize, avail, 0)
-    const effectiveMax = Math.min(maxPx, isFinite(globalMax) ? globalMax : Infinity)
-
-    if (isFinite(effectiveMax) && raw[i]! > effectiveMax + 0.5) {
-      totalExcess += raw[i]! - effectiveMax
-      raw[i] = effectiveMax
-      clamped.add(i)
-    } else if (raw[i]! < minPx - 0.5) {
-      totalDeficit += minPx - raw[i]!
+    const current = raw[i] ?? 0
+    const minPx = Math.max(parseSizeToPx(p.minSize, avail, 0), 0)
+    const maxPx = Math.min(
+      parseSizeToPx(p.maxSize, avail, Infinity),
+      isFinite(globalMax) ? globalMax : Infinity,
+    )
+    const effectiveMax = Math.max(maxPx, minPx)
+    minLimits[i] = minPx
+    maxLimits[i] = effectiveMax
+    targetTotal += current
+    if (current < minPx) {
       raw[i] = minPx
-      clamped.add(i)
+    } else if (current > effectiveMax) {
+      raw[i] = effectiveMax
+    } else {
+      raw[i] = current
     }
   }
 
-  if (clamped.size === 0) return raw
+  // Pass 2 — iteratively redistribute while keeping all panels within bounds.
+  // This avoids single-pass redistribution from pushing another panel past min/max.
+  let currentTotal = indices.reduce((sum, i) => sum + (raw[i] ?? 0), 0)
+  let delta = targetTotal - currentTotal
+  let guard = 0
+  const maxGuard = indices.length * 8
 
-  // Pass 2 — redistribute the net delta to unclamped panels proportionally
-  const delta = totalExcess - totalDeficit
-  const unclamped = nonMin.map((p) => p.index).filter((i) => !clamped.has(i))
-
-  if (unclamped.length > 0 && Math.abs(delta) > 0.5) {
-    const unclampedTotal = unclamped.reduce((sum, i) => sum + raw[i]!, 0)
-    for (const i of unclamped) {
-      const share = unclampedTotal > 0 ? raw[i]! / unclampedTotal : 1 / unclamped.length
-      raw[i] = raw[i]! + delta * share
+  while (Math.abs(delta) > EPS && guard < maxGuard) {
+    guard++
+    if (delta > 0) {
+      const expandable = indices.filter((i) => (maxLimits[i] ?? Infinity) - (raw[i] ?? 0) > EPS)
+      if (expandable.length === 0) break
+      const infiniteExpandable = expandable.filter((i) =>
+        !isFinite((maxLimits[i] ?? Infinity) - (raw[i] ?? 0)),
+      )
+      if (infiniteExpandable.length > 0) {
+        const apply = delta
+        const totalWeight = infiniteExpandable.reduce((sum, i) => sum + (raw[i] ?? 0), 0)
+        infiniteExpandable.forEach((i) => {
+          const share =
+            totalWeight > 0 ? (raw[i] ?? 0) / totalWeight : 1 / infiniteExpandable.length
+          raw[i] = (raw[i] ?? 0) + apply * share
+        })
+      } else {
+        const totalRoom = expandable.reduce(
+          (sum, i) => sum + ((maxLimits[i] ?? Infinity) - (raw[i] ?? 0)),
+          0,
+        )
+        if (totalRoom <= EPS) break
+        const apply = Math.min(delta, totalRoom)
+        expandable.forEach((i) => {
+          const room = (maxLimits[i] ?? Infinity) - (raw[i] ?? 0)
+          raw[i] = (raw[i] ?? 0) + apply * (room / totalRoom)
+        })
+      }
+    } else {
+      const shrinkable = indices.filter((i) => (raw[i] ?? 0) - (minLimits[i] ?? 0) > EPS)
+      if (shrinkable.length === 0) break
+      const totalRoom = shrinkable.reduce(
+        (sum, i) => sum + ((raw[i] ?? 0) - (minLimits[i] ?? 0)),
+        0,
+      )
+      if (totalRoom <= EPS) break
+      const apply = Math.min(-delta, totalRoom)
+      shrinkable.forEach((i) => {
+        const room = (raw[i] ?? 0) - (minLimits[i] ?? 0)
+        raw[i] = (raw[i] ?? 0) - apply * (room / totalRoom)
+      })
     }
+    currentTotal = indices.reduce((sum, i) => sum + (raw[i] ?? 0), 0)
+    delta = targetTotal - currentTotal
   }
 
   return raw
@@ -298,14 +344,21 @@ const minimizeStore = new Map<number, { ratio: number; containerSize: number }>(
 /** Minimize a panel by its uid (called from context) */
 function minimizePanelByUid(uid: number) {
   const panel = panels.value.find((p) => p.uid === uid)
-  if (!panel || panel.minimized) return
-
-  // Prevent minimizing the last visible panel
-  const nonMinCount = panels.value.filter((p) => !p.minimized).length
-  if (nonMinCount <= 1) return
+  if (!panel) return
 
   const idx = panel.index
-  const ratio = percentSizes.value[idx] ?? 0
+  const currentPx = pxSizes.value[idx] ?? 0
+  const alreadyCollapsed = panel.minimized && currentPx <= 0.5
+  if (alreadyCollapsed) return
+
+  // Prevent minimizing the last visible panel
+  // If this panel is flagged minimized but not actually collapsed yet (initial state),
+  // count it as visible for this guard.
+  const nonMinCount =
+    panels.value.filter((p) => !p.minimized).length + (panel.minimized ? 1 : 0)
+  if (nonMinCount <= 1) return
+
+  const ratio = availableSize.value > 0 ? currentPx / availableSize.value : 0
 
   minimizeStore.set(uid, {
     ratio,
@@ -485,4 +538,3 @@ provide(splitPaneContextKey, {
   cursor: row-resize;
 }
 </style>
-
