@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -218,6 +219,58 @@ func TestTransferManager_RemoveAll(t *testing.T) {
 	}
 }
 
+func TestTransferManager_Observer(t *testing.T) {
+	tmpDir := t.TempDir()
+	localFile := filepath.Join(tmpDir, "observer.txt")
+	content := "observer test content"
+	if err := os.WriteFile(localFile, []byte(content), 0o644); err != nil {
+		t.Fatalf("write temp file: %v", err)
+	}
+
+	drv := &fakeDriver{}
+	tm := NewTransferManager()
+
+	var mu sync.Mutex
+	events := make([]TransferEvent, 0, 8)
+	tm.SetObserver(func(event TransferEvent) {
+		mu.Lock()
+		events = append(events, event)
+		mu.Unlock()
+	})
+
+	taskID, err := tm.Submit(drv, "fake", "inst1", TransferUpload, &TransferRequest{
+		RemotePath: "remote/observer.txt",
+		LocalPath:  localFile,
+	})
+	if err != nil {
+		t.Fatalf("Submit error: %v", err)
+	}
+
+	if err := waitForTask(tm, taskID, 5*time.Second); err != nil {
+		t.Fatalf("wait error: %v", err)
+	}
+
+	if err := tm.Remove(taskID); err != nil {
+		t.Fatalf("Remove error: %v", err)
+	}
+
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		mu.Lock()
+		snapshot := append([]TransferEvent(nil), events...)
+		mu.Unlock()
+
+		if hasCompletedUpsert(snapshot, taskID) && hasRemoveEvent(snapshot, taskID) {
+			return
+		}
+
+		if time.Now().After(deadline) {
+			t.Fatalf("observer events incomplete: %+v", snapshot)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -270,4 +323,25 @@ func waitForTask(tm *TransferManager, taskID string, timeout time.Duration) erro
 			time.Sleep(50 * time.Millisecond)
 		}
 	}
+}
+
+func hasCompletedUpsert(events []TransferEvent, taskID string) bool {
+	for _, event := range events {
+		if event.Type != TransferEventUpsert || event.Task == nil {
+			continue
+		}
+		if event.Task.ID == taskID && event.Task.Status == TransferCompleted {
+			return true
+		}
+	}
+	return false
+}
+
+func hasRemoveEvent(events []TransferEvent, taskID string) bool {
+	for _, event := range events {
+		if event.Type == TransferEventRemove && event.TaskID == taskID {
+			return true
+		}
+	}
+	return false
 }

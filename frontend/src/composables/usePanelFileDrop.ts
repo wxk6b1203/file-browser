@@ -99,9 +99,12 @@ export function usePanelFileDrop(
       if (enablePanelDrag.value) {
         const active = getActiveInternalDrag()
         if (active && active.sourcePanelUid !== panelUid) {
+          const groupEl = panelEl.value.querySelector('[data-group-id]')
           onInternalDrop({
             sourcePanelIndex: active.sourcePanelIndex,
             targetPanelIndex: panelIndex.value,
+            targetGroupId: groupEl?.getAttribute('data-group-id') ?? '',
+            targetTabId: groupEl?.getAttribute('data-active-tab-id') ?? '',
             payload: active.payload,
             x: e.clientX,
             y: e.clientY,

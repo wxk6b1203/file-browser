@@ -9,8 +9,8 @@
       </div>
 
       <!-- 欢迎文字 -->
-      <h1 class="welcome-text">{{ $t('welcome.title') }}</h1>
-      <p class="subtitle">{{ $t('welcome.subtitle') }}</p>
+      <h1 class="welcome-text">{{ t('welcome.title') }}</h1>
+      <p class="subtitle">{{ t('welcome.subtitle') }}</p>
 
       <!-- 快捷键提示区域 -->
       <div class="shortcuts-section">
@@ -22,7 +22,7 @@
         >
           <div class="shortcut-left">
             <i-mdi-keyboard class="shortcut-icon" />
-            <span class="shortcut-desc">{{ $t(shortcut.desc) }}</span>
+            <span class="shortcut-desc">{{ t(shortcut.desc) }}</span>
           </div>
           <div class="shortcut-keys">
             <template v-for="(key, kIndex) in shortcut.keys" :key="kIndex">
@@ -39,13 +39,13 @@
           <template #icon>
             <i-ep-plus />
           </template>
-          {{ $t('actions.newConnection') }}
+          {{ t('actions.newConnection') }}
         </el-button>
         <el-button size="large" text @click="onOpenSettings">
           <template #icon>
             <i-ep-setting />
           </template>
-          {{ $t('actions.settings') }}
+          {{ t('actions.settings') }}
         </el-button>
       </div>
     </div>
@@ -53,7 +53,7 @@
     <!-- 底部提示 -->
     <div class="footer-hint">
       <i-ep-info-filled class="hint-icon" />
-      <span>{{ $t('welcome.footerHint') }}</span>
+      <span>{{ t('welcome.footerHint') }}</span>
     </div>
   </div>
 </template>
@@ -63,6 +63,10 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+const emit = defineEmits<{
+  newConnection: []
+  openSettings: []
+}>()
 
 // 检测是否为 Mac 系统
 const isMac = computed(() => {
@@ -73,9 +77,7 @@ const isMac = computed(() => {
 // 快捷键列表
 const shortcuts = [
   { keys: ['CtrlOrCmd', 'Shift', 'N'], desc: 'shortcuts.newConnection' },
-  { keys: ['CtrlOrCmd', 'O'], desc: 'shortcuts.openConnection' },
-  { keys: ['CtrlOrCmd', ','], desc: 'shortcuts.settings' },
-  { keys: ['CtrlOrCmd', 'Shift', 'P'], desc: 'shortcuts.commandPalette' },
+  { keys: ['CtrlOrCmd', '.'], desc: 'shortcuts.settings' },
 ]
 
 // 格式化按键显示
@@ -86,12 +88,12 @@ function formatKey(key: string): string {
 
 // 新建连接
 function onNewConnection() {
-  console.log('新建连接')
+  emit('newConnection')
 }
 
 // 打开设置
 function onOpenSettings() {
-  console.log('打开设置')
+  emit('openSettings')
 }
 </script>
 
@@ -102,7 +104,8 @@ function onOpenSettings() {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100vh;
+  height: 100%;
+  min-height: 100%;
   padding: 40px 20px;
   background-color: var(--el-bg-color);
   color: var(--el-text-color-primary);

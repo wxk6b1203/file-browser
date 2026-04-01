@@ -5,7 +5,7 @@
     :style="{ width: '100%', height: '100%', position: 'relative' }"
   >
     <!-- Recursive tree renderer -->
-    <TabNodeRenderer :node="treeRef" />
+    <TabNodeRenderer :node="treeRef" :enable-panel-drag="props.enablePanelDrag" @panel-drop="onPanelDrop" />
 
     <!-- Drag ghost: floating header that follows the pointer -->
     <Teleport to="body">
@@ -34,6 +34,7 @@ import {
   type CSSProperties,
 } from 'vue'
 import type { TabNode, TabItem, DragState, TabsContext, TabGroupNode, NodeRect } from './types'
+import type { PanelDropEvent } from '../SplitPane'
 import { tabsContextKey } from './types'
 import { useTabTree } from './composables/useTabTree'
 import { calcDropZone } from './composables/useDropZone'
@@ -54,6 +55,8 @@ const props = withDefaults(
     minSplitWidth?: number
     /** Minimum height (px) to allow horizontal split */
     minSplitHeight?: number
+    /** Enable internal panel drag-drop within split panes */
+    enablePanelDrag?: boolean
   }>(),
   {
     barBackground: undefined,
@@ -61,6 +64,7 @@ const props = withDefaults(
     overlayOpacity: 0.15,
     minSplitWidth: 100,
     minSplitHeight: 80,
+    enablePanelDrag: false,
   },
 )
 
@@ -72,6 +76,7 @@ const emit = defineEmits<{
   tabSplit: [tabId: string, zone: 'top' | 'bottom' | 'left' | 'right']
   /** Fired when a tab is activated (clicked / selected) */
   tabActivate: [tab: TabItem, groupId: string]
+  panelDrop: [event: PanelDropEvent]
 }>()
 
 // ─── Tree state ──────────────────────────────────────────────
@@ -309,6 +314,10 @@ function performDrop() {
   }
 }
 
+function onPanelDrop(event: PanelDropEvent) {
+  emit('panelDrop', event)
+}
+
 function findGroupNodeById(node: TabNode, id: string): TabGroupNode | null {
   if (node.type === 'tabs' && node.id === id) return node
   if (node.type === 'split') {
@@ -441,6 +450,4 @@ defineExpose({
   opacity: 0.92;
 }
 </style>
-
-
 

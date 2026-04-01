@@ -70,6 +70,28 @@ type TransferTask struct {
 	CompletedAt      *time.Time        `json:"completedAt,omitempty" yaml:"completedAt,omitempty"`
 }
 
+// TransferEventType represents a task lifecycle change emitted by the
+// transfer manager.
+type TransferEventType string
+
+const (
+	TransferEventUpsert TransferEventType = "upsert"
+	TransferEventRemove TransferEventType = "remove"
+	TransferEventError  TransferEventType = "error"
+)
+
+// TransferEvent is the incremental event payload emitted when a transfer task
+// changes or is removed.
+type TransferEvent struct {
+	Type    TransferEventType `json:"type" yaml:"type"`
+	TaskID  string            `json:"taskId,omitempty" yaml:"taskId,omitempty"`
+	Task    *TransferTask     `json:"task,omitempty" yaml:"task,omitempty"`
+	Message string            `json:"message,omitempty" yaml:"message,omitempty"`
+}
+
+// TransferObserver consumes task lifecycle updates from TransferManager.
+type TransferObserver func(event TransferEvent)
+
 // ---------------------------------------------------------------------------
 // Transferer – optional driver interface for optimized transfers
 // ---------------------------------------------------------------------------

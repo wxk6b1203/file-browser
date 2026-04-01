@@ -1,18 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/Hello/HomeView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/blank',
-      name: 'blank',
-      component: () => import('@/views/Blank')
+      path: '/',
+      name: 'app',
+      component: () => import('@/views/AppShell'),
     },
     {
-      path: '/',
-      name: 'home',
-      component: HomeView,
+      path: '/blank',
+      name: 'blank',
+      component: () => import('@/views/Blank'),
     },
     {
       path: '/skeleton',

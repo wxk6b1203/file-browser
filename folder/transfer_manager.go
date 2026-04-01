@@ -26,18 +26,22 @@ const (
 // TransferManager manages the lifecycle of async upload/download tasks.
 // It is safe for concurrent use.
 type TransferManager struct {
-	mu    sync.RWMutex
-	tasks map[string]*taskEntry
+	mu         sync.RWMutex
+	tasks      map[string]*taskEntry
+	observerMu sync.RWMutex
+	observer   TransferObserver
 }
 
 // taskEntry is the internal bookkeeping for a single transfer.
 type taskEntry struct {
+	taskMu sync.RWMutex
 	task   TransferTask
 	cancel context.CancelFunc
 
 	// progress tracking (atomic for lock-free updates from the transfer goroutine)
 	bytesTransferred atomic.Int64
 	totalBytes       atomic.Int64
+	lastEventUnix    atomic.Int64
 
 	// speed computation
 	speedMu      sync.Mutex
@@ -52,6 +56,13 @@ type speedSample struct {
 // NewTransferManager creates a ready-to-use TransferManager.
 func NewTransferManager() *TransferManager {
 	return &TransferManager{tasks: make(map[string]*taskEntry)}
+}
+
+// SetObserver configures an optional task lifecycle observer.
+func (tm *TransferManager) SetObserver(observer TransferObserver) {
+	tm.observerMu.Lock()
+	tm.observer = observer
+	tm.observerMu.Unlock()
 }
 
 // ---------------------------------------------------------------------------
@@ -102,6 +113,7 @@ func (tm *TransferManager) Submit(
 	tm.mu.Lock()
 	tm.tasks[id] = entry
 	tm.mu.Unlock()
+	tm.notify(TransferEventUpsert, entry, "")
 
 	go tm.run(ctx, entry, mgr, req)
 	return id, nil
@@ -162,23 +174,36 @@ func (tm *TransferManager) Remove(taskID string) error {
 	if !ok {
 		return fmt.Errorf("transfer %q: %w", taskID, ErrNotFound)
 	}
-	switch entry.task.Status {
+	entry.taskMu.RLock()
+	status := entry.task.Status
+	entry.taskMu.RUnlock()
+	switch status {
 	case TransferPending, TransferRunning:
-		return fmt.Errorf("transfer %q: cannot remove a %v task", taskID, entry.task.Status)
+		return fmt.Errorf("transfer %q: cannot remove a %v task", taskID, status)
 	}
 	delete(tm.tasks, taskID)
+	tm.notify(TransferEventRemove, nil, taskID)
 	return nil
 }
 
 // RemoveAll removes all finished (completed/failed/cancelled) tasks.
 func (tm *TransferManager) RemoveAll() {
+	var removedIDs []string
 	tm.mu.Lock()
-	defer tm.mu.Unlock()
 	for id, entry := range tm.tasks {
-		switch entry.task.Status {
+		entry.taskMu.RLock()
+		status := entry.task.Status
+		entry.taskMu.RUnlock()
+		switch status {
 		case TransferCompleted, TransferFailed, TransferCancelled:
 			delete(tm.tasks, id)
+			removedIDs = append(removedIDs, id)
 		}
+	}
+	tm.mu.Unlock()
+
+	for _, id := range removedIDs {
+		tm.notify(TransferEventRemove, nil, id)
 	}
 }
 
@@ -189,8 +214,12 @@ func (tm *TransferManager) RemoveAll() {
 func (tm *TransferManager) run(ctx context.Context, entry *taskEntry, mgr Manager, req *TransferRequest) {
 	// Mark running.
 	now := time.Now()
+	entry.taskMu.Lock()
 	entry.task.StartedAt = &now
 	entry.task.Status = TransferRunning
+	direction := entry.task.Direction
+	entry.taskMu.Unlock()
+	tm.notify(TransferEventUpsert, entry, "")
 
 	progressFn := func(transferred, total int64) {
 		entry.bytesTransferred.Store(transferred)
@@ -210,33 +239,35 @@ func (tm *TransferManager) run(ctx context.Context, entry *taskEntry, mgr Manage
 			entry.speedSamples = entry.speedSamples[start-1:] // keep one sample before cutoff for delta
 		}
 		entry.speedMu.Unlock()
+		tm.notifyProgress(entry)
 	}
 
 	var err error
 	if t, ok := mgr.(Transferer); ok {
 		// Optimized path — driver handles multipart / concurrent transfer.
-		switch entry.task.Direction {
+		switch direction {
 		case TransferUpload:
 			err = t.Upload(ctx, req, progressFn)
 		case TransferDownload:
 			err = t.Download(ctx, req, progressFn)
 		default:
-			err = fmt.Errorf("transfer: unknown direction %d", entry.task.Direction)
+			err = fmt.Errorf("transfer: unknown direction %d", direction)
 		}
 	} else {
 		// Fallback path — use Reader / Writer with progress wrapping.
-		switch entry.task.Direction {
+		switch direction {
 		case TransferUpload:
 			err = tm.fallbackUpload(ctx, mgr, req, progressFn)
 		case TransferDownload:
 			err = tm.fallbackDownload(ctx, mgr, req, progressFn)
 		default:
-			err = fmt.Errorf("transfer: unknown direction %d", entry.task.Direction)
+			err = fmt.Errorf("transfer: unknown direction %d", direction)
 		}
 	}
 
 	// Finalize.
 	finishedAt := time.Now()
+	entry.taskMu.Lock()
 	entry.task.CompletedAt = &finishedAt
 	entry.task.BytesTransferred = entry.bytesTransferred.Load()
 	entry.task.TotalBytes = entry.totalBytes.Load()
@@ -252,6 +283,8 @@ func (tm *TransferManager) run(ctx context.Context, entry *taskEntry, mgr Manage
 	} else {
 		entry.task.Status = TransferCompleted
 	}
+	entry.taskMu.Unlock()
+	tm.notify(TransferEventUpsert, entry, "")
 }
 
 // ---------------------------------------------------------------------------
@@ -340,7 +373,9 @@ func (tm *TransferManager) fallbackDownload(ctx context.Context, mgr Manager, re
 // ---------------------------------------------------------------------------
 
 func (tm *TransferManager) snapshot(e *taskEntry) *TransferTask {
+	e.taskMu.RLock()
 	t := e.task // shallow copy
+	e.taskMu.RUnlock()
 	t.BytesTransferred = e.bytesTransferred.Load()
 	t.TotalBytes = e.totalBytes.Load()
 	t.BytesPerSecond = tm.computeSpeed(e)
@@ -372,4 +407,34 @@ func parentDir(p string) string {
 		}
 	}
 	return ""
+}
+
+func (tm *TransferManager) notifyProgress(entry *taskEntry) {
+	now := time.Now().UnixNano()
+	last := entry.lastEventUnix.Load()
+	if last != 0 && time.Duration(now-last) < 200*time.Millisecond {
+		return
+	}
+	entry.lastEventUnix.Store(now)
+	tm.notify(TransferEventUpsert, entry, "")
+}
+
+func (tm *TransferManager) notify(eventType TransferEventType, entry *taskEntry, taskID string) {
+	tm.observerMu.RLock()
+	observer := tm.observer
+	tm.observerMu.RUnlock()
+	if observer == nil {
+		return
+	}
+
+	event := TransferEvent{
+		Type:   eventType,
+		TaskID: taskID,
+	}
+	if entry != nil {
+		task := tm.snapshot(entry)
+		event.Task = task
+		event.TaskID = task.ID
+	}
+	observer(event)
 }

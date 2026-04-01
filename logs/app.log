@@ -1,0 +1,20 @@
+2026-04-01 15:54:29.049	INFO	file-browser/app.go:27	Creating new app
+2026-04-01 15:54:29.090	INFO	file-browser/app.go:29	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}
+2026-04-01 16:18:53.586	INFO	file-browser/app.go:29	Creating new app
+2026-04-01 16:18:53.600	INFO	file-browser/app.go:31	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}
+2026-04-01 16:24:45.950	INFO	file-browser/app.go:29	Creating new app
+2026-04-01 16:24:45.969	INFO	file-browser/app.go:31	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}
+2026-04-01 16:43:30.336	INFO	file-browser/app.go:32	Creating new app
+2026-04-01 16:43:30.350	INFO	file-browser/app.go:34	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}
+2026-04-01 16:54:09.460	INFO	file-browser/app.go:34	Creating new app
+2026-04-01 16:54:09.473	INFO	file-browser/app.go:36	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}
+2026-04-01 16:59:58.960	INFO	file-browser/app.go:34	Creating new app
+2026-04-01 16:59:58.973	INFO	file-browser/app.go:36	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}
+2026-04-01 17:29:15.825	INFO	file-browser/app.go:34	Creating new app
+2026-04-01 17:29:15.838	INFO	file-browser/app.go:36	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}
+2026-04-01 17:36:37.470	INFO	file-browser/app.go:34	Creating new app
+2026-04-01 17:36:37.487	INFO	file-browser/app.go:36	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}
+2026-04-01 17:55:52.013	INFO	file-browser/app.go:34	Creating new app
+2026-04-01 17:55:52.048	INFO	file-browser/app.go:36	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}
+2026-04-01 19:22:00.691	INFO	file-browser/app.go:35	Creating new app
+2026-04-01 19:22:00.710	INFO	file-browser/app.go:37	Runtime configuration loaded	{"path": "C:\\Users\\wxk6b\\Documents\\Project\\file-browser\\config.yaml", "exists": false}

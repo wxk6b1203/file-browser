@@ -35,22 +35,13 @@ export interface ShortcutDefinition {
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_SHORTCUTS: ShortcutDefinition[] = [
-  { id: 'new-file',     label: 'New File',     accelerator: 'CmdOrCtrl+N' },
-  { id: 'new-folder',   label: 'New Folder',   accelerator: 'CmdOrCtrl+Shift+N' },
-  { id: 'open',         label: 'Open',         accelerator: 'CmdOrCtrl+O' },
-  { id: 'open-remote',  label: 'Open Remote',  accelerator: 'CmdOrCtrl+Shift+O' },
-  { id: 'save',         label: 'Save',         accelerator: 'CmdOrCtrl+S' },
-  { id: 'close-tab',    label: 'Close Tab',    accelerator: 'CmdOrCtrl+W' },
-  { id: 'refresh',      label: 'Refresh',      accelerator: 'CmdOrCtrl+R' },
-  { id: 'delete',       label: 'Delete',       accelerator: 'Delete' },
-  { id: 'rename',       label: 'Rename',       accelerator: 'F2' },
-  { id: 'copy',         label: 'Copy',         accelerator: 'CmdOrCtrl+C' },
-  { id: 'cut',          label: 'Cut',          accelerator: 'CmdOrCtrl+X' },
-  { id: 'paste',        label: 'Paste',        accelerator: 'CmdOrCtrl+V' },
-  { id: 'select-all',   label: 'Select All',   accelerator: 'CmdOrCtrl+A' },
-  { id: 'search',       label: 'Search',       accelerator: 'CmdOrCtrl+F' },
-  { id: 'settings',     label: 'Settings',     accelerator: 'CmdOrCtrl+,' },
-  { id: 'toggle-theme', label: 'Toggle Theme', accelerator: 'CmdOrCtrl+Shift+T' },
+  { id: 'new-connection', label: 'New Connection', accelerator: 'CmdOrCtrl+Shift+N' },
+  { id: 'open-settings',  label: 'Open Settings',  accelerator: 'CmdOrCtrl+.' },
+  { id: 'search',         label: 'Search',         accelerator: 'CmdOrCtrl+F' },
+  { id: 'close-tab',      label: 'Close Tab',      accelerator: 'CmdOrCtrl+W' },
+  { id: 'refresh',        label: 'Refresh',        accelerator: 'CmdOrCtrl+R' },
+  { id: 'rename',         label: 'Rename',         accelerator: 'F2' },
+  { id: 'delete',         label: 'Delete',         accelerator: 'Delete' },
 ]
 
 // ---------------------------------------------------------------------------

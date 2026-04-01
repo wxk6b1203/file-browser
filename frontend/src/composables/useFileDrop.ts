@@ -4,6 +4,16 @@ import { OnDragSignal, OnPanelFileDrop } from '../../wailsjs/go/render/Manager'
 import { render } from '../../wailsjs/go/models'
 import { consumePendingPanelDropInfo } from './usePanelFileDrop'
 
+export const PANEL_OS_FILE_DROP_EVENT = 'workspace:panel-os-file-drop'
+
+export interface PanelOSFileDropDetail {
+  groupId: string
+  tabId: string
+  x: number
+  y: number
+  paths: string[]
+}
+
 /**
  * Coordinates OS-level file drag-and-drop between the frontend and the Go backend.
  *
@@ -77,6 +87,15 @@ export function useFileDrop() {
         const panelInfo = consumePendingPanelDropInfo()
         if (panelInfo) {
           console.log('[panel-file-drop] groupId:', panelInfo.groupId, 'tabId:', panelInfo.tabId, 'paths:', paths)
+          window.dispatchEvent(new CustomEvent<PanelOSFileDropDetail>(PANEL_OS_FILE_DROP_EVENT, {
+            detail: {
+              groupId: panelInfo.groupId,
+              tabId: panelInfo.tabId,
+              x: panelInfo.x,
+              y: panelInfo.y,
+              paths,
+            },
+          }))
           OnPanelFileDrop(
             new render.PanelDropSignal({
               groupId: panelInfo.groupId,

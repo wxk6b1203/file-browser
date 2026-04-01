@@ -2,22 +2,32 @@ package main
 
 import (
 	"embed"
+	"fmt"
+	"os"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-	"github.com/wxk6b1203/file-util-manager/logging"
+	"github.com/wxk6b1203/file-util-manager/bootstrap"
+	_ "github.com/wxk6b1203/file-util-manager/folder/alibaba-oss"
+	_ "github.com/wxk6b1203/file-util-manager/folder/local"
+	_ "github.com/wxk6b1203/file-util-manager/folder/s3"
+	_ "github.com/wxk6b1203/file-util-manager/folder/sftp"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	logging.InitLogging(&logging.LogOptions{Level: "info", Path: []string{"stdout"}})
+	rt, err := bootstrap.Initialize(os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "startup failed: %v\n", err)
+		os.Exit(1)
+	}
 
-	app := NewApp()
+	app := NewApp(rt)
 
-	err := wails.Run(&options.App{
+	err = wails.Run(&options.App{
 		Title:  "file-browser",
 		Width:  1024,
 		Height: 768,

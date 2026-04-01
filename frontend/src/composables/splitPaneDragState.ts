@@ -22,6 +22,10 @@ export interface PanelDropEvent {
   sourcePanelIndex: number
   /** Index of the panel that received the drop. */
   targetPanelIndex: number
+  /** Group id rendered inside the target panel. */
+  targetGroupId?: string
+  /** Active tab id rendered inside the target panel. */
+  targetTabId?: string
   /** The payload registered by usePanelDraggable on the dragged element. */
   payload: PanelDragPayload
   /** Drop coordinates relative to the viewport. */

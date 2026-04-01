@@ -9,16 +9,18 @@
     v-else
     :layout="splitNode.layout"
     :gap="4"
+    :enable-panel-drag="enablePanelDrag"
     :key="node.id"
     :data-node-id="node.id"
     @resize-end="onSplitResizeEnd"
+    @panel-drop="onPanelDrop"
   >
     <SplitPanePanel
       v-for="(child, i) in splitNode.children"
       :key="child.id"
       :size="splitNode.sizes?.[i] ?? `${100 / splitNode.children.length}%`"
     >
-      <TabNodeRenderer :node="child" />
+      <TabNodeRenderer :node="child" :enable-panel-drag="enablePanelDrag" @panel-drop="onPanelDrop" />
     </SplitPanePanel>
   </SplitPane>
 </template>
@@ -26,16 +28,23 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import type { TabNode, TabSplitNode } from './types'
+import type { PanelDropEvent } from '../SplitPane'
 import { tabsContextKey } from './types'
 import TabGroup from './TabGroup.vue'
 import { SplitPane, SplitPanePanel } from '../SplitPane'
 
 const props = defineProps<{
   node: TabNode
+  enablePanelDrag?: boolean
+}>()
+
+const emit = defineEmits<{
+  panelDrop: [event: PanelDropEvent]
 }>()
 
 /** Type-safe access for split nodes (only used in v-else branch) */
 const splitNode = computed(() => props.node as TabSplitNode)
+const enablePanelDrag = computed(() => props.enablePanelDrag ?? false)
 
 const ctx = inject(tabsContextKey)!
 
@@ -45,5 +54,9 @@ function onSplitResizeEnd(_index: number, sizes: number[]) {
   // Persist as percentages so layout restores proportionally across container sizes.
   const percentSizes = sizes.map((n) => `${((n / total) * 100).toFixed(4)}%`)
   ctx.setSplitSizes(splitNode.value.id, percentSizes)
+}
+
+function onPanelDrop(event: PanelDropEvent) {
+  emit('panelDrop', event)
 }
 </script>
