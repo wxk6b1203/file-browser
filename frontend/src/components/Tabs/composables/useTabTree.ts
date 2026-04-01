@@ -81,6 +81,7 @@ function replaceNode(root: TabNode, targetId: string, replacement: TabNode | nul
     const preservedSlotSizes: (string | number)[] = []
     for (let i = 0; i < raw.children.length; i++) {
       const child = raw.children[i]
+      if (!child) continue
       const result = replaceNode(toRaw(child), targetId, replacement)
       if (result) {
         newChildren.push(result)

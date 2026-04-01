@@ -9,7 +9,7 @@
     <div v-if="isDragOver" class="split-pane-panel__drop-mask">
       <div class="split-pane-panel__drop-mask-label">
         <span class="split-pane-panel__drop-mask-icon">⬇</span>
-        {{ $t('splitPane.dropToPanel') }}
+        {{ t('splitPane.dropToPanel') }}
       </div>
     </div>
   </div>
@@ -43,6 +43,7 @@ import {
   watch,
   type CSSProperties,
 } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { splitPaneContextKey, splitPanePanelKey, type PanelState, type SplitPanePanelProps } from './types'
 import SplitPaneDivider from './SplitPaneDivider.vue'
 import { usePanelFileDrop } from '@/composables/usePanelFileDrop'
@@ -61,6 +62,7 @@ const context = inject(splitPaneContextKey)!
 if (!context) {
   throw new Error('[SplitPanePanel] must be used inside <SplitPane>')
 }
+const { t } = useI18n()
 
 const panelEl = ref<HTMLElement>()
 const panelIndex = ref(0)
