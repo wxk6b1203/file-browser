@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { ElMessage } from 'element-plus'
-import { CloseConnection, DeleteConnection, ListConnections, ListConnectionStates, ListDrivers, OpenConnection, SaveConnection } from '../../wailsjs/go/main/App'
+import { CloseConnection, DeleteConnection, ListConnections, ListConnectionStates, ListDrivers, OpenConnection, SaveConnection, TestConnection } from '../../wailsjs/go/main/App'
 import { connection, folder } from '../../wailsjs/go/models'
 import { useNotificationsStore } from './notifications'
 
@@ -20,6 +20,7 @@ export const useConnectionsStore = defineStore('connections', () => {
   const drivers = ref<folder.DriverInfo[]>([])
   const definitions = ref<connection.Definition[]>([])
   const states = ref<connection.State[]>([])
+  let pendingHydration: Promise<void> | null = null
 
   const definitionMap = computed(() => {
     const map = new Map<string, connection.Definition>()
@@ -38,21 +39,29 @@ export const useConnectionsStore = defineStore('connections', () => {
   })
 
   async function hydrate() {
-    if (loading.value) return
-    loading.value = true
-    try {
-      const [driverItems, definitionItems, stateItems] = await Promise.all([
-        ListDrivers(),
-        ListConnections(),
-        ListConnectionStates(),
-      ])
-      drivers.value = driverItems
-      definitions.value = sortConnections(definitionItems)
-      states.value = stateItems
-      ready.value = true
-    } finally {
-      loading.value = false
+    if (pendingHydration) {
+      return pendingHydration
     }
+
+    loading.value = true
+    pendingHydration = (async () => {
+      try {
+        const [driverItems, definitionItems, stateItems] = await Promise.all([
+          ListDrivers(),
+          ListConnections(),
+          ListConnectionStates(),
+        ])
+        drivers.value = driverItems
+        definitions.value = sortConnections(definitionItems)
+        states.value = stateItems
+        ready.value = true
+      } finally {
+        loading.value = false
+        pendingHydration = null
+      }
+    })()
+
+    return pendingHydration
   }
 
   async function refreshConnections() {
@@ -65,9 +74,13 @@ export const useConnectionsStore = defineStore('connections', () => {
 
   async function saveConnection(def: connection.Definition) {
     const saved = await SaveConnection(def)
-    await refreshConnections()
+    await Promise.all([refreshConnections(), refreshStates()])
     ElMessage.success(saved.id === def.id && def.id ? '连接已保存' : '连接已创建')
     return saved
+  }
+
+  async function testConnection(def: connection.Definition) {
+    return TestConnection(def)
   }
 
   async function deleteConnection(id: string) {
@@ -132,6 +145,7 @@ export const useConnectionsStore = defineStore('connections', () => {
     refreshConnections,
     refreshStates,
     saveConnection,
+    testConnection,
     deleteConnection,
     openConnection,
     closeConnection,

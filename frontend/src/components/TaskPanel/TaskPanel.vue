@@ -69,13 +69,28 @@
           >
             {{ t('shell.tasks.cancel') }}
           </el-button>
-          <el-button
-            v-else
-            size="small"
-            @click="tasks.removeTask(task.id)"
-          >
-            {{ t('shell.tasks.remove') }}
-          </el-button>
+          <template v-else>
+            <el-button
+              v-if="canOpenLocalResult(task)"
+              size="small"
+              @click="openLocalResult(task)"
+            >
+              {{ t('shell.tasks.openLocal') }}
+            </el-button>
+            <el-button
+              v-if="canRevealLocalResult(task)"
+              size="small"
+              @click="revealLocalResult(task)"
+            >
+              {{ t('shell.tasks.revealLocal') }}
+            </el-button>
+            <el-button
+              size="small"
+              @click="tasks.removeTask(task.id)"
+            >
+              {{ t('shell.tasks.remove') }}
+            </el-button>
+          </template>
         </div>
       </article>
     </div>
@@ -83,7 +98,9 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { OpenLocalPath, RevealLocalPath } from '../../../wailsjs/go/main/App'
 import { folder } from '../../../wailsjs/go/models'
 import { useTasksStore } from '@/stores/tasks'
 
@@ -141,6 +158,32 @@ function statusClass(status: number) {
     'task-card__status--success': status === COMPLETED_STATUS,
     'task-card__status--failed': status === FAILED_STATUS,
     'task-card__status--cancelled': status === CANCELLED_STATUS,
+  }
+}
+
+function canOpenLocalResult(task: folder.TransferTask) {
+  return task.status === COMPLETED_STATUS && task.direction === DOWNLOAD_DIRECTION && Boolean(task.localPath?.trim())
+}
+
+function canRevealLocalResult(task: folder.TransferTask) {
+  return task.status === COMPLETED_STATUS && task.direction === DOWNLOAD_DIRECTION && Boolean(task.localPath?.trim())
+}
+
+async function openLocalResult(task: folder.TransferTask) {
+  if (!canOpenLocalResult(task)) return
+  try {
+    await OpenLocalPath(task.localPath)
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : String(error))
+  }
+}
+
+async function revealLocalResult(task: folder.TransferTask) {
+  if (!canRevealLocalResult(task)) return
+  try {
+    await RevealLocalPath(task.localPath)
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : String(error))
   }
 }
 </script>
@@ -320,5 +363,7 @@ function statusClass(status: number) {
 .task-card__actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 </style>

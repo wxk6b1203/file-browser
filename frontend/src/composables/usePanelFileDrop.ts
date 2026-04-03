@@ -1,9 +1,10 @@
-import { ref, watchEffect, onBeforeUnmount, type Ref } from 'vue'
+import { ref, watchEffect, onBeforeUnmount, onMounted, type Ref } from 'vue'
 import {
   getActiveInternalDrag,
   SPLITPANE_DRAG_TYPE,
   type PanelDropEvent,
 } from './splitPaneDragState'
+import { PANEL_OS_FILE_DROP_RESET_EVENT } from './useFileDrop'
 
 // ─── OS drop coordination ─────────────────────────────────────────────────────
 // DOM `drop` fires before Wails `OnFileDrop` delivers actual paths.
@@ -148,6 +149,11 @@ export function usePanelFileDrop(
     dragCounter = 0
   }
 
+  function resetOverlayState() {
+    isDragOver.value = false
+    dragCounter = 0
+  }
+
   watchEffect(() => {
     detach()
     if ((enableFileDrop.value || enablePanelDrag.value) && panelEl.value) {
@@ -155,7 +161,14 @@ export function usePanelFileDrop(
     }
   })
 
-  onBeforeUnmount(detach)
+  onMounted(() => {
+    window.addEventListener(PANEL_OS_FILE_DROP_RESET_EVENT, resetOverlayState)
+  })
+
+  onBeforeUnmount(() => {
+    window.removeEventListener(PANEL_OS_FILE_DROP_RESET_EVENT, resetOverlayState)
+    detach()
+  })
 
   return { isDragOver }
 }

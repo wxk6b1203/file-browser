@@ -21,6 +21,7 @@
 /* ─── Import all theme definitions ───────────────────────── */
 @import "./themes/light.css";
 @import "./themes/dark.css";
+@import "./themes/2026-dark.css";
 @import "./themes/vscode-dark.css";
 @import "./themes/islands-dark.css";
 @import "./themes/islands-light.css";

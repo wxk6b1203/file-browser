@@ -7,6 +7,10 @@ import { i18n } from '@/i18n'
 import { BUILTIN_THEMES, SYSTEM_THEME, useThemeStore, type ThemeMode } from './theme'
 
 const SUPPORTED_LOCALES = new Set(['zh', 'en'])
+const DEFAULT_EXPLORER_FONT_SIZE = 13
+const DEFAULT_FILE_LIST_FONT_SIZE = 13
+const MIN_UI_FONT_SIZE = 11
+const MAX_UI_FONT_SIZE = 18
 
 function cloneAppConfig(value: config.AppConfig | null | undefined) {
   if (!value) return null
@@ -25,6 +29,23 @@ function normalizeTheme(value?: string) {
   return SYSTEM_THEME
 }
 
+function normalizeUIFontSize(value: unknown, fallback: number) {
+  const size = Number(value)
+  if (!Number.isFinite(size)) return fallback
+  return Math.min(MAX_UI_FONT_SIZE, Math.max(MIN_UI_FONT_SIZE, Math.round(size)))
+}
+
+function applyUIFontSettings(next: config.AppConfig | null | undefined) {
+  if (typeof document === 'undefined') return
+
+  const explorerFontSize = normalizeUIFontSize(next?.ui?.explorerFontSize, DEFAULT_EXPLORER_FONT_SIZE)
+  const fileListFontSize = normalizeUIFontSize(next?.ui?.fileListFontSize, DEFAULT_FILE_LIST_FONT_SIZE)
+
+  const root = document.documentElement
+  root.style.setProperty('--ui-explorer-font-size', `${explorerFontSize}px`)
+  root.style.setProperty('--ui-file-list-font-size', `${fileListFontSize}px`)
+}
+
 export const useSettingsStore = defineStore('settings', () => {
   const theme = useThemeStore()
   const ready = ref(false)
@@ -41,6 +62,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
     i18n.global.locale.value = locale
     theme.setTheme(themeMode as ThemeMode)
+    applyUIFontSettings(next)
   }
 
   async function hydrate(force = false) {

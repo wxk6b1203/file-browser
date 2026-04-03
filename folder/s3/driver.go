@@ -187,7 +187,7 @@ func (d *Driver) List(ctx context.Context, dir string, opt *folder.ListOptions) 
 	}
 
 	client := d.s3Client()
-	var result []*folder.FileInfo
+	result := []*folder.FileInfo{}
 
 	paginator := s3.NewListObjectsV2Paginator(client, input)
 	for paginator.HasMorePages() {

@@ -221,7 +221,16 @@ export function useTabTree(tree: Ref<TabNode>) {
 
     if (node.tabs.length === 0) {
       const result = replaceNode(tree.value, node.id, null)
-      if (result) tree.value = rawNode(result)
+      if (result) {
+        tree.value = rawNode(result)
+      } else {
+        tree.value = {
+          type: 'tabs',
+          id: node.id,
+          tabs: [],
+          activeId: '',
+        }
+      }
     } else {
       // In-place mutation: must produce new reference
       tree.value = rawNode(tree.value)

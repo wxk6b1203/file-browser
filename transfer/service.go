@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -22,10 +24,13 @@ type Service struct {
 	connections *connection.Service
 	manager     *folder.TransferManager
 	tempDir     string
+	downloadDir string
+	overwrite   string
+	opener      func(string) error
 
 	mu              sync.RWMutex
 	observer        folder.TransferObserver
-	pendingFollowUp map[string]pendingUpload
+	pendingFollowUp map[string]pendingFollowUp
 }
 
 type uploadFilePlan struct {
@@ -49,18 +54,29 @@ type localDownloadPlan struct {
 	files       []downloadFilePlan
 }
 
-type pendingUpload struct {
+type pendingFollowUpKind string
+
+const (
+	followUpUpload pendingFollowUpKind = "upload"
+	followUpOpen   pendingFollowUpKind = "open"
+)
+
+type pendingFollowUp struct {
+	kind             pendingFollowUpKind
 	localPath        string
 	targetConnection string
 	targetRemotePath string
 }
 
-func NewService(connections *connection.Service, tempDir string) *Service {
+func NewService(connections *connection.Service, tempDir string, downloadDir string, overwrite string) *Service {
 	svc := &Service{
 		connections:     connections,
 		manager:         folder.NewTransferManager(),
 		tempDir:         strings.TrimSpace(tempDir),
-		pendingFollowUp: make(map[string]pendingUpload),
+		downloadDir:     strings.TrimSpace(downloadDir),
+		overwrite:       normalizeOverwriteStrategy(overwrite),
+		opener:          openLocalPath,
+		pendingFollowUp: make(map[string]pendingFollowUp),
 	}
 	svc.manager.SetObserver(svc.onManagerEvent)
 	return svc
@@ -75,6 +91,18 @@ func (s *Service) SetObserver(observer folder.TransferObserver) {
 func (s *Service) SetTempDir(tempDir string) {
 	s.mu.Lock()
 	s.tempDir = strings.TrimSpace(tempDir)
+	s.mu.Unlock()
+}
+
+func (s *Service) SetDownloadDir(downloadDir string) {
+	s.mu.Lock()
+	s.downloadDir = strings.TrimSpace(downloadDir)
+	s.mu.Unlock()
+}
+
+func (s *Service) SetOverwriteStrategy(strategy string) {
+	s.mu.Lock()
+	s.overwrite = normalizeOverwriteStrategy(strategy)
 	s.mu.Unlock()
 }
 
@@ -140,6 +168,188 @@ func (s *Service) DownloadToTemp(ctx context.Context, connectionID, remotePath s
 	}
 
 	return []string{taskID}, nil
+}
+
+func (s *Service) Download(ctx context.Context, connectionID, remotePath string) ([]string, error) {
+	downloadDir, ok := s.currentDownloadDir()
+	if !ok {
+		return s.DownloadToTemp(ctx, connectionID, remotePath)
+	}
+	return s.DownloadToDirectory(ctx, connectionID, remotePath, downloadDir)
+}
+
+func (s *Service) DownloadToDirectory(ctx context.Context, connectionID, remotePath, localDir string) ([]string, error) {
+	mgr, def, err := s.connections.Manager(ctx, connectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	targetDir, err := ensureLocalDirectory(localDir)
+	if err != nil {
+		return nil, err
+	}
+
+	cleanRemotePath := cleanRemotePath(remotePath)
+	if cleanRemotePath == "" {
+		return nil, fmt.Errorf("remote path is required")
+	}
+
+	info, err := mgr.Stat(ctx, cleanRemotePath)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, fmt.Errorf("remote path %q: %w", cleanRemotePath, folder.ErrNotFound)
+	}
+
+	if info.IsDir() {
+		localRootPath, err := s.prepareDirectoryTarget(targetDir, cleanRemotePath)
+		if err != nil {
+			return nil, err
+		}
+
+		plan, err := s.buildDownloadPlanAtPath(ctx, mgr, cleanRemotePath, localRootPath)
+		if err != nil {
+			return nil, err
+		}
+		for _, dir := range plan.directories {
+			if dir == "" {
+				continue
+			}
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return nil, fmt.Errorf("create local download dir %q: %w", dir, err)
+			}
+		}
+
+		taskIDs := make([]string, 0, len(plan.files))
+		for _, item := range plan.files {
+			taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
+				RemotePath: item.remotePath,
+				LocalPath:  item.localPath,
+			})
+			if err != nil {
+				return nil, err
+			}
+			taskIDs = append(taskIDs, taskID)
+		}
+
+		return taskIDs, nil
+	}
+
+	localPath, err := s.prepareFileTarget(targetDir, path.Base(cleanRemotePath))
+	if err != nil {
+		return nil, err
+	}
+
+	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
+		RemotePath: cleanRemotePath,
+		LocalPath:  localPath,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return []string{taskID}, nil
+}
+
+func (s *Service) DownloadFileToPath(ctx context.Context, connectionID, remotePath, localPath string) ([]string, error) {
+	mgr, def, err := s.connections.Manager(ctx, connectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	cleanRemotePath := cleanRemotePath(remotePath)
+	if cleanRemotePath == "" {
+		return nil, fmt.Errorf("remote path is required")
+	}
+
+	info, err := mgr.Stat(ctx, cleanRemotePath)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, fmt.Errorf("remote path %q: %w", cleanRemotePath, folder.ErrNotFound)
+	}
+	if info.IsDir() {
+		return nil, fmt.Errorf("remote path %q: save as only supports files", cleanRemotePath)
+	}
+
+	targetPath := strings.TrimSpace(localPath)
+	if targetPath == "" {
+		return []string{}, nil
+	}
+	if err := ensureParentDirectory(targetPath); err != nil {
+		return nil, err
+	}
+
+	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
+		RemotePath: cleanRemotePath,
+		LocalPath:  targetPath,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return []string{taskID}, nil
+}
+
+func (s *Service) OpenFile(ctx context.Context, connectionID, remotePath string) ([]string, error) {
+	mgr, def, err := s.connections.Manager(ctx, connectionID)
+	if err != nil {
+		return nil, err
+	}
+
+	cleanRemotePath := cleanRemotePath(remotePath)
+	if cleanRemotePath == "" {
+		return nil, fmt.Errorf("remote path is required")
+	}
+
+	info, err := mgr.Stat(ctx, cleanRemotePath)
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, fmt.Errorf("remote path %q: %w", cleanRemotePath, folder.ErrNotFound)
+	}
+	if info.IsDir() {
+		return nil, fmt.Errorf("remote path %q: only files can be opened", cleanRemotePath)
+	}
+
+	localPath := ""
+	if downloadDir, ok := s.currentDownloadDir(); ok {
+		localPath, err = s.prepareFileTarget(downloadDir, path.Base(cleanRemotePath))
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		localPath, err = s.buildTempFilePath(connectionID, cleanRemotePath)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
+		RemotePath: cleanRemotePath,
+		LocalPath:  localPath,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	s.setPendingFollowUp(taskID, pendingFollowUp{
+		kind:      followUpOpen,
+		localPath: localPath,
+	})
+
+	return []string{taskID}, nil
+}
+
+func (s *Service) OpenLocalPath(localPath string) error {
+	return openLocalPath(localPath)
+}
+
+func (s *Service) RevealLocalPath(localPath string) error {
+	return revealLocalPath(localPath)
 }
 
 func (s *Service) UploadLocalPath(ctx context.Context, connectionID, remoteDir, localPath string) ([]string, error) {
@@ -214,7 +424,8 @@ func (s *Service) TransferEntry(ctx context.Context, sourceConnectionID, sourceP
 			return nil, err
 		}
 
-		s.setPendingFollowUp(taskID, pendingUpload{
+		s.setPendingFollowUp(taskID, pendingFollowUp{
+			kind:             followUpUpload,
 			localPath:        localPath,
 			targetConnection: targetConnectionID,
 			targetRemotePath: targetRemotePath,
@@ -264,7 +475,8 @@ func (s *Service) TransferEntry(ctx context.Context, sourceConnectionID, sourceP
 			return nil, err
 		}
 
-		s.setPendingFollowUp(taskID, pendingUpload{
+		s.setPendingFollowUp(taskID, pendingFollowUp{
+			kind:             followUpUpload,
 			localPath:        item.localPath,
 			targetConnection: targetConnectionID,
 			targetRemotePath: item.targetRemotePath,
@@ -332,6 +544,14 @@ func (s *Service) buildTempDirectoryPath(connectionID, remotePath string) (strin
 
 	timeSuffix := time.Now().Format("20060102-150405")
 	return filepath.Join(targetDir, fmt.Sprintf("%s-%s", dirName, timeSuffix)), nil
+}
+
+func (s *Service) buildDownloadPlanAtPath(ctx context.Context, mgr folder.Manager, remoteDir, localRootPath string) (*localDownloadPlan, error) {
+	items, err := mgr.List(ctx, remoteDir, &folder.ListOptions{Recursive: true})
+	if err != nil {
+		return nil, err
+	}
+	return buildLocalDownloadPlan(localRootPath, remoteDir, items)
 }
 
 func cleanRemotePath(value string) string {
@@ -602,20 +822,29 @@ func (s *Service) processFollowUp(task *folder.TransferTask) {
 
 	switch task.Status {
 	case folder.TransferCompleted:
-		targetMgr, targetDef, err := s.connections.Manager(context.Background(), followUp.targetConnection)
-		if err != nil {
-			s.emitErrorEvent(task.ID, fmt.Errorf("prepare follow-up upload to connection %q: %w", followUp.targetConnection, err))
-			s.deletePendingFollowUp(task.ID)
-			return
-		}
-		_, err = s.manager.Submit(targetMgr, targetDef.Driver, targetDef.ID, folder.TransferUpload, &folder.TransferRequest{
-			RemotePath: followUp.targetRemotePath,
-			LocalPath:  followUp.localPath,
-		})
-		if err != nil {
-			s.emitErrorEvent(task.ID, fmt.Errorf("create follow-up upload task for %q: %w", followUp.targetRemotePath, err))
-			s.deletePendingFollowUp(task.ID)
-			return
+		switch followUp.kind {
+		case followUpUpload:
+			targetMgr, targetDef, err := s.connections.Manager(context.Background(), followUp.targetConnection)
+			if err != nil {
+				s.emitErrorEvent(task.ID, fmt.Errorf("prepare follow-up upload to connection %q: %w", followUp.targetConnection, err))
+				s.deletePendingFollowUp(task.ID)
+				return
+			}
+			_, err = s.manager.Submit(targetMgr, targetDef.Driver, targetDef.ID, folder.TransferUpload, &folder.TransferRequest{
+				RemotePath: followUp.targetRemotePath,
+				LocalPath:  followUp.localPath,
+			})
+			if err != nil {
+				s.emitErrorEvent(task.ID, fmt.Errorf("create follow-up upload task for %q: %w", followUp.targetRemotePath, err))
+				s.deletePendingFollowUp(task.ID)
+				return
+			}
+		case followUpOpen:
+			if err := s.opener(followUp.localPath); err != nil {
+				s.emitErrorEvent(task.ID, fmt.Errorf("open downloaded file %q: %w", followUp.localPath, err))
+				s.deletePendingFollowUp(task.ID)
+				return
+			}
 		}
 		s.deletePendingFollowUp(task.ID)
 	case folder.TransferFailed, folder.TransferCancelled:
@@ -623,13 +852,13 @@ func (s *Service) processFollowUp(task *folder.TransferTask) {
 	}
 }
 
-func (s *Service) setPendingFollowUp(taskID string, followUp pendingUpload) {
+func (s *Service) setPendingFollowUp(taskID string, followUp pendingFollowUp) {
 	s.mu.Lock()
 	s.pendingFollowUp[taskID] = followUp
 	s.mu.Unlock()
 }
 
-func (s *Service) getPendingFollowUp(taskID string) (pendingUpload, bool) {
+func (s *Service) getPendingFollowUp(taskID string) (pendingFollowUp, bool) {
 	s.mu.RLock()
 	followUp, ok := s.pendingFollowUp[taskID]
 	s.mu.RUnlock()
@@ -649,6 +878,33 @@ func (s *Service) currentTempDir() string {
 	return strings.TrimSpace(tempDir)
 }
 
+func (s *Service) currentDownloadDir() (string, bool) {
+	s.mu.RLock()
+	downloadDir := strings.TrimSpace(s.downloadDir)
+	s.mu.RUnlock()
+	if downloadDir == "" {
+		return "", false
+	}
+
+	info, err := os.Stat(downloadDir)
+	if err != nil || !info.IsDir() {
+		return "", false
+	}
+
+	resolved, err := filepath.EvalSymlinks(downloadDir)
+	if err != nil {
+		return filepath.Clean(downloadDir), true
+	}
+	return filepath.Clean(resolved), true
+}
+
+func (s *Service) currentOverwriteStrategy() string {
+	s.mu.RLock()
+	overwrite := s.overwrite
+	s.mu.RUnlock()
+	return normalizeOverwriteStrategy(overwrite)
+}
+
 func (s *Service) emitErrorEvent(taskID string, err error) {
 	if err == nil {
 		return
@@ -666,4 +922,154 @@ func (s *Service) emitErrorEvent(taskID string, err error) {
 		TaskID:  taskID,
 		Message: err.Error(),
 	})
+}
+
+func openLocalPath(localPath string) error {
+	cleanPath, _, err := existingLocalPath(localPath)
+	if err != nil {
+		return err
+	}
+
+	if err := commandForOpen(runtime.GOOS, cleanPath).Start(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func revealLocalPath(localPath string) error {
+	cleanPath, info, err := existingLocalPath(localPath)
+	if err != nil {
+		return err
+	}
+
+	if err := commandForReveal(runtime.GOOS, cleanPath, info.IsDir()).Start(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func existingLocalPath(localPath string) (string, os.FileInfo, error) {
+	cleanPath := strings.TrimSpace(localPath)
+	if cleanPath == "" {
+		return "", nil, fmt.Errorf("local path is required")
+	}
+
+	info, err := os.Stat(cleanPath)
+	if err != nil {
+		return "", nil, fmt.Errorf("stat local path %q: %w", cleanPath, err)
+	}
+
+	return cleanPath, info, nil
+}
+
+func commandForOpen(goos, localPath string) *exec.Cmd {
+	switch goos {
+	case "darwin":
+		return exec.Command("open", localPath)
+	case "windows":
+		return exec.Command("cmd", "/c", "start", "", localPath)
+	default:
+		return exec.Command("xdg-open", localPath)
+	}
+}
+
+func commandForReveal(goos, localPath string, isDir bool) *exec.Cmd {
+	switch goos {
+	case "darwin":
+		if isDir {
+			return exec.Command("open", localPath)
+		}
+		return exec.Command("open", "-R", localPath)
+	case "windows":
+		if isDir {
+			return exec.Command("explorer", localPath)
+		}
+		return exec.Command("explorer", "/select,", localPath)
+	default:
+		targetPath := localPath
+		if !isDir {
+			targetPath = filepath.Dir(localPath)
+		}
+		return exec.Command("xdg-open", targetPath)
+	}
+}
+
+func normalizeOverwriteStrategy(strategy string) string {
+	if strings.EqualFold(strings.TrimSpace(strategy), "overwrite") {
+		return "overwrite"
+	}
+	return "rename"
+}
+
+func ensureLocalDirectory(path string) (string, error) {
+	target := strings.TrimSpace(path)
+	if target == "" {
+		return "", fmt.Errorf("local directory is required")
+	}
+	info, err := os.Stat(target)
+	if err != nil {
+		return "", fmt.Errorf("stat local directory %q: %w", target, err)
+	}
+	if !info.IsDir() {
+		return "", fmt.Errorf("local directory %q is not a directory", target)
+	}
+	return target, nil
+}
+
+func ensureParentDirectory(path string) error {
+	parent := filepath.Dir(strings.TrimSpace(path))
+	if parent == "" || parent == "." {
+		return nil
+	}
+	if err := os.MkdirAll(parent, 0o755); err != nil {
+		return fmt.Errorf("create parent directory %q: %w", parent, err)
+	}
+	return nil
+}
+
+func (s *Service) prepareFileTarget(baseDir, fileName string) (string, error) {
+	targetDir, err := ensureLocalDirectory(baseDir)
+	if err != nil {
+		return "", err
+	}
+
+	targetPath := filepath.Join(targetDir, fileName)
+	if s.currentOverwriteStrategy() == "overwrite" {
+		return targetPath, nil
+	}
+	return uniqueLocalPath(targetPath), nil
+}
+
+func (s *Service) prepareDirectoryTarget(baseDir, remotePath string) (string, error) {
+	targetDir, err := ensureLocalDirectory(baseDir)
+	if err != nil {
+		return "", err
+	}
+
+	dirName := path.Base(cleanRemotePath(remotePath))
+	if dirName == "" || dirName == "." || dirName == "/" {
+		dirName = "download"
+	}
+
+	targetPath := filepath.Join(targetDir, dirName)
+	if s.currentOverwriteStrategy() == "overwrite" {
+		return targetPath, nil
+	}
+	return uniqueLocalPath(targetPath), nil
+}
+
+func uniqueLocalPath(targetPath string) string {
+	cleanTarget := filepath.Clean(targetPath)
+	if _, err := os.Stat(cleanTarget); os.IsNotExist(err) {
+		return cleanTarget
+	}
+
+	ext := filepath.Ext(cleanTarget)
+	base := strings.TrimSuffix(cleanTarget, ext)
+	for index := 1; ; index++ {
+		candidate := fmt.Sprintf("%s (%d)%s", base, index, ext)
+		if _, err := os.Stat(candidate); os.IsNotExist(err) {
+			return candidate
+		}
+	}
 }

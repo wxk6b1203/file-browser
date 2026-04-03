@@ -4,6 +4,7 @@ export interface ConnectionFieldSchema {
   key: string
   label: string
   kind: ConnectionFieldKind
+  required?: boolean
   placeholder?: string
   min?: number
 }
@@ -13,10 +14,10 @@ export const DRIVER_FIELD_SCHEMAS: Record<string, ConnectionFieldSchema[]> = {
     { key: 'rootPath', label: 'Root Path', kind: 'text', placeholder: 'C:/Users/wxk6b' },
   ],
   S3: [
-    { key: 'region', label: 'Region', kind: 'text', placeholder: 'ap-southeast-1' },
-    { key: 'bucket', label: 'Bucket', kind: 'text', placeholder: 'my-bucket' },
-    { key: 'accessKeyID', label: 'Access Key ID', kind: 'text' },
-    { key: 'accessKeySecret', label: 'Access Key Secret', kind: 'password' },
+    { key: 'region', label: 'Region', kind: 'text', required: true, placeholder: 'ap-southeast-1' },
+    { key: 'bucket', label: 'Bucket', kind: 'text', required: true, placeholder: 'my-bucket' },
+    { key: 'accessKeyID', label: 'Access Key ID', kind: 'text', required: true },
+    { key: 'accessKeySecret', label: 'Access Key Secret', kind: 'password', required: true },
     { key: 'sessionToken', label: 'Session Token', kind: 'textarea' },
     { key: 'endpoint', label: 'Endpoint', kind: 'text', placeholder: 'https://s3.amazonaws.com' },
     { key: 'prefix', label: 'Prefix', kind: 'text', placeholder: 'path/to/root/' },
@@ -24,10 +25,10 @@ export const DRIVER_FIELD_SCHEMAS: Record<string, ConnectionFieldSchema[]> = {
     { key: 'disableSSL', label: 'Disable SSL', kind: 'switch' },
   ],
   OSS: [
-    { key: 'region', label: 'Region', kind: 'text', placeholder: 'cn-hangzhou' },
-    { key: 'bucket', label: 'Bucket', kind: 'text', placeholder: 'my-bucket' },
-    { key: 'accessKeyID', label: 'Access Key ID', kind: 'text' },
-    { key: 'accessKeySecret', label: 'Access Key Secret', kind: 'password' },
+    { key: 'region', label: 'Region', kind: 'text', required: true, placeholder: 'cn-hangzhou' },
+    { key: 'bucket', label: 'Bucket', kind: 'text', required: true, placeholder: 'my-bucket' },
+    { key: 'accessKeyID', label: 'Access Key ID', kind: 'text', required: true },
+    { key: 'accessKeySecret', label: 'Access Key Secret', kind: 'password', required: true },
     { key: 'securityToken', label: 'Security Token', kind: 'textarea' },
     { key: 'endpoint', label: 'Endpoint', kind: 'text', placeholder: 'https://oss-cn-hangzhou.aliyuncs.com' },
     { key: 'prefix', label: 'Prefix', kind: 'text', placeholder: 'path/to/root/' },
@@ -36,9 +37,9 @@ export const DRIVER_FIELD_SCHEMAS: Record<string, ConnectionFieldSchema[]> = {
     { key: 'disableSSL', label: 'Disable SSL', kind: 'switch' },
   ],
   SFTP: [
-    { key: 'address', label: 'Address', kind: 'text', placeholder: '127.0.0.1' },
+    { key: 'address', label: 'Address', kind: 'text', required: true, placeholder: '127.0.0.1' },
     { key: 'port', label: 'Port', kind: 'number', min: 1, placeholder: '22' },
-    { key: 'username', label: 'Username', kind: 'text' },
+    { key: 'username', label: 'Username', kind: 'text', required: true },
     { key: 'password', label: 'Password', kind: 'password' },
     { key: 'privateKey', label: 'Private Key', kind: 'textarea' },
     { key: 'passphrase', label: 'Passphrase', kind: 'password' },

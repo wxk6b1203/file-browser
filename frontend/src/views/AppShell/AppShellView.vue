@@ -18,6 +18,7 @@
           :overlay-opacity="0.15"
           :min-split-width="220"
           :min-split-height="160"
+          enable-file-drop
           enable-panel-drag
           @update:model-value="workspace.setLayout"
           @tab-activate="(_tab, groupId) => workspace.setActiveGroup(groupId)"
@@ -34,12 +35,14 @@
 </template>
 
 <script setup lang="ts">
-import { markRaw, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, markRaw, onBeforeUnmount, onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { TransferConnectionEntry, UploadConnectionLocalPath } from '../../../wailsjs/go/main/App'
+import { UploadConnectionLocalPath } from '../../../wailsjs/go/main/App'
 import { Tabs } from '@/components/Tabs'
 import type { PanelDropEvent } from '@/components/SplitPane'
+import { buildConnectionEntryDropFeedback, executeConnectionEntryDrop, labelForDropTarget, type ConnectionEntryPanelDragPayload } from '@/composables/connectionEntryDrop'
 import { SkeletonLayout, type SidebarConfig } from '@/views/Skeleton'
 import ExplorerPanel from '@/components/ExplorerTree/ExplorerPanel.vue'
 import SearchPanel from '@/components/SearchPanel/SearchPanel.vue'
@@ -50,6 +53,7 @@ import { PANEL_OS_FILE_DROP_EVENT, useFileDrop, type PanelOSFileDropDetail } fro
 import { useConnectionsStore } from '@/stores/connections'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useSettingsStore } from '@/stores/settings'
+import { useShellStore } from '@/stores/shell'
 import { useTasksStore } from '@/stores/tasks'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { useShortcutMap } from '@/composables/useShortcut'
@@ -63,13 +67,12 @@ const { t } = useI18n()
 const connections = useConnectionsStore()
 const notifications = useNotificationsStore()
 const settings = useSettingsStore()
+const shell = useShellStore()
 const tasks = useTasksStore()
 const workspace = useWorkspaceStore()
+const { leftActive, rightActive } = storeToRefs(shell)
 
 useFileDrop()
-
-const leftActive = ref<string | null>('explorer')
-const rightActive = ref<string | null>(null)
 
 const leftSidebar: SidebarConfig = {
   topButtons: [
@@ -100,7 +103,7 @@ const leftSidebar: SidebarConfig = {
   maxSize: '420px',
 }
 
-const rightSidebar: SidebarConfig = {
+const rightSidebar = computed<SidebarConfig>(() => ({
   topButtons: [
     {
       id: 'tasks',
@@ -113,13 +116,14 @@ const rightSidebar: SidebarConfig = {
       icon: markRaw(IEpBell),
       tooltip: t('shell.sidebar.notifications'),
       type: 'menu',
+      indicator: notifications.unreadCount > 0,
     },
   ],
   bottomButtons: [],
   defaultSize: '260px',
   minSize: '220px',
   maxSize: '360px',
-}
+}))
 
 useShortcutMap({
   'new-connection': () => workspace.openNewConnection(),
@@ -128,16 +132,6 @@ useShortcutMap({
 
 function connectionIdFromTabId(tabId: string) {
   return tabId.startsWith('connection:') ? tabId.slice('connection:'.length) : ''
-}
-
-interface ConnectionEntryPanelDragPayload {
-  type: 'connection-entry'
-  data: {
-    sourceConnectionId: string
-    sourcePath: string
-    sourceName: string
-    sourceIsDirectory: boolean
-  }
 }
 
 async function onPanelOSFileDrop(event: Event) {
@@ -185,6 +179,12 @@ async function onPanelOSFileDrop(event: Event) {
       source: definition.name,
       title: 'Upload Failed',
       message,
+      action: {
+        kind: 'open-connection',
+        connectionId,
+        connectionName: definition.name,
+        path: remoteDir,
+      },
     })
     ElMessage.error(message)
   }
@@ -197,28 +197,20 @@ async function onPanelDrop(event: PanelDropEvent) {
   const targetConnectionId = connectionIdFromTabId(event.targetTabId ?? '')
   if (!targetConnectionId) return
 
-  const sourceConnectionId = payload.data.sourceConnectionId
-  const sourcePath = payload.data.sourcePath
-  if (!sourceConnectionId || !sourcePath) return
-  if (sourceConnectionId === targetConnectionId) return
-
   const targetDefinition = connections.definitionMap.get(targetConnectionId)
   if (!targetDefinition) return
 
   const remoteDir = workspace.getConnectionPath(targetConnectionId)
 
   try {
-    const taskIds = await TransferConnectionEntry(sourceConnectionId, sourcePath, targetConnectionId, remoteDir)
-    emitConnectionDirectoryRefresh({
-      connectionId: targetConnectionId,
-      path: remoteDir,
-      source: 'transfer',
-      taskId: taskIds[0] ?? 'cross-transfer',
-    })
-    ElMessage.success(t('workspace.fileBrowser.crossTransferQueued', {
-      count: taskIds.length || 1,
-      name: targetDefinition.name,
-    }))
+    const result = await executeConnectionEntryDrop(payload, targetConnectionId, remoteDir)
+    const feedback = buildConnectionEntryDropFeedback(
+      result,
+      labelForDropTarget(remoteDir, targetDefinition.name),
+    )
+    if (result.mode !== 'noop') {
+      ElMessage.success(t(feedback.key, feedback.params))
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     notifications.push({
@@ -226,6 +218,12 @@ async function onPanelDrop(event: PanelDropEvent) {
       source: targetDefinition.name,
       title: 'Transfer Failed',
       message,
+      action: {
+        kind: 'open-connection',
+        connectionId: targetConnectionId,
+        connectionName: targetDefinition.name,
+        path: remoteDir,
+      },
     })
     ElMessage.error(message)
   }

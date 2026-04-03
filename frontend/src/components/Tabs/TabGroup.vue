@@ -9,11 +9,14 @@
       @drag-start="onDragStart"
     />
     <div ref="contentEl" class="tab-group__content" :style="contentStyle">
-      <component
-        v-if="activeTab && activeTab.component"
-        :is="activeTab.component"
-        v-bind="activeTab.props"
-      />
+      <KeepAlive>
+        <component
+          v-if="activeTab && activeTab.component"
+          :is="activeTab.component"
+          :key="activeTab.id"
+          v-bind="activeTab.props"
+        />
+      </KeepAlive>
       <TabDropOverlay
         :visible="showOverlay"
         :zone="currentZone"
@@ -146,5 +149,4 @@ defineExpose({
   position: relative;
 }
 </style>
-
 

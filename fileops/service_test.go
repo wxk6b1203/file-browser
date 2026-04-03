@@ -2,11 +2,13 @@ package fileops
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/wxk6b1203/file-util-manager/connection"
+	"github.com/wxk6b1203/file-util-manager/folder"
 	_ "github.com/wxk6b1203/file-util-manager/folder/local"
 )
 
@@ -52,6 +54,38 @@ func TestListDirectorySortsDirectoriesFirst(t *testing.T) {
 	}
 }
 
+func TestListDirectoryReturnsEmptySliceForEmptyDirectory(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+
+	repo := connection.NewFileRepository(filepath.Join(t.TempDir(), "connections.yaml"))
+	connSvc := connection.NewService(repo)
+	fileSvc := NewService(connSvc)
+
+	if _, err := connSvc.Save(ctx, connection.Definition{
+		ID:      "local-empty-list",
+		Name:    "Local Empty List",
+		Driver:  "Local",
+		Enabled: true,
+		Config: map[string]any{
+			"rootPath": root,
+		},
+	}); err != nil {
+		t.Fatalf("save connection: %v", err)
+	}
+
+	items, err := fileSvc.ListDirectory(ctx, "local-empty-list", "")
+	if err != nil {
+		t.Fatalf("ListDirectory: %v", err)
+	}
+	if items == nil {
+		t.Fatal("expected empty slice, got nil")
+	}
+	if len(items) != 0 {
+		t.Fatalf("expected zero entries, got %d", len(items))
+	}
+}
+
 func TestCreateRenameDeleteDirectory(t *testing.T) {
 	ctx := context.Background()
 	root := t.TempDir()
@@ -94,5 +128,78 @@ func TestCreateRenameDeleteDirectory(t *testing.T) {
 
 	if _, err := os.Stat(filepath.Join(root, "beta")); !os.IsNotExist(err) {
 		t.Fatalf("expected renamed directory to be deleted, stat err=%v", err)
+	}
+}
+
+func TestMoveEntryMovesFileIntoDirectory(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+
+	if err := os.Mkdir(filepath.Join(root, "target"), 0o755); err != nil {
+		t.Fatalf("mkdir target: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "alpha.txt"), []byte("hello"), 0o644); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
+
+	repo := connection.NewFileRepository(filepath.Join(t.TempDir(), "connections.yaml"))
+	connSvc := connection.NewService(repo)
+	fileSvc := NewService(connSvc)
+
+	if _, err := connSvc.Save(ctx, connection.Definition{
+		ID:      "local-move-file",
+		Name:    "Local Move File",
+		Driver:  "Local",
+		Enabled: true,
+		Config: map[string]any{
+			"rootPath": root,
+		},
+	}); err != nil {
+		t.Fatalf("save connection: %v", err)
+	}
+
+	moved, err := fileSvc.MoveEntry(ctx, "local-move-file", "alpha.txt", "target")
+	if err != nil {
+		t.Fatalf("MoveEntry: %v", err)
+	}
+	if moved == nil || moved.Path != "target/alpha.txt" {
+		t.Fatalf("unexpected moved file info: %#v", moved)
+	}
+
+	if _, err := os.Stat(filepath.Join(root, "alpha.txt")); !os.IsNotExist(err) {
+		t.Fatalf("expected source file to move away, stat err=%v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "target", "alpha.txt")); err != nil {
+		t.Fatalf("expected target file to exist: %v", err)
+	}
+}
+
+func TestMoveEntryRejectsMovingDirectoryIntoDescendant(t *testing.T) {
+	ctx := context.Background()
+	root := t.TempDir()
+
+	if err := os.MkdirAll(filepath.Join(root, "alpha", "nested"), 0o755); err != nil {
+		t.Fatalf("mkdir nested: %v", err)
+	}
+
+	repo := connection.NewFileRepository(filepath.Join(t.TempDir(), "connections.yaml"))
+	connSvc := connection.NewService(repo)
+	fileSvc := NewService(connSvc)
+
+	if _, err := connSvc.Save(ctx, connection.Definition{
+		ID:      "local-move-dir",
+		Name:    "Local Move Dir",
+		Driver:  "Local",
+		Enabled: true,
+		Config: map[string]any{
+			"rootPath": root,
+		},
+	}); err != nil {
+		t.Fatalf("save connection: %v", err)
+	}
+
+	_, err := fileSvc.MoveEntry(ctx, "local-move-dir", "alpha", "alpha/nested")
+	if !errors.Is(err, folder.ErrInvalidPath) {
+		t.Fatalf("expected ErrInvalidPath, got %v", err)
 	}
 }

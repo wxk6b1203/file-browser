@@ -309,6 +309,8 @@ defineExpose({ panelEl })
 .split-pane-panel {
   position: relative;
   box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
 }
 
 .split-pane-panel--minimized {

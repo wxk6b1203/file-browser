@@ -1,0 +1,7 @@
+connections:
+    - id: 5baf9a31-888d-4a3a-8dd3-5e8f353b5915
+      name: GG
+      driver: Local
+      enabled: true
+      config:
+        rootPath: /Users/wxk/Documents/

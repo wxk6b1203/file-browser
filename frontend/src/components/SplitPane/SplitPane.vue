@@ -161,10 +161,21 @@ const maxPanelSizePx = computed(() => {
 const pxSizes = computed(() => {
   const raw = [...rawPxSizes.value]
   const avail = availableSize.value
-  if (avail <= 0) return raw
+  panels.value.forEach((panel, index) => {
+    if (panel?.minimized) {
+      raw[index] = 0
+    }
+  })
+  if (avail <= 0) return raw.map(() => 0)
 
   const nonMin = panels.value.filter((p) => !p.minimized)
-  if (nonMin.length < 2) return raw
+  if (nonMin.length === 0) return raw.map(() => 0)
+  if (nonMin.length === 1) {
+    const singlePanel = nonMin[0]!
+    const next = raw.map(() => 0)
+    next[singlePanel.index] = avail
+    return next
+  }
 
   // EPS 是 “epsilon（极小容差）” 的缩写，在这里表示比较浮点数时允许的误差阈值（当前设为 0.5 像素）
   const EPS = 0.5
@@ -172,7 +183,7 @@ const pxSizes = computed(() => {
   const indices = nonMin.map((p) => p.index)
   const minLimits: number[] = []
   const maxLimits: number[] = []
-  let targetTotal = 0
+  const targetTotal = avail
 
   // Pass 1 — clamp each panel to its own bounds.
   for (const p of nonMin) {
@@ -186,7 +197,6 @@ const pxSizes = computed(() => {
     const effectiveMax = Math.max(maxPx, minPx)
     minLimits[i] = minPx
     maxLimits[i] = effectiveMax
-    targetTotal += current
     if (current < minPx) {
       raw[i] = minPx
     } else if (current > effectiveMax) {
@@ -508,6 +518,8 @@ provide(splitPaneContextKey, {
   display: flex;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
   position: relative;
   box-sizing: border-box;

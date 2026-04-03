@@ -3,6 +3,8 @@ export namespace config {
 	export class UISection {
 	    locale: string;
 	    theme: string;
+	    explorerFontSize: number;
+	    fileListFontSize: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new UISection(source);
@@ -12,10 +14,13 @@ export namespace config {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.locale = source["locale"];
 	        this.theme = source["theme"];
+	        this.explorerFontSize = source["explorerFontSize"];
+	        this.fileListFontSize = source["fileListFontSize"];
 	    }
 	}
 	export class TransferSection {
 	    tempDir: string;
+	    downloadDir: string;
 	    overwriteStrategy: string;
 	
 	    static createFrom(source: any = {}) {
@@ -25,6 +30,7 @@ export namespace config {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.tempDir = source["tempDir"];
+	        this.downloadDir = source["downloadDir"];
 	        this.overwriteStrategy = source["overwriteStrategy"];
 	    }
 	}

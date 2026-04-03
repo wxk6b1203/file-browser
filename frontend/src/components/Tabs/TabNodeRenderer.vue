@@ -10,6 +10,7 @@
     :layout="splitNode.layout"
     :gap="4"
     :enable-panel-drag="enablePanelDrag"
+    :enable-file-drop="enableFileDrop"
     :key="node.id"
     :data-node-id="node.id"
     @resize-end="onSplitResizeEnd"
@@ -20,7 +21,12 @@
       :key="child.id"
       :size="splitNode.sizes?.[i] ?? `${100 / splitNode.children.length}%`"
     >
-      <TabNodeRenderer :node="child" :enable-panel-drag="enablePanelDrag" @panel-drop="onPanelDrop" />
+      <TabNodeRenderer
+        :node="child"
+        :enable-panel-drag="enablePanelDrag"
+        :enable-file-drop="enableFileDrop"
+        @panel-drop="onPanelDrop"
+      />
     </SplitPanePanel>
   </SplitPane>
 </template>
@@ -36,6 +42,7 @@ import { SplitPane, SplitPanePanel } from '../SplitPane'
 const props = defineProps<{
   node: TabNode
   enablePanelDrag?: boolean
+  enableFileDrop?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -45,6 +52,7 @@ const emit = defineEmits<{
 /** Type-safe access for split nodes (only used in v-else branch) */
 const splitNode = computed(() => props.node as TabSplitNode)
 const enablePanelDrag = computed(() => props.enablePanelDrag ?? false)
+const enableFileDrop = computed(() => props.enableFileDrop ?? false)
 
 const ctx = inject(tabsContextKey)!
 

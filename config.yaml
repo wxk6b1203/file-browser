@@ -1,0 +1,24 @@
+app:
+    locale: zh
+    theme: 2026-dark
+    temp_dir: /Users/wxk/Documents/Project/file-browser/tmp
+log:
+    level: info
+    outputs:
+        - stdout
+        - /Users/wxk/Documents/Project/file-browser/logs/app.log
+paths:
+    connections_file: /Users/wxk/Documents/Project/file-browser/connections.yaml
+    state_file: /Users/wxk/Documents/Project/file-browser/state.yaml
+search:
+    max_concurrency: 4
+    result_limit: 500
+transfer:
+    temp_dir: /Users/wxk/Documents/Project/file-browser/tmp/transfers
+    download_dir: ""
+    overwrite_strategy: rename
+ui:
+    locale: zh
+    theme: 2026-dark
+    explorer_font_size: 13
+    file_list_font_size: 13

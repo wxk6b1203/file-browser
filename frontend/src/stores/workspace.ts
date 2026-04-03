@@ -1,15 +1,18 @@
-import { computed, markRaw, ref } from 'vue'
+import { computed, defineAsyncComponent, markRaw, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { TabGroupNode, TabItem, TabNode } from '@/components/Tabs'
-import WelcomeTab from '@/components/Workspace/WelcomeTab.vue'
-import ConnectionFormTab from '@/components/Workspace/ConnectionFormTab.vue'
-import SettingsTab from '@/components/Workspace/SettingsTab.vue'
-import ConnectionOverviewTab from '@/components/Workspace/ConnectionOverviewTab.vue'
+import { folder } from '../../wailsjs/go/models'
+
+const WelcomeTab = markRaw(defineAsyncComponent(() => import('@/components/Workspace/WelcomeTab.vue')))
+const ConnectionFormTab = markRaw(defineAsyncComponent(() => import('@/components/Workspace/ConnectionFormTab.vue')))
+const SettingsTab = markRaw(defineAsyncComponent(() => import('@/components/Workspace/SettingsTab.vue')))
+const ConnectionOverviewTab = markRaw(defineAsyncComponent(() => import('@/components/Workspace/ConnectionOverviewTab.vue')))
 
 const ROOT_GROUP_ID = 'workspace-root'
 
 interface ConnectionTabState {
   path: string
+  items?: folder.FileInfo[]
 }
 
 function createEmptyGroup(): TabGroupNode {
@@ -75,6 +78,36 @@ function cloneLayout(node: TabNode): TabNode {
   }
 }
 
+function removeTabsByPredicate(node: TabNode, predicate: (tab: TabItem) => boolean): TabNode | null {
+  if (node.type === 'tabs') {
+    const tabs = node.tabs.filter((tab) => !predicate(tab))
+    if (tabs.length === 0) return null
+
+    const activeId = tabs.some((tab) => tab.id === node.activeId)
+      ? node.activeId
+      : (tabs[0]?.id ?? '')
+
+    return {
+      ...node,
+      tabs,
+      activeId,
+    }
+  }
+
+  const children = node.children
+    .map((child) => removeTabsByPredicate(child, predicate))
+    .filter((child): child is TabNode => child !== null)
+
+  if (children.length === 0) return null
+  if (children.length === 1) return children[0]!
+
+  return {
+    ...node,
+    children,
+    sizes: node.sizes ? node.sizes.slice(0, children.length) : undefined,
+  }
+}
+
 export const useWorkspaceStore = defineStore('workspace', () => {
   const layout = ref<TabNode>(createEmptyGroup())
   const activeGroupId = ref(ROOT_GROUP_ID)
@@ -88,18 +121,13 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     openTab({
       id: 'welcome',
       label: 'Welcome',
-      closable: false,
+      closable: true,
       component: markRaw(WelcomeTab),
     }, ROOT_GROUP_ID)
   }
 
   function setLayout(next: TabNode) {
     layout.value = next
-    if (!hasTabs(layout.value)) {
-      ensureWelcomeTab()
-      return
-    }
-
     const currentGroup = findGroupById(layout.value, activeGroupId.value)
     if (!currentGroup) {
       activeGroupId.value = findFirstGroup(layout.value)?.id ?? ROOT_GROUP_ID
@@ -113,7 +141,10 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   function setConnectionPath(connectionId: string, path = '') {
     connectionTabState.value = {
       ...connectionTabState.value,
-      [connectionId]: { path },
+      [connectionId]: {
+        ...connectionTabState.value[connectionId],
+        path,
+      },
     }
   }
 
@@ -121,11 +152,31 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     return connectionTabState.value[connectionId]?.path ?? ''
   }
 
-  function removeWelcomePlaceholder(group: TabGroupNode) {
-    if (group.tabs.length === 1 && group.tabs[0]?.id === 'welcome') {
-      group.tabs = []
-      group.activeId = ''
+  function setConnectionBrowserState(connectionId: string, path: string, items: folder.FileInfo[]) {
+    connectionTabState.value = {
+      ...connectionTabState.value,
+      [connectionId]: {
+        path,
+        items: items.map((item) => folder.FileInfo.createFrom(JSON.parse(JSON.stringify(item)))),
+      },
     }
+  }
+
+  function getConnectionBrowserState(connectionId: string) {
+    const state = connectionTabState.value[connectionId]
+    if (!state?.items) return null
+
+    return {
+      path: state.path,
+      items: state.items.map((item) => folder.FileInfo.createFrom(JSON.parse(JSON.stringify(item)))),
+    }
+  }
+
+  function resetConnectionBrowserState(connectionId: string, path = '') {
+    const nextState = { ...connectionTabState.value }
+    delete nextState[connectionId]
+    connectionTabState.value = nextState
+    setConnectionPath(connectionId, path)
   }
 
   function openTab(tab: TabItem, targetGroupId?: string) {
@@ -145,7 +196,6 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       return openTab(tab, ROOT_GROUP_ID)
     }
 
-    removeWelcomePlaceholder(targetGroup)
     targetGroup.tabs.push(tab)
     targetGroup.activeId = tab.id
     activeGroupId.value = targetGroup.id
@@ -208,6 +258,35 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     })
   }
 
+  function closeTabById(tabId: string) {
+    const nextLayout = removeTabsByPredicate(layout.value, (tab) => tab.id === tabId)
+    layout.value = nextLayout ?? createEmptyGroup()
+
+    const currentGroup = findGroupById(layout.value, activeGroupId.value)
+    if (!currentGroup) {
+      activeGroupId.value = findFirstGroup(layout.value)?.id ?? ROOT_GROUP_ID
+    }
+  }
+
+  function closeConnectionTabs(connectionId: string) {
+    const overviewTabId = `connection:${connectionId}`
+    const formTabId = `connection-form:${connectionId}`
+    const nextLayout = removeTabsByPredicate(layout.value, (tab) => (
+      tab.id === overviewTabId || tab.id === formTabId
+    ))
+
+    layout.value = nextLayout ?? createEmptyGroup()
+
+    const nextState = { ...connectionTabState.value }
+    delete nextState[connectionId]
+    connectionTabState.value = nextState
+
+    const currentGroup = findGroupById(layout.value, activeGroupId.value)
+    if (!currentGroup) {
+      activeGroupId.value = findFirstGroup(layout.value)?.id ?? ROOT_GROUP_ID
+    }
+  }
+
   return {
     layout,
     activeGroupId,
@@ -217,11 +296,16 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     setActiveGroup,
     setConnectionPath,
     getConnectionPath,
+    setConnectionBrowserState,
+    getConnectionBrowserState,
+    resetConnectionBrowserState,
     openWelcome,
     openSettings,
     openNewConnection,
     openEditConnection,
     openConnection,
+    closeTabById,
+    closeConnectionTabs,
     ensureWelcomeTab,
   }
 })

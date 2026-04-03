@@ -207,3 +207,117 @@ func TestBuildCrossConnectionTransferPlan_Directory(t *testing.T) {
 		t.Fatalf("files = %#v, want %#v", plan.files, wantFiles)
 	}
 }
+
+func TestProcessFollowUp_OpensDownloadedFile(t *testing.T) {
+	opened := ""
+	svc := &Service{
+		opener: func(path string) error {
+			opened = path
+			return nil
+		},
+		pendingFollowUp: map[string]pendingFollowUp{
+			"task-open": {
+				kind:      followUpOpen,
+				localPath: filepath.Join("tmp", "downloads", "demo.txt"),
+			},
+		},
+	}
+
+	svc.processFollowUp(&folder.TransferTask{
+		ID:        "task-open",
+		Direction: folder.TransferDownload,
+		Status:    folder.TransferCompleted,
+	})
+
+	if opened != filepath.Join("tmp", "downloads", "demo.txt") {
+		t.Fatalf("opened path = %q", opened)
+	}
+	if _, ok := svc.pendingFollowUp["task-open"]; ok {
+		t.Fatalf("expected pending follow-up to be removed")
+	}
+}
+
+func TestCommandForOpen(t *testing.T) {
+	t.Run("darwin", func(t *testing.T) {
+		cmd := commandForOpen("darwin", "/tmp/demo.txt")
+		if got, want := filepath.Base(cmd.Path), "open"; got != want {
+			t.Fatalf("path = %q, want %q", got, want)
+		}
+		if !reflect.DeepEqual(cmd.Args, []string{"open", "/tmp/demo.txt"}) {
+			t.Fatalf("args = %#v", cmd.Args)
+		}
+	})
+
+	t.Run("windows", func(t *testing.T) {
+		cmd := commandForOpen("windows", `C:\tmp\demo.txt`)
+		if got, want := filepath.Base(cmd.Path), "cmd"; got != want {
+			t.Fatalf("path = %q, want %q", got, want)
+		}
+		if !reflect.DeepEqual(cmd.Args, []string{"cmd", "/c", "start", "", `C:\tmp\demo.txt`}) {
+			t.Fatalf("args = %#v", cmd.Args)
+		}
+	})
+
+	t.Run("linux", func(t *testing.T) {
+		cmd := commandForOpen("linux", "/tmp/demo.txt")
+		if got, want := filepath.Base(cmd.Path), "xdg-open"; got != want {
+			t.Fatalf("path = %q, want %q", got, want)
+		}
+		if !reflect.DeepEqual(cmd.Args, []string{"xdg-open", "/tmp/demo.txt"}) {
+			t.Fatalf("args = %#v", cmd.Args)
+		}
+	})
+}
+
+func TestCommandForReveal(t *testing.T) {
+	t.Run("darwin file", func(t *testing.T) {
+		cmd := commandForReveal("darwin", "/tmp/demo.txt", false)
+		if got, want := filepath.Base(cmd.Path), "open"; got != want {
+			t.Fatalf("path = %q, want %q", got, want)
+		}
+		if !reflect.DeepEqual(cmd.Args, []string{"open", "-R", "/tmp/demo.txt"}) {
+			t.Fatalf("args = %#v", cmd.Args)
+		}
+	})
+
+	t.Run("darwin dir", func(t *testing.T) {
+		cmd := commandForReveal("darwin", "/tmp/downloads", true)
+		if !reflect.DeepEqual(cmd.Args, []string{"open", "/tmp/downloads"}) {
+			t.Fatalf("args = %#v", cmd.Args)
+		}
+	})
+
+	t.Run("windows file", func(t *testing.T) {
+		cmd := commandForReveal("windows", `C:\tmp\demo.txt`, false)
+		if got, want := filepath.Base(cmd.Path), "explorer"; got != want {
+			t.Fatalf("path = %q, want %q", got, want)
+		}
+		if !reflect.DeepEqual(cmd.Args, []string{"explorer", "/select,", `C:\tmp\demo.txt`}) {
+			t.Fatalf("args = %#v", cmd.Args)
+		}
+	})
+
+	t.Run("windows dir", func(t *testing.T) {
+		cmd := commandForReveal("windows", `C:\tmp\downloads`, true)
+		if !reflect.DeepEqual(cmd.Args, []string{"explorer", `C:\tmp\downloads`}) {
+			t.Fatalf("args = %#v", cmd.Args)
+		}
+	})
+
+	t.Run("linux file", func(t *testing.T) {
+		cmd := commandForReveal("linux", filepath.Join("/tmp", "downloads", "demo.txt"), false)
+		if got, want := filepath.Base(cmd.Path), "xdg-open"; got != want {
+			t.Fatalf("path = %q, want %q", got, want)
+		}
+		if !reflect.DeepEqual(cmd.Args, []string{"xdg-open", filepath.Join("/tmp", "downloads")}) {
+			t.Fatalf("args = %#v", cmd.Args)
+		}
+	})
+
+	t.Run("linux dir", func(t *testing.T) {
+		cmd := commandForReveal("linux", filepath.Join("/tmp", "downloads"), true)
+		if !reflect.DeepEqual(cmd.Args, []string{"xdg-open", filepath.Join("/tmp", "downloads")}) {
+			t.Fatalf("args = %#v", cmd.Args)
+		}
+	})
+}

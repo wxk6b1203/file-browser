@@ -19,6 +19,8 @@ export function DeleteConnection(arg1:string):Promise<void>;
 
 export function DeleteConnectionEntry(arg1:string,arg2:string):Promise<void>;
 
+export function DownloadConnectionFile(arg1:string,arg2:string):Promise<Array<string>>;
+
 export function DownloadConnectionFileToTemp(arg1:string,arg2:string):Promise<Array<string>>;
 
 export function GetAppConfig():Promise<config.AppConfig>;
@@ -35,17 +37,31 @@ export function ListDrivers():Promise<Array<folder.DriverInfo>>;
 
 export function ListTransferTasks():Promise<Array<folder.TransferTask>>;
 
+export function MoveConnectionEntry(arg1:string,arg2:string,arg3:string):Promise<folder.FileInfo>;
+
 export function OpenConnection(arg1:string):Promise<connection.State>;
+
+export function OpenConnectionFile(arg1:string,arg2:string):Promise<Array<string>>;
+
+export function OpenLocalPath(arg1:string):Promise<void>;
+
+export function PickDownloadDirectory():Promise<string>;
 
 export function RemoveTransferTask(arg1:string):Promise<void>;
 
 export function RenameConnectionEntry(arg1:string,arg2:string,arg3:string):Promise<folder.FileInfo>;
 
+export function RevealLocalPath(arg1:string):Promise<void>;
+
 export function SaveAppConfig(arg1:config.AppConfig):Promise<config.AppConfig>;
 
 export function SaveConnection(arg1:connection.Definition):Promise<connection.Definition>;
 
+export function SaveConnectionFileAs(arg1:string,arg2:string):Promise<Array<string>>;
+
 export function StartSearch(arg1:search.Request):Promise<string>;
+
+export function TestConnection(arg1:connection.Definition):Promise<connection.State>;
 
 export function TransferConnectionEntry(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<string>>;
 

@@ -30,6 +30,10 @@ export function DeleteConnectionEntry(arg1, arg2) {
   return window['go']['main']['App']['DeleteConnectionEntry'](arg1, arg2);
 }
 
+export function DownloadConnectionFile(arg1, arg2) {
+  return window['go']['main']['App']['DownloadConnectionFile'](arg1, arg2);
+}
+
 export function DownloadConnectionFileToTemp(arg1, arg2) {
   return window['go']['main']['App']['DownloadConnectionFileToTemp'](arg1, arg2);
 }
@@ -62,8 +66,24 @@ export function ListTransferTasks() {
   return window['go']['main']['App']['ListTransferTasks']();
 }
 
+export function MoveConnectionEntry(arg1, arg2, arg3) {
+  return window['go']['main']['App']['MoveConnectionEntry'](arg1, arg2, arg3);
+}
+
 export function OpenConnection(arg1) {
   return window['go']['main']['App']['OpenConnection'](arg1);
+}
+
+export function OpenConnectionFile(arg1, arg2) {
+  return window['go']['main']['App']['OpenConnectionFile'](arg1, arg2);
+}
+
+export function OpenLocalPath(arg1) {
+  return window['go']['main']['App']['OpenLocalPath'](arg1);
+}
+
+export function PickDownloadDirectory() {
+  return window['go']['main']['App']['PickDownloadDirectory']();
 }
 
 export function RemoveTransferTask(arg1) {
@@ -74,6 +94,10 @@ export function RenameConnectionEntry(arg1, arg2, arg3) {
   return window['go']['main']['App']['RenameConnectionEntry'](arg1, arg2, arg3);
 }
 
+export function RevealLocalPath(arg1) {
+  return window['go']['main']['App']['RevealLocalPath'](arg1);
+}
+
 export function SaveAppConfig(arg1) {
   return window['go']['main']['App']['SaveAppConfig'](arg1);
 }
@@ -82,8 +106,16 @@ export function SaveConnection(arg1) {
   return window['go']['main']['App']['SaveConnection'](arg1);
 }
 
+export function SaveConnectionFileAs(arg1, arg2) {
+  return window['go']['main']['App']['SaveConnectionFileAs'](arg1, arg2);
+}
+
 export function StartSearch(arg1) {
   return window['go']['main']['App']['StartSearch'](arg1);
+}
+
+export function TestConnection(arg1) {
+  return window['go']['main']['App']['TestConnection'](arg1);
 }
 
 export function TransferConnectionEntry(arg1, arg2, arg3, arg4) {

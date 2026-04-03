@@ -17,6 +17,7 @@ export interface ThemeDefinition {
 export const BUILTIN_THEMES: ThemeDefinition[] = [
   { id: 'light',         label: '浅色',           dark: false },
   { id: 'dark',          label: '深色',           dark: true  },
+  { id: '2026-dark',     label: '2026 Dark',      dark: true  },
   { id: 'vscode-dark',   label: 'VS Code Dark',   dark: true  },
   { id: 'islands-light', label: 'Islands Light',   dark: false },
   { id: 'islands-dark',  label: 'Islands Dark',    dark: true  },

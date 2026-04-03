@@ -82,6 +82,10 @@ export const useTasksStore = defineStore('tasks', () => {
         source: 'Transfer',
         title: 'Transfer Follow-up Failed',
         message: payload.message,
+        action: {
+          kind: 'open-task-panel',
+          taskId: payload.taskId,
+        },
       })
       return
     }
@@ -131,6 +135,10 @@ export const useTasksStore = defineStore('tasks', () => {
           source: task.instanceName || task.driverName || 'Transfer',
           title: 'Transfer Failed',
           message: task.error || `${task.remotePath} failed`,
+          action: {
+            kind: 'open-task-panel',
+            taskId: task.id,
+          },
         })
         notifiedTaskIds.value = {
           ...notifiedTaskIds.value,
@@ -145,6 +153,10 @@ export const useTasksStore = defineStore('tasks', () => {
           source: task.instanceName || task.driverName || 'Transfer',
           title: 'Transfer Cancelled',
           message: task.remotePath || task.localPath,
+          action: {
+            kind: 'open-task-panel',
+            taskId: task.id,
+          },
         })
         notifiedTaskIds.value = {
           ...notifiedTaskIds.value,

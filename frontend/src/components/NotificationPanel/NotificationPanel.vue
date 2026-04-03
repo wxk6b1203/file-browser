@@ -38,6 +38,11 @@
 
         <h3 class="notification-card__title">{{ item.title }}</h3>
         <p class="notification-card__message">{{ item.message }}</p>
+        <div v-if="item.action" class="notification-card__actions">
+          <el-button size="small" @click="runAction(item)">
+            {{ actionLabel(item.action) }}
+          </el-button>
+        </div>
         <time class="notification-card__time">{{ formatTime(item.createdAt) }}</time>
       </article>
     </div>
@@ -45,11 +50,18 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { useNotificationsStore, type NotificationLevel } from '@/stores/notifications'
+import { useConnectionsStore } from '@/stores/connections'
+import { useNotificationsStore, type NotificationAction, type NotificationLevel, type NotificationItem } from '@/stores/notifications'
+import { useShellStore } from '@/stores/shell'
+import { useWorkspaceStore } from '@/stores/workspace'
 
 const { t, locale } = useI18n()
+const connections = useConnectionsStore()
 const notifications = useNotificationsStore()
+const shell = useShellStore()
+const workspace = useWorkspaceStore()
 
 function levelLabel(level: NotificationLevel) {
   if (level === 'success') return t('shell.notifications.level.success')
@@ -64,6 +76,35 @@ function levelClass(level: NotificationLevel) {
     'notification-card__level--success': level === 'success',
     'notification-card__level--warning': level === 'warning',
     'notification-card__level--error': level === 'error',
+  }
+}
+
+function actionLabel(action: NotificationAction) {
+  if (action.kind === 'open-task-panel') return t('shell.notifications.actions.openTasks')
+  return t('shell.notifications.actions.openDirectory')
+}
+
+async function runAction(item: NotificationItem) {
+  const action = item.action
+  if (!action) return
+
+  try {
+    if (action.kind === 'open-task-panel') {
+      shell.showTasks()
+      return
+    }
+
+    const connectionId = action.connectionId
+    const definition = connections.definitionMap.get(connectionId)
+    const connectionName = action.connectionName || definition?.name
+    if (!connectionName) {
+      throw new Error(`connection ${connectionId} not found`)
+    }
+
+    shell.showExplorer()
+    workspace.openConnection(connectionId, connectionName, action.path || '')
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : String(error))
   }
 }
 
@@ -228,6 +269,11 @@ function formatTime(value: number) {
   font-size: 12px;
   line-height: 1.5;
   word-break: break-word;
+}
+
+.notification-card__actions {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .notification-card__time {

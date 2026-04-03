@@ -8,6 +8,8 @@ export interface SidebarButton {
   icon: Component
   /** Tooltip text shown on hover */
   tooltip?: string
+  /** Whether to show a small indicator dot on the button */
+  indicator?: boolean
   /**
    * 'menu' — clicking toggles the associated sidebar menu panel.
    * 'action' — clicking triggers onClick without affecting the panel.
@@ -48,4 +50,3 @@ export interface SkeletonContext {
 
 /** Injection key for SkeletonLayout context */
 export const skeletonContextKey: InjectionKey<SkeletonContext> = Symbol('skeletonContext')
-

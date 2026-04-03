@@ -3,12 +3,25 @@ import { defineStore } from 'pinia'
 
 export type NotificationLevel = 'info' | 'success' | 'warning' | 'error'
 
+export type NotificationAction =
+  | {
+      kind: 'open-task-panel'
+      taskId?: string
+    }
+  | {
+      kind: 'open-connection'
+      connectionId: string
+      connectionName?: string
+      path?: string
+    }
+
 export interface NotificationItem {
   id: string
   level: NotificationLevel
   title: string
   message: string
   source: string
+  action?: NotificationAction
   createdAt: number
 }
 

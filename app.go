@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"path"
+	"strings"
 
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 	"github.com/wxk6b1203/file-util-manager/bootstrap"
@@ -57,7 +60,7 @@ func NewApp(rt *bootstrap.Runtime) *App {
 		conn:     connSvc,
 		fileops:  fileops.NewService(connSvc),
 		search:   search.NewService(connSvc, rt.AppConfig.Search.MaxConcurrency, rt.AppConfig.Search.ResultLimit),
-		transfer: transfer.NewService(connSvc, rt.AppConfig.Transfer.TempDir),
+		transfer: transfer.NewService(connSvc, rt.AppConfig.Transfer.TempDir, rt.AppConfig.Transfer.DownloadDir, rt.AppConfig.Transfer.OverwriteStrategy),
 	}
 }
 
@@ -91,6 +94,8 @@ func (a *App) applyRuntimeConfig(cfg *config.AppConfig) {
 
 	a.search.UpdateDefaults(cfg.Search.MaxConcurrency, cfg.Search.ResultLimit)
 	a.transfer.SetTempDir(cfg.Transfer.TempDir)
+	a.transfer.SetDownloadDir(cfg.Transfer.DownloadDir)
+	a.transfer.SetOverwriteStrategy(cfg.Transfer.OverwriteStrategy)
 }
 
 // ---------------------------------------------------------------------------
@@ -157,6 +162,10 @@ func (a *App) SaveConnection(def connection.Definition) (connection.Definition, 
 	return a.conn.Save(a.ctx, def)
 }
 
+func (a *App) TestConnection(def connection.Definition) (*connection.State, error) {
+	return a.conn.Test(a.ctx, def)
+}
+
 func (a *App) DeleteConnection(id string) error {
 	return a.conn.Delete(a.ctx, id)
 }
@@ -174,7 +183,14 @@ func (a *App) ListConnectionStates() []connection.State {
 }
 
 func (a *App) ListConnectionDirectory(connectionID string, dir string) ([]*folder.FileInfo, error) {
-	return a.fileops.ListDirectory(a.ctx, connectionID, dir)
+	items, err := a.fileops.ListDirectory(a.ctx, connectionID, dir)
+	if err != nil {
+		return nil, err
+	}
+	if items == nil {
+		return []*folder.FileInfo{}, nil
+	}
+	return items, nil
 }
 
 func (a *App) CreateConnectionDirectory(connectionID string, parentDir string, name string) (*folder.FileInfo, error) {
@@ -189,8 +205,66 @@ func (a *App) DeleteConnectionEntry(connectionID string, targetPath string) erro
 	return a.fileops.DeleteEntry(a.ctx, connectionID, targetPath)
 }
 
+func (a *App) MoveConnectionEntry(connectionID string, sourcePath string, targetDir string) (*folder.FileInfo, error) {
+	return a.fileops.MoveEntry(a.ctx, connectionID, sourcePath, targetDir)
+}
+
 func (a *App) DownloadConnectionFileToTemp(connectionID string, remotePath string) ([]string, error) {
 	return a.transfer.DownloadToTemp(a.ctx, connectionID, remotePath)
+}
+
+func (a *App) DownloadConnectionFile(connectionID string, remotePath string) ([]string, error) {
+	return a.transfer.Download(a.ctx, connectionID, remotePath)
+}
+
+func (a *App) SaveConnectionFileAs(connectionID string, remotePath string) ([]string, error) {
+	defaultDirectory := ""
+	if a.runtime != nil && a.runtime.AppConfig != nil {
+		defaultDirectory = existingDirectory(strings.TrimSpace(a.runtime.AppConfig.Transfer.DownloadDir))
+	}
+
+	selectedPath, err := wailsRuntime.SaveFileDialog(a.ctx, wailsRuntime.SaveDialogOptions{
+		Title:            "Save File As",
+		DefaultDirectory: defaultDirectory,
+		DefaultFilename:  path.Base(strings.TrimSpace(remotePath)),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(selectedPath) == "" {
+		return []string{}, nil
+	}
+
+	return a.transfer.DownloadFileToPath(a.ctx, connectionID, remotePath, selectedPath)
+}
+
+func (a *App) OpenConnectionFile(connectionID string, remotePath string) ([]string, error) {
+	return a.transfer.OpenFile(a.ctx, connectionID, remotePath)
+}
+
+func (a *App) OpenLocalPath(localPath string) error {
+	return a.transfer.OpenLocalPath(localPath)
+}
+
+func (a *App) RevealLocalPath(localPath string) error {
+	return a.transfer.RevealLocalPath(localPath)
+}
+
+func (a *App) PickDownloadDirectory() (string, error) {
+	defaultDirectory := ""
+	if a.runtime != nil && a.runtime.AppConfig != nil {
+		defaultDirectory = existingDirectory(strings.TrimSpace(a.runtime.AppConfig.Transfer.DownloadDir))
+	}
+
+	selectedPath, err := wailsRuntime.OpenDirectoryDialog(a.ctx, wailsRuntime.OpenDialogOptions{
+		Title:                "Select Default Download Directory",
+		DefaultDirectory:     defaultDirectory,
+		CanCreateDirectories: true,
+	})
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(selectedPath), nil
 }
 
 func (a *App) UploadConnectionLocalPath(connectionID string, remoteDir string, localPath string) ([]string, error) {
@@ -199,6 +273,18 @@ func (a *App) UploadConnectionLocalPath(connectionID string, remoteDir string, l
 
 func (a *App) TransferConnectionEntry(sourceConnectionID string, sourcePath string, targetConnectionID string, targetDir string) ([]string, error) {
 	return a.transfer.TransferEntry(a.ctx, sourceConnectionID, sourcePath, targetConnectionID, targetDir)
+}
+
+func existingDirectory(path string) string {
+	cleanPath := strings.TrimSpace(path)
+	if cleanPath == "" {
+		return ""
+	}
+	info, err := os.Stat(cleanPath)
+	if err != nil || !info.IsDir() {
+		return ""
+	}
+	return cleanPath
 }
 
 func (a *App) ListTransferTasks() []*folder.TransferTask {

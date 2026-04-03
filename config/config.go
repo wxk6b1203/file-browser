@@ -18,6 +18,10 @@ const (
 	DefaultLogFileName               = "logs/app.log"
 	DefaultTempDir                   = "tmp"
 	DefaultTransferTempDir           = "tmp/transfers"
+	DefaultUIExplorerFontSize        = 13
+	DefaultUIFileListFontSize        = 13
+	MinUIFontSize                    = 11
+	MaxUIFontSize                    = 18
 )
 
 type AppConfig struct {
@@ -52,12 +56,15 @@ type SearchSection struct {
 
 type TransferSection struct {
 	TempDir           string `json:"tempDir" yaml:"temp_dir" mapstructure:"temp_dir"`
+	DownloadDir       string `json:"downloadDir" yaml:"download_dir" mapstructure:"download_dir"`
 	OverwriteStrategy string `json:"overwriteStrategy" yaml:"overwrite_strategy" mapstructure:"overwrite_strategy"`
 }
 
 type UISection struct {
-	Locale string `json:"locale" yaml:"locale" mapstructure:"locale"`
-	Theme  string `json:"theme" yaml:"theme" mapstructure:"theme"`
+	Locale           string `json:"locale" yaml:"locale" mapstructure:"locale"`
+	Theme            string `json:"theme" yaml:"theme" mapstructure:"theme"`
+	ExplorerFontSize int    `json:"explorerFontSize" yaml:"explorer_font_size" mapstructure:"explorer_font_size"`
+	FileListFontSize int    `json:"fileListFontSize" yaml:"file_list_font_size" mapstructure:"file_list_font_size"`
 }
 
 type ConnectionDefinition struct {
@@ -130,11 +137,14 @@ func DefaultAppConfig() *AppConfig {
 		},
 		Transfer: TransferSection{
 			TempDir:           DefaultTransferTempDir,
+			DownloadDir:       "",
 			OverwriteStrategy: "rename",
 		},
 		UI: UISection{
-			Locale: "zh",
-			Theme:  "system",
+			Locale:           "zh",
+			Theme:            "system",
+			ExplorerFontSize: DefaultUIExplorerFontSize,
+			FileListFontSize: DefaultUIFileListFontSize,
 		},
 	}
 }
@@ -147,7 +157,7 @@ func DefaultConnectionsConfig() *ConnectionsConfig {
 
 func ResolveAppConfigPath(input string) (string, error) {
 	if strings.TrimSpace(input) != "" {
-		return filepath.Abs(filepath.Clean(strings.TrimSpace(input)))
+		return canonicalPath(strings.TrimSpace(input))
 	}
 
 	wd, err := os.Getwd()
@@ -162,11 +172,11 @@ func ResolveAppConfigPath(input string) (string, error) {
 	}
 	for _, candidate := range candidates {
 		if _, statErr := os.Stat(candidate); statErr == nil {
-			return filepath.Abs(candidate)
+			return canonicalPath(candidate)
 		}
 	}
 
-	return filepath.Abs(filepath.Join(wd, DefaultAppConfigFileName))
+	return canonicalPath(filepath.Join(wd, DefaultAppConfigFileName))
 }
 
 func LoadAppConfig(path string) (*LoadedAppConfig, error) {
@@ -229,6 +239,10 @@ func LoadConnectionsConfig(path string) (*LoadedConnectionsConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load connections config: %w", err)
 	}
+	resolvedPath, err = canonicalPath(resolvedPath)
+	if err != nil {
+		return nil, fmt.Errorf("load connections config: %w", err)
+	}
 
 	cfg := DefaultConnectionsConfig()
 	exists, err := fileExists(resolvedPath)
@@ -236,15 +250,7 @@ func LoadConnectionsConfig(path string) (*LoadedConnectionsConfig, error) {
 		return nil, fmt.Errorf("load connections config: %w", err)
 	}
 	if exists {
-		v, configType, err := newViperForFile(resolvedPath)
-		if err != nil {
-			return nil, err
-		}
-		v.SetConfigType(configType)
-		if err := v.ReadInConfig(); err != nil {
-			return nil, fmt.Errorf("load connections config %q: %w", resolvedPath, err)
-		}
-		if err := v.Unmarshal(cfg); err != nil {
+		if err := decodeConnectionsConfigFile(resolvedPath, cfg); err != nil {
 			return nil, fmt.Errorf("decode connections config %q: %w", resolvedPath, err)
 		}
 	}
@@ -267,7 +273,7 @@ func SaveConnectionsConfig(path string, cfg *ConnectionsConfig) error {
 	}
 	cfg.Normalize()
 
-	resolvedPath, err := filepath.Abs(filepath.Clean(path))
+	resolvedPath, err := canonicalPath(path)
 	if err != nil {
 		return fmt.Errorf("save connections config: %w", err)
 	}
@@ -277,6 +283,39 @@ func SaveConnectionsConfig(path string, cfg *ConnectionsConfig) error {
 	}
 
 	return writeConfigFile(resolvedPath, cfg)
+}
+
+func decodeConnectionsConfigFile(path string, cfg *ConnectionsConfig) error {
+	configType, err := detectConfigType(path)
+	if err != nil {
+		return err
+	}
+
+	body, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	switch configType {
+	case "json":
+		if len(body) == 0 {
+			return nil
+		}
+		if err := json.Unmarshal(body, cfg); err != nil {
+			return err
+		}
+		return nil
+	case "yaml":
+		if len(body) == 0 {
+			return nil
+		}
+		if err := yaml.Unmarshal(body, cfg); err != nil {
+			return err
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported config type %q", configType)
+	}
 }
 
 func (c *AppConfig) Normalize(baseDir string) {
@@ -306,10 +345,29 @@ func (c *AppConfig) Normalize(baseDir string) {
 	}
 
 	c.Transfer.TempDir = resolvePath(baseDir, defaultString(c.Transfer.TempDir, DefaultTransferTempDir))
+	c.Transfer.DownloadDir = resolvePath(baseDir, c.Transfer.DownloadDir)
 	c.Transfer.OverwriteStrategy = defaultString(c.Transfer.OverwriteStrategy, "rename")
 
 	c.UI.Locale = defaultString(c.UI.Locale, c.App.Locale)
 	c.UI.Theme = defaultString(c.UI.Theme, c.App.Theme)
+	c.UI.ExplorerFontSize = normalizeUIFontSize(c.UI.ExplorerFontSize, DefaultUIExplorerFontSize)
+	c.UI.FileListFontSize = normalizeUIFontSize(c.UI.FileListFontSize, DefaultUIFileListFontSize)
+}
+
+func normalizeUIFontSize(value int, fallback int) int {
+	if fallback < MinUIFontSize || fallback > MaxUIFontSize {
+		fallback = DefaultUIExplorerFontSize
+	}
+	if value <= 0 {
+		return fallback
+	}
+	if value < MinUIFontSize {
+		return MinUIFontSize
+	}
+	if value > MaxUIFontSize {
+		return MaxUIFontSize
+	}
+	return value
 }
 
 func (c *ConnectionsConfig) Normalize() {
@@ -445,6 +503,37 @@ func resolvePath(baseDir, value string) string {
 		return filepath.Clean(trimmed)
 	}
 	return filepath.Clean(filepath.Join(baseDir, trimmed))
+}
+
+func canonicalPath(path string) (string, error) {
+	abs, err := filepath.Abs(filepath.Clean(path))
+	if err != nil {
+		return "", err
+	}
+
+	current := abs
+	suffix := make([]string, 0, 4)
+	for {
+		resolved, err := filepath.EvalSymlinks(current)
+		if err == nil {
+			for i := len(suffix) - 1; i >= 0; i-- {
+				resolved = filepath.Join(resolved, suffix[i])
+			}
+			return filepath.Clean(resolved), nil
+		}
+
+		if !os.IsNotExist(err) {
+			return "", err
+		}
+
+		parent := filepath.Dir(current)
+		if parent == current {
+			return abs, nil
+		}
+
+		suffix = append(suffix, filepath.Base(current))
+		current = parent
+	}
 }
 
 func defaultString(value, fallback string) string {

@@ -1,0 +1,183 @@
+/*
+ * ─── 2026 Dark Theme ───────────────────────────────────────
+ *
+ * Adapted from VS Code's experimental "2026 Dark" palette.
+ * This project theme system only consumes app-level UI tokens,
+ * so the original VS Code JSON is compressed into the existing
+ * --theme-* variable surface instead of mirroring every key.
+ *
+ * Palette anchors:
+ *   - editor/background      #121314
+ *   - sideBar/panel          #191A1B
+ *   - menu/overlay           #202122
+ *   - accent/focus           #3994BC
+ *   - foreground            #bfbfbf
+ *   - muted text            #8c8c8c
+ *   - border                #2A2B2C / #333536
+ */
+html[data-theme="2026-dark"] {
+  /* ── Brand / Primary ── */
+  --theme-color-primary: #3994bc;
+  --theme-color-primary-hover: #48a0c7;
+  --theme-color-primary-active: #297aa0;
+  --theme-color-primary-light: rgba(57, 148, 188, 0.18);
+
+  /* ── Semantic ── */
+  --theme-color-success: #73c991;
+  --theme-color-warning: #e5ba7d;
+  --theme-color-danger: #f48771;
+  --theme-color-info: #57a3f8;
+
+  /* ── Text ── */
+  --theme-color-text-base: #bfbfbf;
+  --theme-color-text: #bbbec0;
+  --theme-color-text-secondary: #8c8c8c;
+  --theme-color-text-placeholder: #555555;
+  --theme-color-text-disabled: #555555;
+
+  /* ── Background ── */
+  --theme-color-bg-base: #121314;
+  --theme-color-bg-surface: #191a1b;
+  --theme-color-bg-overlay: #202122;
+  --theme-color-bg-hover: rgba(255, 255, 255, 0.05);
+  --theme-color-bg-active: rgba(255, 255, 255, 0.09);
+
+  /* ── Border ── */
+  --theme-color-border: #2a2b2c;
+  --theme-color-border-light: #333536;
+  --theme-color-border-dark: #3a3c3d;
+
+  /* ── Divider ── */
+  --theme-color-divider: #2a2b2c;
+  --theme-color-divider-active: #3994bc;
+  --theme-color-divider-hover-bg: rgba(57, 148, 188, 0.14);
+
+  /* ── Misc UI ── */
+  --theme-color-close-hover: rgba(255, 255, 255, 0.1);
+  --theme-color-scrollbar: rgba(131, 132, 133, 0.2);
+  --theme-color-scrollbar-hover: rgba(131, 132, 133, 0.4);
+
+  /* ── Shadows ── */
+  --theme-shadow-float: 0 10px 28px rgba(0, 0, 0, 0.52);
+  --theme-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.28);
+  --theme-shadow-md: 0 6px 14px rgba(0, 0, 0, 0.34);
+}
+
+html[data-theme="2026-dark"] .explorer-panel {
+  background:
+    linear-gradient(180deg, rgba(32, 33, 34, 0.82), transparent 32%),
+    #191a1b;
+}
+
+html[data-theme="2026-dark"] .explorer-panel__header {
+  border-bottom-color: #2a2b2c;
+}
+
+html[data-theme="2026-dark"] .explorer-panel__list {
+  background: #191a1b;
+}
+
+html[data-theme="2026-dark"] .explorer-node__row {
+  border-radius: 8px;
+}
+
+html[data-theme="2026-dark"] .explorer-node__row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="2026-dark"] .explorer-node__driver {
+  background: #242526;
+  color: #8c8c8c;
+}
+
+html[data-theme="2026-dark"] .explorer-node__menu-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+html[data-theme="2026-dark"] .tab-bar {
+  background: #191a1b;
+  border-bottom-color: #2a2b2c;
+}
+
+html[data-theme="2026-dark"] .tab-header {
+  color: #8c8c8c;
+  border-bottom-width: 1px;
+}
+
+html[data-theme="2026-dark"] .tab-header:hover {
+  background: #121314;
+  color: #bfbfbf;
+}
+
+html[data-theme="2026-dark"] .tab-header--active {
+  background: #121314;
+  color: #bfbfbf;
+  border-bottom-color: #3994bc;
+}
+
+html[data-theme="2026-dark"] .tab-header__close:hover {
+  background: #262728;
+}
+
+html[data-theme="2026-dark"] .tab-group__content {
+  background: #121314;
+}
+
+html[data-theme="2026-dark"] .file-browser__list-shell {
+  border-color: #2a2b2c;
+  border-radius: 10px;
+  background: #121314;
+}
+
+html[data-theme="2026-dark"] .file-browser__list-header {
+  background: #191a1b;
+  border-bottom-color: #2a2b2c;
+}
+
+html[data-theme="2026-dark"] .file-browser__list-header-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="2026-dark"] .file-browser__row {
+  border-bottom-color: #242526;
+}
+
+html[data-theme="2026-dark"] .file-browser__row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="2026-dark"] .file-browser__row--selected {
+  background: #2c2d2e;
+}
+
+html[data-theme="2026-dark"] .file-browser__row--active {
+  box-shadow: inset 0 0 0 1px rgba(57, 148, 188, 0.7);
+}
+
+html[data-theme="2026-dark"] .file-browser__row--selected.file-browser__row--active {
+  background: rgba(57, 148, 188, 0.15);
+}
+
+html[data-theme="2026-dark"] .file-browser__tile {
+  border-color: #2a2b2c;
+  border-radius: 12px;
+  background: #191a1b;
+}
+
+html[data-theme="2026-dark"] .file-browser__tile:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="2026-dark"] .file-browser__tile--selected {
+  background: #2c2d2e;
+  border-color: #333536;
+}
+
+html[data-theme="2026-dark"] .file-browser__tile--active {
+  box-shadow: inset 0 0 0 1px rgba(57, 148, 188, 0.7);
+}
+
+html[data-theme="2026-dark"] .file-browser__tile--selected.file-browser__tile--active {
+  background: rgba(57, 148, 188, 0.15);
+  border-color: #3994bc;
+}

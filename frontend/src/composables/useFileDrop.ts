@@ -5,6 +5,7 @@ import { render } from '../../wailsjs/go/models'
 import { consumePendingPanelDropInfo } from './usePanelFileDrop'
 
 export const PANEL_OS_FILE_DROP_EVENT = 'workspace:panel-os-file-drop'
+export const PANEL_OS_FILE_DROP_RESET_EVENT = 'workspace:panel-os-file-drop-reset'
 
 export interface PanelOSFileDropDetail {
   groupId: string
@@ -69,6 +70,7 @@ export function useFileDrop() {
     e.preventDefault()
     dragCounter = 0
     isDragging.value = false
+    window.dispatchEvent(new CustomEvent(PANEL_OS_FILE_DROP_RESET_EVENT))
   }
 
   onMounted(() => {
@@ -83,6 +85,7 @@ export function useFileDrop() {
     if (import.meta.env.VITE_APP_ENV !== 'internal') {
       OnFileDrop((x: number, y: number, paths: string[]) => {
         isDragging.value = false
+        window.dispatchEvent(new CustomEvent(PANEL_OS_FILE_DROP_RESET_EVENT))
         // If a panel registered itself as the drop target, report panel-level context.
         const panelInfo = consumePendingPanelDropInfo()
         if (panelInfo) {

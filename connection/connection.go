@@ -178,7 +178,85 @@ func (s *Service) Save(ctx context.Context, def Definition) (Definition, error) 
 	if _, err := folder.Factory(normalized.Driver); err != nil {
 		return Definition{}, err
 	}
-	return s.repo.Save(ctx, normalized)
+
+	prevDef, err := s.repo.Get(ctx, normalized.ID)
+	if err != nil && !errors.Is(err, folder.ErrNotFound) {
+		return Definition{}, err
+	}
+
+	saved, err := s.repo.Save(ctx, normalized)
+	if err != nil {
+		return Definition{}, err
+	}
+
+	s.mu.RLock()
+	prevState, hadState := s.states[saved.ID]
+	wasConnected := hadState && prevState.Connected
+	s.mu.RUnlock()
+
+	for _, driverName := range instanceDriversForSave(prevDef, saved) {
+		if driverName == "" {
+			continue
+		}
+		if err := folder.DeleteInstance(driverName, saved.ID); err != nil && !errors.Is(err, folder.ErrNotFound) {
+			return Definition{}, err
+		}
+	}
+
+	s.mu.Lock()
+	prev := s.states[saved.ID]
+	prev.ID = saved.ID
+	prev.Name = saved.Name
+	prev.Driver = saved.Driver
+	prev.Connected = false
+	prev.Capabilities = nil
+	prev.LastError = ""
+	s.states[saved.ID] = prev
+	s.mu.Unlock()
+
+	if wasConnected {
+		if _, err := s.Open(ctx, saved.ID); err != nil {
+			return Definition{}, err
+		}
+	}
+
+	return saved, nil
+}
+
+func (s *Service) Test(ctx context.Context, def Definition) (*State, error) {
+	normalized, err := normalizeDefinitionForTest(def)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := folder.Factory(normalized.Driver); err != nil {
+		return nil, err
+	}
+
+	mgr, err := folder.NewManager(ctx, normalized.Driver, normalized.toDriverOptions())
+	if err != nil {
+		return nil, err
+	}
+	if closer, ok := mgr.(folder.Closer); ok {
+		defer closer.Close()
+	}
+
+	if hc, ok := mgr.(folder.HealthChecker); ok {
+		if err := hc.Ping(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	caps := mgr.Capabilities()
+	now := time.Now()
+	state := &State{
+		ID:              normalized.ID,
+		Name:            normalized.Name,
+		Driver:          normalized.Driver,
+		Connected:       true,
+		LastConnectedAt: &now,
+		Capabilities:    &caps,
+	}
+	return state, nil
 }
 
 func (s *Service) Delete(ctx context.Context, id string) error {
@@ -383,6 +461,18 @@ func normalizeDefinition(def Definition) (Definition, error) {
 	return def, nil
 }
 
+func normalizeDefinitionForTest(def Definition) (Definition, error) {
+	def.ID = strings.TrimSpace(def.ID)
+	if def.ID == "" {
+		def.ID = uuid.NewString()
+	}
+	def.Name = strings.TrimSpace(def.Name)
+	if def.Name == "" {
+		def.Name = "Connection Test"
+	}
+	return normalizeDefinition(def)
+}
+
 func definitionFromConfig(def config.ConnectionDefinition) Definition {
 	if def.Metadata == nil {
 		def.Metadata = map[string]string{}
@@ -454,4 +544,28 @@ func cloneAnyMap(in map[string]any) map[string]any {
 		out[key] = value
 	}
 	return out
+}
+
+func instanceDriversForSave(previous *Definition, next Definition) []string {
+	drivers := make([]string, 0, 2)
+	seen := make(map[string]struct{}, 2)
+
+	add := func(driver string) {
+		driver = strings.TrimSpace(driver)
+		if driver == "" {
+			return
+		}
+		if _, ok := seen[driver]; ok {
+			return
+		}
+		seen[driver] = struct{}{}
+		drivers = append(drivers, driver)
+	}
+
+	if previous != nil {
+		add(previous.Driver)
+	}
+	add(next.Driver)
+
+	return drivers
 }

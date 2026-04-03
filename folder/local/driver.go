@@ -121,10 +121,21 @@ func (d *Driver) validFullPath(relPath string) (string, error) {
 func isSubPath(root, child string) bool {
 	root = filepath.Clean(root)
 	child = filepath.Clean(child)
-	if child == root {
+
+	rel, err := filepath.Rel(root, child)
+	if err != nil {
+		return false
+	}
+
+	rel = filepath.Clean(rel)
+	if rel == "." {
 		return true
 	}
-	return strings.HasPrefix(child, root+string(filepath.Separator))
+	if rel == ".." {
+		return false
+	}
+
+	return !strings.HasPrefix(rel, ".."+string(filepath.Separator))
 }
 
 // toRelPath converts an absolute path back to a path relative to root.
@@ -177,7 +188,7 @@ func (d *Driver) List(_ context.Context, dir string, opt *folder.ListOptions) ([
 		return nil, fmt.Errorf("local: list %q: %w", dir, err)
 	}
 
-	var result []*folder.FileInfo
+	result := []*folder.FileInfo{}
 	for _, entry := range entries {
 		if opt.Prefix != "" && !strings.HasPrefix(entry.Name(), opt.Prefix) {
 			continue
@@ -421,7 +432,7 @@ func (d *Driver) listRecursive(fullDir, relDir string, opt *folder.ListOptions, 
 		return nil, fmt.Errorf("local: list %q: %w", relDir, err)
 	}
 
-	var result []*folder.FileInfo
+	result := []*folder.FileInfo{}
 	for _, entry := range entries {
 		if depth == 0 && opt.Prefix != "" && !strings.HasPrefix(entry.Name(), opt.Prefix) {
 			continue

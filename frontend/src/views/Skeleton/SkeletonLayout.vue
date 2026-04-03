@@ -16,6 +16,7 @@
       ref="splitRef"
       layout="horizontal"
       :gap="gap"
+      enable-file-drop
       class="skeleton-layout__split"
     >
       <!-- Left menu panel -->
@@ -222,6 +223,8 @@ defineExpose({
   display: flex;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
   background-color: var(--theme-color-bg-base);
 }
@@ -229,11 +232,14 @@ defineExpose({
 .skeleton-layout__split {
   flex: 1;
   min-width: 0;
+  min-height: 0;
 }
 
 .skeleton-layout__panel-content {
   width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
   background-color: var(--theme-color-bg-surface);
 }
@@ -241,7 +247,8 @@ defineExpose({
 .skeleton-layout__center {
   width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
 }
 </style>
-

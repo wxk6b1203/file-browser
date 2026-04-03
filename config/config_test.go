@@ -6,6 +6,16 @@ import (
 	"testing"
 )
 
+func mustCanonicalPath(t *testing.T, path string) string {
+	t.Helper()
+
+	resolved, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		t.Fatalf("EvalSymlinks(%q): %v", path, err)
+	}
+	return filepath.Clean(resolved)
+}
+
 func TestLoadAppConfigDefaultsWhenMissing(t *testing.T) {
 	tmpDir := t.TempDir()
 	prevWD, err := os.Getwd()
@@ -27,18 +37,25 @@ func TestLoadAppConfigDefaultsWhenMissing(t *testing.T) {
 	if loaded.Exists {
 		t.Fatalf("expected missing config file to report Exists=false")
 	}
-	expectedPath := filepath.Join(tmpDir, DefaultAppConfigFileName)
+	canonicalTmpDir := mustCanonicalPath(t, tmpDir)
+	expectedPath := filepath.Join(canonicalTmpDir, DefaultAppConfigFileName)
 	if loaded.Path != expectedPath {
 		t.Fatalf("expected path %q, got %q", expectedPath, loaded.Path)
 	}
 	if loaded.Config.Log.Level != "info" {
 		t.Fatalf("expected default log level info, got %q", loaded.Config.Log.Level)
 	}
-	expectedLogPath := filepath.Join(tmpDir, DefaultLogFileName)
+	if loaded.Config.UI.ExplorerFontSize != DefaultUIExplorerFontSize {
+		t.Fatalf("expected default explorer font size %d, got %d", DefaultUIExplorerFontSize, loaded.Config.UI.ExplorerFontSize)
+	}
+	if loaded.Config.UI.FileListFontSize != DefaultUIFileListFontSize {
+		t.Fatalf("expected default file list font size %d, got %d", DefaultUIFileListFontSize, loaded.Config.UI.FileListFontSize)
+	}
+	expectedLogPath := filepath.Join(canonicalTmpDir, DefaultLogFileName)
 	if len(loaded.Config.Log.Outputs) != 2 || loaded.Config.Log.Outputs[1] != expectedLogPath {
 		t.Fatalf("unexpected log outputs: %#v", loaded.Config.Log.Outputs)
 	}
-	if loaded.Config.Paths.ConnectionsFile != filepath.Join(tmpDir, DefaultConnectionsConfigFileName) {
+	if loaded.Config.Paths.ConnectionsFile != filepath.Join(canonicalTmpDir, DefaultConnectionsConfigFileName) {
 		t.Fatalf("unexpected connections file path: %q", loaded.Config.Paths.ConnectionsFile)
 	}
 }
@@ -64,10 +81,13 @@ search:
   result_limit: 1200
 transfer:
   temp_dir: work/transfers
+  download_dir: downloads
   overwrite_strategy: overwrite
 ui:
   locale: en
   theme: islands-dark
+  explorer_font_size: 10
+  file_list_font_size: 20
 `)
 	if err := os.WriteFile(configPath, body, 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
@@ -78,23 +98,34 @@ ui:
 		t.Fatalf("LoadAppConfig: %v", err)
 	}
 
+	canonicalTmpDir := mustCanonicalPath(t, tmpDir)
+
 	if !loaded.Exists {
 		t.Fatalf("expected config file to exist")
 	}
-	if loaded.Config.App.TempDir != filepath.Join(tmpDir, "cache") {
+	if loaded.Config.App.TempDir != filepath.Join(canonicalTmpDir, "cache") {
 		t.Fatalf("unexpected app temp dir: %q", loaded.Config.App.TempDir)
 	}
-	if loaded.Config.Log.Outputs[1] != filepath.Join(tmpDir, "logs", "custom.log") {
+	if loaded.Config.Log.Outputs[1] != filepath.Join(canonicalTmpDir, "logs", "custom.log") {
 		t.Fatalf("unexpected log file path: %q", loaded.Config.Log.Outputs[1])
 	}
-	if loaded.Config.Paths.ConnectionsFile != filepath.Join(tmpDir, "config", "connections.yaml") {
+	if loaded.Config.Paths.ConnectionsFile != filepath.Join(canonicalTmpDir, "config", "connections.yaml") {
 		t.Fatalf("unexpected connections path: %q", loaded.Config.Paths.ConnectionsFile)
 	}
-	if loaded.Config.Transfer.TempDir != filepath.Join(tmpDir, "work", "transfers") {
+	if loaded.Config.Transfer.TempDir != filepath.Join(canonicalTmpDir, "work", "transfers") {
 		t.Fatalf("unexpected transfer temp dir: %q", loaded.Config.Transfer.TempDir)
+	}
+	if loaded.Config.Transfer.DownloadDir != filepath.Join(canonicalTmpDir, "downloads") {
+		t.Fatalf("unexpected download dir: %q", loaded.Config.Transfer.DownloadDir)
 	}
 	if loaded.Config.Search.MaxConcurrency != 8 || loaded.Config.Search.ResultLimit != 1200 {
 		t.Fatalf("unexpected search config: %#v", loaded.Config.Search)
+	}
+	if loaded.Config.UI.ExplorerFontSize != MinUIFontSize {
+		t.Fatalf("unexpected explorer font size clamp: %d", loaded.Config.UI.ExplorerFontSize)
+	}
+	if loaded.Config.UI.FileListFontSize != MaxUIFontSize {
+		t.Fatalf("unexpected file list font size clamp: %d", loaded.Config.UI.FileListFontSize)
 	}
 }
 
@@ -135,5 +166,43 @@ func TestSaveAndLoadConnectionsConfigJSON(t *testing.T) {
 	}
 	if conn.Metadata == nil || conn.Config == nil {
 		t.Fatalf("expected normalized maps, got metadata=%#v config=%#v", conn.Metadata, conn.Config)
+	}
+}
+
+func TestLoadConnectionsConfigYAMLUsesYAMLV3(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "connections.yaml")
+
+	body := []byte(`
+connections:
+  - id: local-docs
+    name: Local Docs
+    driver: Local
+    enabled: true
+    config:
+      rootPath: /Users/wxk/Documents
+`)
+	if err := os.WriteFile(configPath, body, 0o644); err != nil {
+		t.Fatalf("write connections yaml: %v", err)
+	}
+
+	loaded, err := LoadConnectionsConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadConnectionsConfig: %v", err)
+	}
+
+	if !loaded.Exists {
+		t.Fatalf("expected yaml config file to exist")
+	}
+	if len(loaded.Config.Connections) != 1 {
+		t.Fatalf("expected one connection, got %d", len(loaded.Config.Connections))
+	}
+
+	conn := loaded.Config.Connections[0]
+	if conn.ID != "local-docs" || conn.Driver != "Local" {
+		t.Fatalf("unexpected connection payload: %#v", conn)
+	}
+	if got := conn.Config["rootPath"]; got != "/Users/wxk/Documents" {
+		t.Fatalf("unexpected rootPath: %#v", got)
 	}
 }

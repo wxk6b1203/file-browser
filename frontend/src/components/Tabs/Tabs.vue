@@ -5,7 +5,12 @@
     :style="{ width: '100%', height: '100%', position: 'relative' }"
   >
     <!-- Recursive tree renderer -->
-    <TabNodeRenderer :node="treeRef" :enable-panel-drag="props.enablePanelDrag" @panel-drop="onPanelDrop" />
+    <TabNodeRenderer
+      :node="treeRef"
+      :enable-panel-drag="props.enablePanelDrag"
+      :enable-file-drop="props.enableFileDrop"
+      @panel-drop="onPanelDrop"
+    />
 
     <!-- Drag ghost: floating header that follows the pointer -->
     <Teleport to="body">
@@ -57,6 +62,8 @@ const props = withDefaults(
     minSplitHeight?: number
     /** Enable internal panel drag-drop within split panes */
     enablePanelDrag?: boolean
+    /** Enable OS file drag-drop overlays on split panels */
+    enableFileDrop?: boolean
   }>(),
   {
     barBackground: undefined,
@@ -65,6 +72,7 @@ const props = withDefaults(
     minSplitWidth: 100,
     minSplitHeight: 80,
     enablePanelDrag: false,
+    enableFileDrop: false,
   },
 )
 
@@ -450,4 +458,3 @@ defineExpose({
   opacity: 0.92;
 }
 </style>
-

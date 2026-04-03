@@ -413,7 +413,7 @@ func (d *Driver) List(_ context.Context, dir string, opt *folder.ListOptions) ([
 			return nil, fmt.Errorf("sftp: list %q: %w", dir, err)
 		}
 
-		var result []*folder.FileInfo
+		result := []*folder.FileInfo{}
 		for _, entry := range entries {
 			if opt.Prefix != "" && !strings.HasPrefix(entry.Name(), opt.Prefix) {
 				continue
@@ -747,7 +747,7 @@ func (d *Driver) listRecursive(client *sftp.Client, fullDir, relDir string, opt 
 		return nil, fmt.Errorf("sftp: list %q: %w", relDir, err)
 	}
 
-	var result []*folder.FileInfo
+	result := []*folder.FileInfo{}
 	for _, entry := range entries {
 		if depth == 0 && opt.Prefix != "" && !strings.HasPrefix(entry.Name(), opt.Prefix) {
 			continue

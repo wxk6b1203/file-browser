@@ -38,5 +38,13 @@ func (o *Options) Validate() error {
 		return fmt.Errorf("local: rootPath %q is not a directory", o.RootPath)
 	}
 
+	// Canonicalize the root so traversal checks compare against the same
+	// filesystem view as EvalSymlinks-based child resolution.
+	resolved, err := filepath.EvalSymlinks(o.RootPath)
+	if err != nil {
+		return fmt.Errorf("local: resolve rootPath %q: %w", o.RootPath, err)
+	}
+	o.RootPath = resolved
+
 	return nil
 }

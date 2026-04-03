@@ -164,7 +164,7 @@ func (d *Driver) List(ctx context.Context, dir string, opt *folder.ListOptions) 
 		return nil, fmt.Errorf("oss: list %q: driver is closed", dir)
 	}
 
-	var result []*folder.FileInfo
+	result := []*folder.FileInfo{}
 
 	for {
 		resp, err := client.ListObjectsV2(ctx, req)

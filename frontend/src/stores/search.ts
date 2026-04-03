@@ -107,13 +107,27 @@ export const useSearchStore = defineStore('search', () => {
 
   async function cancel() {
     if (!requestId.value || !running.value) return
-    await CancelSearch(requestId.value)
+    const activeRequestId = requestId.value
+    running.value = false
+    requestId.value = ''
+    summary.value = summary.value
+      ? {
+          ...summary.value,
+          cancelled: true,
+        }
+      : null
+
+    try {
+      await CancelSearch(activeRequestId)
+    } catch {
+      // The frontend state is already closed; ignore "not found" style races.
+    }
   }
 
   function handleEvent(payload?: SearchEventPayload) {
     if (!payload) return
     if (!payload.requestId) return
-    if (requestId.value && payload.requestId !== requestId.value) return
+    if (payload.requestId !== requestId.value) return
 
     ready.value = true
 
@@ -141,6 +155,7 @@ export const useSearchStore = defineStore('search', () => {
 
     if (payload.type === 'completed') {
       running.value = false
+      requestId.value = ''
       summary.value = payload.summary ?? summary.value
     }
   }

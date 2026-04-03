@@ -19,6 +19,7 @@
         @click="onButtonClick(btn)"
       >
         <component :is="btn.icon" class="sidebar-btn-col__icon" />
+        <span v-if="btn.indicator" class="sidebar-btn-col__indicator" />
       </button>
     </div>
 
@@ -35,6 +36,7 @@
         @click="onButtonClick(btn)"
       >
         <component :is="btn.icon" class="sidebar-btn-col__icon" />
+        <span v-if="btn.indicator" class="sidebar-btn-col__indicator" />
       </button>
     </div>
   </div>
@@ -116,6 +118,7 @@ function onButtonClick(btn: SidebarButton) {
 }
 
 .sidebar-btn-col__btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,5 +153,16 @@ function onButtonClick(btn: SidebarButton) {
   width: 20px;
   height: 20px;
 }
-</style>
 
+.sidebar-btn-col__indicator {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--theme-color-primary);
+  box-shadow: 0 0 0 2px var(--theme-color-bg-surface);
+  pointer-events: none;
+}
+</style>
