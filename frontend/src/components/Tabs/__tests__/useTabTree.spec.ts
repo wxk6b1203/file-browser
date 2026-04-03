@@ -44,5 +44,43 @@ describe('useTabTree', () => {
     expect(tree.value.children).toHaveLength(2)
     expect(tree.value.children[1]?.type).toBe('split')
   })
-})
 
+  it('collapses a split into the surviving sibling group when one side closes its last tab', () => {
+    const tree = ref<TabNode>({
+      type: 'split',
+      id: 'root-split',
+      layout: 'horizontal',
+      sizes: ['50%', '50%'],
+      children: [
+        {
+          type: 'tabs',
+          id: 'group-left',
+          activeId: 'left-1',
+          tabs: [
+            { id: 'left-1', label: 'Left 1' },
+          ],
+        },
+        {
+          type: 'tabs',
+          id: 'group-right',
+          activeId: 'right-1',
+          tabs: [
+            { id: 'right-1', label: 'Right 1' },
+          ],
+        },
+      ],
+    })
+
+    const { removeTab } = useTabTree(tree)
+
+    removeTab('group-left', 'left-1')
+
+    expect(tree.value.type).toBe('tabs')
+    if (tree.value.type !== 'tabs') return
+
+    expect(tree.value.id).toBe('group-right')
+    expect(tree.value.activeId).toBe('right-1')
+    expect(tree.value.tabs).toHaveLength(1)
+    expect(tree.value.tabs[0]?.id).toBe('right-1')
+  })
+})

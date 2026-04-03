@@ -16,7 +16,6 @@
       ref="splitRef"
       layout="horizontal"
       :gap="gap"
-      enable-file-drop
       class="skeleton-layout__split"
     >
       <!-- Left menu panel -->

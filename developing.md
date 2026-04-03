@@ -3531,3 +3531,120 @@ connections:
 
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
+
+## 2026-04-04 - Move OS File Drop Targets Down To Leaf Tab Groups To Avoid Overlay Stacking
+
+### Problem
+
+- 外部文件拖入中央工作区时：
+  - 未分割，上传正常
+  - 分割后，也能分别拖入左右子面板
+- 但如果中央工作区存在多分隔布局，会出现遮罩层叠加：
+  - 外层中间大遮罩
+  - 内层各个子面板自己的遮罩
+- 视觉和交互都不对，因为真正应该接收外部文件拖放的是“当前叶子工作区”，不是外层所有容器一起响应。
+
+### Root Cause
+
+- 之前为了恢复外部文件拖入上传，给两层容器都打开了 `enableFileDrop`：
+  - `SkeletonLayout` 外层主分栏 `SplitPane`
+  - `Tabs` 内部的 `SplitPane`
+- 这样在多分隔场景下，同一个 OS drag 会同时命中：
+  - 外层 center panel
+  - 内层 split panel
+- 于是就出现“中间大遮罩 + 子面板遮罩”叠加。
+- 这说明 OS 文件拖放目标设计层级有误：
+  - 外部文件拖放应该只落到最末端的 leaf workspace
+  - 不该让更外层的 layout 容器也参与同类遮罩。
+
+### Completed Changes
+
+- 将 OS 文件拖放目标下沉到 `Tabs` 的叶子 `TabGroup`：
+  - `TabGroup` 现在直接接入 `usePanelFileDrop()`，作为真正的外部文件 drop target。
+- `TabsContext` 新增 `enableFileDrop`，由 `Tabs` 统一向下提供。
+- `TabNodeRenderer` 改为：
+  - 叶子 `TabGroup` 继续接收 `enableFileDrop`
+  - 中间层 `SplitPane` 不再启用自己的 OS file drop overlay
+- `SkeletonLayout` 外层主分栏 `SplitPane` 关闭 `enable-file-drop`。
+- `usePanelFileDrop()` 新增 `resolveGroupHost()`：
+  - 既兼容以前的 `SplitPanePanel -> 内部 tab group`
+  - 也兼容现在直接把 `TabGroup` 自己作为 drop target。
+
+### Result
+
+- 未分割时：
+  - 当前 tab 内容区会显示一层 drop overlay
+- 多分割时：
+  - 只有鼠标所在的叶子工作区会显示 overlay
+- 不再出现外层大遮罩覆盖内层子面板遮罩的重叠情况。
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+## 2026-04-04 - Add Regression Tests For Split Collapse After Closing One Side
+
+### Goal
+
+- 为“左右分割时关闭左边最后一个 tab，左侧空余位置偶发仍残留”的问题补充可执行回归测试。
+- 先固定问题，再做修复，避免继续靠人工极端场景复现。
+
+### Added Tests
+
+- `frontend/src/components/Tabs/__tests__/useTabTree.spec.ts`
+  - 新增纯树变换测试：
+    - 关闭 split 一侧最后一个 tab 后
+    - 布局树应从 `split` 塌缩成剩余的单个 `tabs` 节点
+- `frontend/src/components/Tabs/__tests__/Tabs.spec.ts`
+  - 新增 UI 层测试：
+    - 挂载真实 `Tabs`
+    - 创建左右 split
+    - 关闭左侧最后一个 tab
+    - 断言 `SplitPane` DOM 与 `.split-pane-panel` 不应残留
+
+### Result
+
+- 纯树变换测试通过，说明 `useTabTree.removeTab()` 在数据结构层面已经能把 split 塌成单 child。
+- 新增的 UI 回归测试稳定失败：
+  - `SplitPane` 在关闭左侧最后一个 tab 后仍然存在
+  - 这证明问题确实不在树模型本身，而在 UI 层 `Tabs -> TabNodeRenderer -> SplitPane` 的卸载 / 收口链路。
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/components/Tabs/__tests__/useTabTree.spec.ts src/components/Tabs/__tests__/Tabs.spec.ts`
+  - `useTabTree.spec.ts` 通过
+  - `Tabs.spec.ts` 新增回归用例失败（这是当前已确认的待修复问题）
+
+## 2026-04-04 - Fix Split Pane Residual Space After Closing One Side's Last Tab
+
+### Root Cause
+
+- 之前已经补了回归测试，确认问题不在树模型层，而在 UI 层：
+  - `useTabTree.spec.ts` 证明纯树变换下，`split -> single tabs` 可以正确塌缩
+  - `Tabs.spec.ts` 则证明真实组件运行时，关闭左侧最后一个 tab 后，`SplitPane` 仍会残留
+- 继续沿着失败用例排查后，定位到 `useTabTree.removeTab()`：
+  - 它之前采用的是“先原地修改当前 group 的 proxy，再根据 `node.tabs.length` 决定是否调用 `replaceNode()`”的写法
+  - 在纯对象测试里这条逻辑没问题
+  - 但在组件真实运行时，这个分支会退化成：
+    - 左侧 group 被改成空 tabs
+    - 整体 tree 仍保留原来的 `split`
+    - 最终形成一个空的左 group + 仍然存在的 `SplitPane`
+- 调试输出已经验证了这一点：
+  - `update:modelValue` 收到的是带空左 group 的 `split`
+  - 而不是应该塌成的单个右侧 `tabs`
+
+### Completed Changes
+
+- 将 `useTabTree.removeTab()` 改成纯不可变更新：
+  - 先基于 `rawGroup` 计算 `nextTabs`
+  - 如果删完为空，直接 `replaceNode(tree.value, rawGroup.id, null)`
+  - 如果删完还有 tab，则构造 `nextGroup`，再整体替换回树里
+- 不再依赖“先原地改 proxy，再看长度”的分支判断。
+- 这样数据结构层和真实组件运行时都走同一条确定性的替换路径。
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/components/Tabs/__tests__/useTabTree.spec.ts src/components/Tabs/__tests__/Tabs.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。

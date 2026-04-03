@@ -17,6 +17,9 @@
           v-bind="activeTab.props"
         />
       </KeepAlive>
+      <div v-if="isFileDragOver" class="tab-group__drop-mask">
+        <div class="tab-group__drop-mask-label">⬇ {{ t('splitPane.dropToPanel') }}</div>
+      </div>
       <TabDropOverlay
         :visible="showOverlay"
         :zone="currentZone"
@@ -32,15 +35,30 @@ import TabDropOverlay from './TabDropOverlay.vue'
 import type { TabGroupNode, DropZone, TabItem } from './types'
 import { tabsContextKey } from './types'
 import { calcDropZone } from './composables/useDropZone'
+import { usePanelFileDrop } from '@/composables/usePanelFileDrop'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   node: TabGroupNode
+  enableFileDrop?: boolean
 }>()
 
 const ctx = inject(tabsContextKey)!
+const { t } = useI18n()
 const groupEl = ref<HTMLElement>()
 const contentEl = ref<HTMLElement>()
 const currentZone = ref<DropZone>(null)
+const noopPanelIndex = computed(() => -1)
+const enablePanelDrag = computed(() => false)
+
+const { isDragOver: isFileDragOver } = usePanelFileDrop(
+  groupEl,
+  Date.now() + Math.random(),
+  noopPanelIndex,
+  computed(() => props.enableFileDrop ?? ctx.enableFileDrop.value),
+  enablePanelDrag,
+  () => {},
+)
 
 const activeTab = computed(() => {
   return props.node.tabs.find((t) => t.id === props.node.activeId) ?? props.node.tabs[0] ?? null
@@ -148,5 +166,28 @@ defineExpose({
   overflow: auto;
   position: relative;
 }
-</style>
 
+.tab-group__drop-mask {
+  position: absolute;
+  inset: 8px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed color-mix(in srgb, var(--theme-color-primary) 72%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--theme-color-primary) 12%, transparent);
+  pointer-events: none;
+}
+
+.tab-group__drop-mask-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-color-bg-surface) 92%, transparent);
+  color: var(--theme-color-text-base);
+  box-shadow: var(--theme-shadow-sm);
+}
+</style>

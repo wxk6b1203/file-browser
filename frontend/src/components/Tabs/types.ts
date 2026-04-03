@@ -83,6 +83,7 @@ export interface TabsContext {
   overlayOpacity: Ref<number>
   minSplitWidth: Ref<number>
   minSplitHeight: Ref<number>
+  enableFileDrop: Ref<boolean>
 
   // ── tree mutations ──
   setActive: (groupId: string, tabId: string) => void

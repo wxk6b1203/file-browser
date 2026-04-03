@@ -363,6 +363,7 @@ const context: TabsContext = {
   overlayOpacity: toRef(props, 'overlayOpacity'),
   minSplitWidth: toRef(props, 'minSplitWidth'),
   minSplitHeight: toRef(props, 'minSplitHeight'),
+  enableFileDrop: toRef(props, 'enableFileDrop'),
   setActive,
   moveTab,
   splitGroup,

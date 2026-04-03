@@ -211,29 +211,44 @@ export function useTabTree(tree: Ref<TabNode>) {
     const node = findNode(tree.value, groupId) as TabGroupNode | null
     if (!node) return
 
-    const idx = node.tabs.findIndex((t) => t.id === tabId)
+    const rawGroup = rawNode(node)
+    const idx = rawGroup.tabs.findIndex((t) => t.id === tabId)
     if (idx === -1) return
-    node.tabs.splice(idx, 1)
 
-    if (node.activeId === tabId) {
-      node.activeId = node.tabs[Math.min(idx, node.tabs.length - 1)]?.id ?? ''
-    }
+    const nextTabs = rawGroup.tabs
+      .filter((t) => t.id !== tabId)
+      .map((t) => ({ ...t }))
 
-    if (node.tabs.length === 0) {
-      const result = replaceNode(tree.value, node.id, null)
+    if (nextTabs.length === 0) {
+      const result = replaceNode(tree.value, rawGroup.id, null)
       if (result) {
         tree.value = rawNode(result)
       } else {
         tree.value = {
           type: 'tabs',
-          id: node.id,
+          id: rawGroup.id,
           tabs: [],
           activeId: '',
         }
       }
+      return
+    }
+
+    const nextActiveId = rawGroup.activeId === tabId
+      ? (nextTabs[Math.min(idx, nextTabs.length - 1)]?.id ?? '')
+      : rawGroup.activeId
+
+    const nextGroup: TabGroupNode = {
+      ...rawGroup,
+      tabs: nextTabs,
+      activeId: nextActiveId,
+    }
+
+    const result = replaceNode(tree.value, rawGroup.id, nextGroup)
+    if (result) {
+      tree.value = rawNode(result)
     } else {
-      // In-place mutation: must produce new reference
-      tree.value = rawNode(tree.value)
+      tree.value = nextGroup
     }
   }
 

@@ -19,6 +19,14 @@ export interface PendingPanelDropInfo {
 
 let pendingPanelDropInfo: PendingPanelDropInfo | null = null
 
+function resolveGroupHost(root: HTMLElement | null): HTMLElement | null {
+  if (!root) return null
+  if (root.hasAttribute('data-group-id')) {
+    return root
+  }
+  return root.querySelector<HTMLElement>('[data-group-id]')
+}
+
 /** Called by useFileDrop to consume panel context when OS drop paths arrive. */
 export function consumePendingPanelDropInfo(): PendingPanelDropInfo | null {
   const info = pendingPanelDropInfo
@@ -100,7 +108,7 @@ export function usePanelFileDrop(
       if (enablePanelDrag.value) {
         const active = getActiveInternalDrag()
         if (active && active.sourcePanelUid !== panelUid) {
-          const groupEl = panelEl.value.querySelector('[data-group-id]')
+          const groupEl = resolveGroupHost(panelEl.value)
           onInternalDrop({
             sourcePanelIndex: active.sourcePanelIndex,
             targetPanelIndex: panelIndex.value,
@@ -121,7 +129,7 @@ export function usePanelFileDrop(
     // Stale entries from non-Wails drops are cleared by useFileDrop on next dragenter.
     if (pendingPanelDropInfo !== null) return
 
-    const groupEl = panelEl.value.querySelector('[data-group-id]')
+    const groupEl = resolveGroupHost(panelEl.value)
     pendingPanelDropInfo = {
       groupId: groupEl?.getAttribute('data-group-id') ?? '',
       tabId: groupEl?.getAttribute('data-active-tab-id') ?? '',

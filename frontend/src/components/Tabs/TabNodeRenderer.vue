@@ -2,6 +2,7 @@
   <TabGroup
     v-if="node.type === 'tabs'"
     :node="node"
+    :enable-file-drop="enableFileDrop"
     :key="node.id"
     :data-node-id="node.id"
   />
@@ -10,7 +11,6 @@
     :layout="splitNode.layout"
     :gap="4"
     :enable-panel-drag="enablePanelDrag"
-    :enable-file-drop="enableFileDrop"
     :key="node.id"
     :data-node-id="node.id"
     @resize-end="onSplitResizeEnd"

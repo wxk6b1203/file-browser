@@ -2553,3 +2553,132 @@
 2026-04-04 00:33:53.390	INFO	render/drag.go:25	Drag leave signal received	{"x": 648, "y": 698}
 2026-04-04 00:33:53.396	INFO	render/drag.go:25	Drag leave signal received	{"x": 631, "y": 689}
 2026-04-04 00:33:53.635	INFO	render/drag.go:32	Drop signal received	{"x": 486, "y": 611, "paths": [""]}
+2026-04-04 00:34:48.430	INFO	render/manager.go:32	Render manager stopped
+2026-04-04 00:34:48.430	INFO	file-browser/app.go:82	App is shutting down
+2026-04-04 00:34:55.307	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 00:34:55.307	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 00:35:02.193	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 00:35:02.193	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 00:35:06.130	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 00:35:06.131	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 00:35:06.274	INFO	render/manager.go:26	Render manager started
+2026-04-04 00:35:52.027	INFO	render/drag.go:25	Drag leave signal received	{"x": 478, "y": 390}
+2026-04-04 00:35:52.034	INFO	render/drag.go:25	Drag leave signal received	{"x": 477, "y": 431}
+2026-04-04 00:35:52.040	INFO	render/drag.go:25	Drag leave signal received	{"x": 476, "y": 446}
+2026-04-04 00:35:52.050	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 505}
+2026-04-04 00:35:52.058	INFO	render/drag.go:25	Drag leave signal received	{"x": 471, "y": 522}
+2026-04-04 00:35:52.075	INFO	render/drag.go:25	Drag leave signal received	{"x": 470, "y": 556}
+2026-04-04 00:35:52.083	INFO	render/drag.go:25	Drag leave signal received	{"x": 470, "y": 567}
+2026-04-04 00:35:52.164	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 598}
+2026-04-04 00:35:52.240	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 603}
+2026-04-04 00:35:52.283	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 608}
+2026-04-04 00:35:52.449	INFO	render/drag.go:25	Drag leave signal received	{"x": 466, "y": 629}
+2026-04-04 00:35:52.562	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 637}
+2026-04-04 00:35:52.682	INFO	render/drag.go:25	Drag leave signal received	{"x": 463, "y": 636}
+2026-04-04 00:35:52.980	INFO	render/drag.go:25	Drag leave signal received	{"x": 463, "y": 628}
+2026-04-04 00:35:53.086	INFO	render/drag.go:25	Drag leave signal received	{"x": 463, "y": 603}
+2026-04-04 00:35:53.154	INFO	render/drag.go:25	Drag leave signal received	{"x": 463, "y": 595}
+2026-04-04 00:35:53.234	INFO	render/drag.go:25	Drag leave signal received	{"x": 463, "y": 558}
+2026-04-04 00:35:53.241	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 540}
+2026-04-04 00:35:53.247	INFO	render/drag.go:25	Drag leave signal received	{"x": 465, "y": 512}
+2026-04-04 00:35:53.255	INFO	render/drag.go:25	Drag leave signal received	{"x": 466, "y": 497}
+2026-04-04 00:35:53.736	INFO	render/drag.go:25	Drag leave signal received	{"x": 504, "y": 504}
+2026-04-04 00:35:53.752	INFO	render/drag.go:25	Drag leave signal received	{"x": 504, "y": 517}
+2026-04-04 00:35:53.835	INFO	render/drag.go:25	Drag leave signal received	{"x": 507, "y": 549}
+2026-04-04 00:35:53.896	INFO	render/drag.go:25	Drag leave signal received	{"x": 512, "y": 561}
+2026-04-04 00:35:53.969	INFO	render/drag.go:25	Drag leave signal received	{"x": 513, "y": 562}
+2026-04-04 00:35:54.202	INFO	render/drag.go:25	Drag leave signal received	{"x": 510, "y": 601}
+2026-04-04 00:35:54.241	INFO	render/drag.go:25	Drag leave signal received	{"x": 508, "y": 607}
+2026-04-04 00:35:54.667	INFO	render/drag.go:25	Drag leave signal received	{"x": 498, "y": 604}
+2026-04-04 00:35:54.745	INFO	render/drag.go:25	Drag leave signal received	{"x": 498, "y": 598}
+2026-04-04 00:35:54.821	INFO	render/drag.go:25	Drag leave signal received	{"x": 498, "y": 592}
+2026-04-04 00:35:54.927	INFO	render/drag.go:25	Drag leave signal received	{"x": 502, "y": 560}
+2026-04-04 00:35:54.938	INFO	render/drag.go:25	Drag leave signal received	{"x": 504, "y": 547}
+2026-04-04 00:35:54.961	INFO	render/drag.go:25	Drag leave signal received	{"x": 505, "y": 512}
+2026-04-04 00:35:54.977	INFO	render/drag.go:25	Drag leave signal received	{"x": 505, "y": 500}
+2026-04-04 00:35:55.631	INFO	render/drag.go:25	Drag leave signal received	{"x": 501, "y": 501}
+2026-04-04 00:35:55.655	INFO	render/drag.go:25	Drag leave signal received	{"x": 502, "y": 513}
+2026-04-04 00:35:55.717	INFO	render/drag.go:25	Drag leave signal received	{"x": 503, "y": 550}
+2026-04-04 00:35:55.741	INFO	render/drag.go:25	Drag leave signal received	{"x": 503, "y": 562}
+2026-04-04 00:35:55.874	INFO	render/drag.go:25	Drag leave signal received	{"x": 497, "y": 599}
+2026-04-04 00:35:55.914	INFO	render/drag.go:25	Drag leave signal received	{"x": 495, "y": 606}
+2026-04-04 00:35:56.133	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 603}
+2026-04-04 00:35:56.210	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 596}
+2026-04-04 00:35:56.308	INFO	render/drag.go:25	Drag leave signal received	{"x": 484, "y": 560}
+2026-04-04 00:35:56.314	INFO	render/drag.go:25	Drag leave signal received	{"x": 484, "y": 547}
+2026-04-04 00:35:56.599	INFO	render/drag.go:32	Drop signal received	{"x": 495, "y": 517, "paths": [""]}
+2026-04-04 00:36:03.691	INFO	render/drag.go:18	Drag enter signal received	{"x": 1022, "y": 674}
+2026-04-04 00:36:05.448	INFO	render/drag.go:32	Drop signal received	{"x": 725, "y": 260, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:36:05.448	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-11-mnj4kscf", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 725, "y": 260, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:36:08.331	INFO	render/drag.go:18	Drag enter signal received	{"x": 903, "y": 743}
+2026-04-04 00:36:13.417	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-10-mnj4kscf", "tabId": "connection:3d1615bd-ce20-4d8d-9bd0-5edaafc44349", "x": 779, "y": 518, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:36:13.417	INFO	render/drag.go:32	Drop signal received	{"x": 779, "y": 518, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:36:17.160	INFO	render/drag.go:18	Drag enter signal received	{"x": 859, "y": 461}
+2026-04-04 00:36:26.194	INFO	render/drag.go:32	Drop signal received	{"x": 737, "y": 386, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:36:26.194	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-11-mnj4kscf", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 737, "y": 386, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:36:29.387	INFO	render/drag.go:18	Drag enter signal received	{"x": 948, "y": 739}
+2026-04-04 00:36:36.360	INFO	render/drag.go:32	Drop signal received	{"x": 773, "y": 494, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:36:36.360	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-10-mnj4kscf", "tabId": "connection:3d1615bd-ce20-4d8d-9bd0-5edaafc44349", "x": 773, "y": 494, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:36:45.587	INFO	render/drag.go:18	Drag enter signal received	{"x": 957, "y": 671}
+2026-04-04 00:36:51.325	INFO	render/drag.go:52	Panel file drop received	{"groupId": "", "tabId": "", "x": 170, "y": 478, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:36:51.325	INFO	render/drag.go:32	Drop signal received	{"x": 170, "y": 478, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:41:04.428	INFO	render/drag.go:18	Drag enter signal received	{"x": 552, "y": 386}
+2026-04-04 00:41:05.049	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 524, "y": 400, "paths": ["/Users/wxk/Downloads/IMG_9633.JPG"]}
+2026-04-04 00:41:05.049	INFO	render/drag.go:32	Drop signal received	{"x": 524, "y": 400, "paths": ["/Users/wxk/Downloads/IMG_9633.JPG"]}
+2026-04-04 00:41:13.443	INFO	render/drag.go:18	Drag enter signal received	{"x": 556, "y": 405}
+2026-04-04 00:41:13.853	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 483, "y": 429, "paths": ["/Users/wxk/Downloads/IMG_9633.JPG"]}
+2026-04-04 00:41:13.853	INFO	render/drag.go:32	Drop signal received	{"x": 483, "y": 429, "paths": ["/Users/wxk/Downloads/IMG_9633.JPG"]}
+2026-04-04 00:41:19.906	INFO	render/drag.go:18	Drag enter signal received	{"x": 555, "y": 452}
+2026-04-04 00:41:20.238	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 461, "y": 493, "paths": ["/Users/wxk/Downloads/downloaded-image.jpg"]}
+2026-04-04 00:41:20.238	INFO	render/drag.go:32	Drop signal received	{"x": 461, "y": 493, "paths": ["/Users/wxk/Downloads/downloaded-image.jpg"]}
+2026-04-04 00:41:38.869	INFO	render/drag.go:18	Drag enter signal received	{"x": 941, "y": 645}
+2026-04-04 00:41:50.074	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-2-mnj4s5ix", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 596, "y": 566, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:41:50.074	INFO	render/drag.go:32	Drop signal received	{"x": 596, "y": 566, "paths": ["/Users/wxk/Downloads/secret-key.zip"]}
+2026-04-04 00:41:55.534	INFO	render/drag.go:18	Drag enter signal received	{"x": 987, "y": 730}
+2026-04-04 00:41:55.933	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-2-mnj4s5ix", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 833, "y": 721, "paths": ["/Users/wxk/Downloads/downloaded-image (2).jpg"]}
+2026-04-04 00:41:55.933	INFO	render/drag.go:32	Drop signal received	{"x": 833, "y": 721, "paths": ["/Users/wxk/Downloads/downloaded-image (2).jpg"]}
+2026-04-04 00:42:10.817	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 584}
+2026-04-04 00:42:10.826	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 568}
+2026-04-04 00:42:10.829	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 551}
+2026-04-04 00:42:10.844	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 512}
+2026-04-04 00:42:10.849	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 492}
+2026-04-04 00:42:10.882	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 432}
+2026-04-04 00:42:10.891	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 414}
+2026-04-04 00:42:10.915	INFO	render/drag.go:25	Drag leave signal received	{"x": 470, "y": 378}
+2026-04-04 00:42:10.924	INFO	render/drag.go:25	Drag leave signal received	{"x": 470, "y": 367}
+2026-04-04 00:42:10.965	INFO	render/drag.go:25	Drag leave signal received	{"x": 471, "y": 357}
+2026-04-04 00:42:11.001	INFO	render/drag.go:25	Drag leave signal received	{"x": 471, "y": 349}
+2026-04-04 00:42:11.037	INFO	render/drag.go:25	Drag leave signal received	{"x": 471, "y": 341}
+2026-04-04 00:42:11.109	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 322}
+2026-04-04 00:42:11.191	INFO	render/drag.go:25	Drag leave signal received	{"x": 471, "y": 313}
+2026-04-04 00:42:11.240	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 307}
+2026-04-04 00:42:11.312	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 305}
+2026-04-04 00:42:11.415	INFO	render/drag.go:25	Drag leave signal received	{"x": 466, "y": 284}
+2026-04-04 00:42:11.485	INFO	render/drag.go:25	Drag leave signal received	{"x": 465, "y": 277}
+2026-04-04 00:42:11.532	INFO	render/drag.go:25	Drag leave signal received	{"x": 462, "y": 268}
+2026-04-04 00:42:11.651	INFO	render/drag.go:25	Drag leave signal received	{"x": 461, "y": 269}
+2026-04-04 00:42:11.721	INFO	render/drag.go:25	Drag leave signal received	{"x": 461, "y": 270}
+2026-04-04 00:42:11.809	INFO	render/drag.go:32	Drop signal received	{"x": 461, "y": 272, "paths": [""]}
+2026-04-04 00:42:28.899	INFO	render/drag.go:25	Drag leave signal received	{"x": 629, "y": 644}
+2026-04-04 00:42:28.911	INFO	render/drag.go:25	Drag leave signal received	{"x": 629, "y": 601}
+2026-04-04 00:42:28.918	INFO	render/drag.go:25	Drag leave signal received	{"x": 629, "y": 567}
+2026-04-04 00:42:28.926	INFO	render/drag.go:25	Drag leave signal received	{"x": 629, "y": 525}
+2026-04-04 00:42:28.935	INFO	render/drag.go:25	Drag leave signal received	{"x": 630, "y": 478}
+2026-04-04 00:42:28.943	INFO	render/drag.go:25	Drag leave signal received	{"x": 633, "y": 437}
+2026-04-04 00:42:28.951	INFO	render/drag.go:25	Drag leave signal received	{"x": 638, "y": 390}
+2026-04-04 00:42:28.993	INFO	render/drag.go:25	Drag leave signal received	{"x": 642, "y": 353}
+2026-04-04 00:42:29.030	INFO	render/drag.go:25	Drag leave signal received	{"x": 645, "y": 330}
+2026-04-04 00:42:29.100	INFO	render/drag.go:25	Drag leave signal received	{"x": 651, "y": 297}
+2026-04-04 00:42:29.135	INFO	render/drag.go:25	Drag leave signal received	{"x": 655, "y": 268}
+2026-04-04 00:42:29.178	INFO	render/drag.go:25	Drag leave signal received	{"x": 659, "y": 244}
+2026-04-04 00:42:29.266	INFO	render/drag.go:25	Drag leave signal received	{"x": 663, "y": 223}
+2026-04-04 00:42:29.305	INFO	render/drag.go:25	Drag leave signal received	{"x": 666, "y": 202}
+2026-04-04 00:42:29.389	INFO	render/drag.go:25	Drag leave signal received	{"x": 669, "y": 174}
+2026-04-04 00:42:29.434	INFO	render/drag.go:25	Drag leave signal received	{"x": 667, "y": 175}
+2026-04-04 00:42:29.518	INFO	render/drag.go:25	Drag leave signal received	{"x": 667, "y": 176}
+2026-04-04 00:42:29.669	INFO	render/drag.go:32	Drop signal received	{"x": 664, "y": 187, "paths": [""]}
+2026-04-04 00:46:19.213	INFO	render/drag.go:18	Drag enter signal received	{"x": 972, "y": 694}
+2026-04-04 00:46:19.523	INFO	render/drag.go:32	Drop signal received	{"x": 827, "y": 599, "paths": ["/Users/wxk/Downloads/我的影片.mp4"]}
+2026-04-04 00:46:19.523	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-8-mnj4y6s0", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 827, "y": 599, "paths": ["/Users/wxk/Downloads/我的影片.mp4"]}
+2026-04-04 00:58:30.401	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-04 00:58:30.402	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>

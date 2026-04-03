@@ -5,3 +5,9 @@ connections:
       enabled: true
       config:
         rootPath: /Users/wxk/Documents/
+    - id: 3d1615bd-ce20-4d8d-9bd0-5edaafc44349
+      name: Downloads
+      driver: Local
+      enabled: true
+      config:
+        rootPath: /Users/wxk/Downloads

@@ -1,6 +1,7 @@
-import { nextTick } from 'vue'
+import { defineComponent, h, nextTick, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { createI18n } from 'vue-i18n'
 
 vi.mock('@vueuse/core', async () => {
   const vue = await import('vue')
@@ -17,6 +18,18 @@ import SplitPane from '../../SplitPane/SplitPane.vue'
 import TabHeader from '../TabHeader.vue'
 import TabBar from '../TabBar.vue'
 import type { TabNode } from '../types'
+
+const i18n = createI18n({
+  legacy: false,
+  locale: 'zh',
+  messages: {
+    zh: {
+      splitPane: {
+        dropToPanel: '释放到此面板',
+      },
+    },
+  },
+})
 
 function makeSplitTree(): TabNode {
   return {
@@ -51,6 +64,9 @@ describe('Tabs', () => {
       props: {
         modelValue: makeSplitTree(),
       },
+      global: {
+        plugins: [i18n],
+      },
     })
 
     const split = wrapper.findComponent(SplitPane)
@@ -84,6 +100,9 @@ describe('Tabs', () => {
     const wrapper = mount(Tabs, {
       props: {
         modelValue: model,
+      },
+      global: {
+        plugins: [i18n],
       },
     })
 
@@ -124,6 +143,9 @@ describe('Tabs', () => {
       props: {
         modelValue: model,
       },
+      global: {
+        plugins: [i18n],
+      },
     })
 
     const bar = wrapper.findComponent(TabBar)
@@ -161,6 +183,49 @@ describe('Tabs', () => {
     expect(endEvents).toBeTruthy()
     expect(endEvents![0]![0]).toMatchObject({ id: 'tab-1', label: 'Tab 1' })
     expect(endEvents![0]![1]).toBe('root-group')
+
+    wrapper.unmount()
+  })
+
+  it('removes split pane DOM after closing the last tab in one side of a split', async () => {
+    const Host = defineComponent({
+      setup() {
+        const model = ref<TabNode>(makeSplitTree())
+        return () => h(Tabs, {
+          modelValue: model.value,
+          'onUpdate:modelValue': (next: TabNode) => {
+            model.value = next
+          },
+        })
+      },
+    })
+
+    const wrapper = mount(Host, {
+      attachTo: document.body,
+      global: {
+        plugins: [i18n],
+      },
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(wrapper.findAll('.split-pane-panel')).toHaveLength(2)
+
+    const bars = wrapper.findAllComponents(TabBar)
+    expect(bars).toHaveLength(2)
+
+    bars[0]!.vm.$emit('close', { id: 'left-1', label: 'Left 1' })
+    await nextTick()
+    await nextTick()
+
+    expect(wrapper.findComponent(SplitPane).exists()).toBe(false)
+    expect(wrapper.findAll('.split-pane-panel')).toHaveLength(0)
+
+    const groups = wrapper.findAll('.tab-group')
+    expect(groups).toHaveLength(1)
+    expect(wrapper.text()).toContain('Right 1')
+    expect(wrapper.text()).not.toContain('Left 1')
 
     wrapper.unmount()
   })
