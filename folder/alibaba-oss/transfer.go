@@ -44,6 +44,11 @@ func (d *Driver) Upload(ctx context.Context, req *folder.TransferRequest, progre
 		return fmt.Errorf("oss: upload: stat local file %q: %w", req.LocalPath, err)
 	}
 	total := info.Size()
+	modTime := folder.CloneTime(req.SourceModTime)
+	if req.PreserveModTime && modTime == nil {
+		value := info.ModTime()
+		modTime = &value
+	}
 
 	key := d.fullKey(req.RemotePath)
 
@@ -68,8 +73,12 @@ func (d *Driver) Upload(ctx context.Context, req *folder.TransferRequest, progre
 	if req.ContentType != "" {
 		putReq.ContentType = oss.Ptr(req.ContentType)
 	}
-	if len(req.Metadata) > 0 {
-		putReq.Metadata = req.Metadata
+	metadata := req.Metadata
+	if req.PreserveModTime {
+		metadata = folder.MergeMetadataWithModTime(metadata, modTime)
+	}
+	if len(metadata) > 0 {
+		putReq.Metadata = metadata
 	}
 
 	// Wrap the file with a progress reader so multipart reads are tracked.
@@ -114,6 +123,7 @@ func (d *Driver) Download(ctx context.Context, req *folder.TransferRequest, prog
 		return fmt.Errorf("oss: download %q: head object: %w", req.RemotePath, err)
 	}
 	total = headOut.ContentLength
+	modTime := folder.ResolveModTime(req.SourceModTime, headOut.Metadata, headOut.LastModified)
 
 	// Ensure parent directory exists.
 	if dir := path.Dir(req.LocalPath); dir != "" && dir != "." {
@@ -138,13 +148,21 @@ func (d *Driver) Download(ctx context.Context, req *folder.TransferRequest, prog
 	if err != nil {
 		return fmt.Errorf("oss: download: create local file %q: %w", req.LocalPath, err)
 	}
-	defer f.Close()
 
 	pw := folder.NewProgressWriter(f, total, progressFn)
 	buf := make([]byte, 256<<10) // 256 KiB
 
 	if _, err := io.CopyBuffer(pw, out.Body, buf); err != nil {
+		_ = f.Close()
 		return fmt.Errorf("oss: download %q: %w", req.RemotePath, err)
+	}
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("oss: download: close local file %q: %w", req.LocalPath, err)
+	}
+	if req.PreserveModTime {
+		if err := folder.ApplyLocalModTime(req.LocalPath, modTime); err != nil {
+			return fmt.Errorf("oss: download: restore local mod time for %q: %w", req.LocalPath, err)
+		}
 	}
 	return nil
 }

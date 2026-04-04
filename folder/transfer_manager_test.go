@@ -18,7 +18,10 @@ import (
 
 type fakeDriver struct {
 	BaseDriver
-	content string // the "remote" file content for downloads
+	content          string // the "remote" file content for downloads
+	lastModified     *time.Time
+	metadata         map[string]string
+	lastWriteOptions *WriteOptions
 }
 
 func (f *fakeDriver) Capabilities() Capabilities {
@@ -30,10 +33,12 @@ func (f *fakeDriver) Capabilities() Capabilities {
 
 func (f *fakeDriver) Stat(_ context.Context, _ string) (*FileInfo, error) {
 	return &FileInfo{
-		Name: "test.txt",
-		Path: "test.txt",
-		Type: EntryTypeFile,
-		Size: int64(len(f.content)),
+		Name:         "test.txt",
+		Path:         "test.txt",
+		Type:         EntryTypeFile,
+		Size:         int64(len(f.content)),
+		LastModified: CloneTime(f.lastModified),
+		Metadata:     copyMetadata(f.metadata),
 	}, nil
 }
 
@@ -41,12 +46,16 @@ func (f *fakeDriver) Read(_ context.Context, _ string) (io.ReadCloser, error) {
 	return io.NopCloser(strings.NewReader(f.content)), nil
 }
 
-func (f *fakeDriver) Write(_ context.Context, path string, body io.Reader, _ *WriteOptions) (*FileInfo, error) {
+func (f *fakeDriver) Write(_ context.Context, path string, body io.Reader, opt *WriteOptions) (*FileInfo, error) {
 	data, err := io.ReadAll(body)
 	if err != nil {
 		return nil, err
 	}
 	f.content = string(data)
+	f.lastWriteOptions = cloneWriteOptions(opt)
+	if opt != nil && opt.ModTime != nil {
+		f.lastModified = CloneTime(opt.ModTime)
+	}
 	return &FileInfo{
 		Name: filepath.Base(path),
 		Path: path,
@@ -104,6 +113,46 @@ func TestTransferManager_FallbackUpload(t *testing.T) {
 	}
 }
 
+func TestTransferManager_FallbackUploadPreservesModTime(t *testing.T) {
+	tmpDir := t.TempDir()
+	localFile := filepath.Join(tmpDir, "upload.txt")
+	content := "upload test content"
+	if err := os.WriteFile(localFile, []byte(content), 0o644); err != nil {
+		t.Fatalf("write temp file: %v", err)
+	}
+
+	wantModTime := time.Date(2026, time.April, 4, 12, 34, 56, 0, time.UTC)
+	if err := os.Chtimes(localFile, wantModTime, wantModTime); err != nil {
+		t.Fatalf("set mod time: %v", err)
+	}
+
+	drv := &fakeDriver{}
+	tm := NewTransferManager()
+
+	taskID, err := tm.Submit(drv, "fake", "inst1", TransferUpload, &TransferRequest{
+		RemotePath:      "remote/upload.txt",
+		LocalPath:       localFile,
+		PreserveModTime: true,
+	})
+	if err != nil {
+		t.Fatalf("Submit error: %v", err)
+	}
+
+	if err := waitForTask(tm, taskID, 5*time.Second); err != nil {
+		t.Fatalf("wait error: %v", err)
+	}
+
+	if drv.lastWriteOptions == nil || drv.lastWriteOptions.ModTime == nil {
+		t.Fatalf("expected write options with mod time, got %#v", drv.lastWriteOptions)
+	}
+	if !timesClose(*drv.lastWriteOptions.ModTime, wantModTime) {
+		t.Fatalf("mod time = %v, want %v", *drv.lastWriteOptions.ModTime, wantModTime)
+	}
+	if got, ok := ModTimeFromMetadata(drv.lastWriteOptions.Metadata); !ok || !timesClose(*got, wantModTime) {
+		t.Fatalf("metadata mod time = %v, ok=%v, want %v", got, ok, wantModTime)
+	}
+}
+
 func TestTransferManager_FallbackDownload(t *testing.T) {
 	content := "download test content"
 	drv := &fakeDriver{content: content}
@@ -135,6 +184,40 @@ func TestTransferManager_FallbackDownload(t *testing.T) {
 	}
 	if string(data) != content {
 		t.Errorf("local file content = %q, want %q", string(data), content)
+	}
+}
+
+func TestTransferManager_FallbackDownloadPreservesModTime(t *testing.T) {
+	content := "download test content"
+	wantModTime := time.Date(2026, time.April, 4, 8, 9, 10, 0, time.UTC)
+	drv := &fakeDriver{
+		content:      content,
+		lastModified: &wantModTime,
+	}
+	tm := NewTransferManager()
+
+	tmpDir := t.TempDir()
+	localFile := filepath.Join(tmpDir, "sub", "download.txt")
+
+	taskID, err := tm.Submit(drv, "fake", "inst1", TransferDownload, &TransferRequest{
+		RemotePath:      "remote/download.txt",
+		LocalPath:       localFile,
+		PreserveModTime: true,
+	})
+	if err != nil {
+		t.Fatalf("Submit error: %v", err)
+	}
+
+	if err := waitForTask(tm, taskID, 5*time.Second); err != nil {
+		t.Fatalf("wait error: %v", err)
+	}
+
+	stat, err := os.Stat(localFile)
+	if err != nil {
+		t.Fatalf("stat local file: %v", err)
+	}
+	if !timesClose(stat.ModTime(), wantModTime) {
+		t.Fatalf("local mod time = %v, want %v", stat.ModTime(), wantModTime)
 	}
 }
 
@@ -344,4 +427,35 @@ func hasRemoveEvent(events []TransferEvent, taskID string) bool {
 		}
 	}
 	return false
+}
+
+func cloneWriteOptions(opt *WriteOptions) *WriteOptions {
+	if opt == nil {
+		return nil
+	}
+	clone := &WriteOptions{
+		ContentType: opt.ContentType,
+		Metadata:    copyMetadata(opt.Metadata),
+		ModTime:     CloneTime(opt.ModTime),
+	}
+	return clone
+}
+
+func copyMetadata(metadata map[string]string) map[string]string {
+	if len(metadata) == 0 {
+		return nil
+	}
+	clone := make(map[string]string, len(metadata))
+	for key, value := range metadata {
+		clone[key] = value
+	}
+	return clone
+}
+
+func timesClose(got, want time.Time) bool {
+	diff := got.Sub(want)
+	if diff < 0 {
+		diff = -diff
+	}
+	return diff < time.Second
 }

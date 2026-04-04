@@ -187,8 +187,20 @@ func (d *Driver) List(ctx context.Context, dir string, opt *folder.ListOptions) 
 		// Files.
 		for _, obj := range resp.Contents {
 			key := oss.ToString(obj.Key)
-			// Skip directory markers.
 			if strings.HasSuffix(key, "/") {
+				if !opt.Recursive {
+					continue
+				}
+				rel := d.relPath(key)
+				if rel == "" {
+					continue
+				}
+				result = append(result, &folder.FileInfo{
+					Name:         path.Base(strings.TrimSuffix(rel, "/")),
+					Path:         rel,
+					Type:         folder.EntryTypeDirectory,
+					LastModified: folder.ResolveModTime(nil, nil, obj.LastModified),
+				})
 				continue
 			}
 			rel := d.relPath(key)
@@ -236,20 +248,54 @@ func (d *Driver) Stat(ctx context.Context, filePath string) (*folder.FileInfo, e
 	})
 	if err != nil {
 		if isNotFound(err) {
+			if dirInfo, dirErr := d.statDirMarker(ctx, filePath); dirErr == nil {
+				return dirInfo, nil
+			}
 			// Could be a virtual directory — probe with a trailing-slash listing.
 			return d.statDir(ctx, filePath)
 		}
 		return nil, fmt.Errorf("oss: stat %q: %w", filePath, err)
 	}
 
+	lastModified := folder.ResolveModTime(nil, out.Metadata, out.LastModified)
 	fi := &folder.FileInfo{
 		Name:         path.Base(filePath),
 		Path:         filePath,
 		Type:         folder.EntryTypeFile,
 		Size:         out.ContentLength,
-		LastModified: out.LastModified,
+		LastModified: lastModified,
 		ContentType:  oss.ToString(out.ContentType),
 		ETag:         strings.Trim(oss.ToString(out.ETag), "\""),
+	}
+	if len(out.Metadata) > 0 {
+		fi.Metadata = out.Metadata
+	}
+	return fi, nil
+}
+
+func (d *Driver) statDirMarker(ctx context.Context, dir string) (*folder.FileInfo, error) {
+	key := d.fullKey(dir)
+	if !strings.HasSuffix(key, "/") {
+		key += "/"
+	}
+	client := d.ossClient()
+	if client == nil {
+		return nil, fmt.Errorf("oss: stat %q: driver is closed", dir)
+	}
+
+	out, err := client.HeadObject(ctx, &oss.HeadObjectRequest{
+		Bucket: oss.Ptr(d.cfg.Bucket),
+		Key:    oss.Ptr(key),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	fi := &folder.FileInfo{
+		Name:         path.Base(strings.TrimSuffix(dir, "/")),
+		Path:         strings.TrimSuffix(dir, "/"),
+		Type:         folder.EntryTypeDirectory,
+		LastModified: folder.ResolveModTime(nil, out.Metadata, out.LastModified),
 	}
 	if len(out.Metadata) > 0 {
 		fi.Metadata = out.Metadata
@@ -405,6 +451,28 @@ func (d *Driver) Mkdir(ctx context.Context, dir string) error {
 	return nil
 }
 
+func (d *Driver) SetDirectoryModTime(ctx context.Context, dir string, modTime time.Time) error {
+	key := d.fullKey(dir)
+	if !strings.HasSuffix(key, "/") {
+		key += "/"
+	}
+	client := d.ossClient()
+	if client == nil {
+		return fmt.Errorf("oss: set directory mod time %q: driver is closed", dir)
+	}
+	metadata := folder.MergeMetadataWithModTime(nil, &modTime)
+	_, err := client.PutObject(ctx, &oss.PutObjectRequest{
+		Bucket:        oss.Ptr(d.cfg.Bucket),
+		Key:           oss.Ptr(key),
+		ContentLength: oss.Ptr(int64(0)),
+		Metadata:      metadata,
+	})
+	if err != nil {
+		return fmt.Errorf("oss: set directory mod time %q: %w", dir, err)
+	}
+	return nil
+}
+
 // -----------------------------------------------------------------------
 // folder.Reader
 // -----------------------------------------------------------------------
@@ -437,6 +505,7 @@ func (d *Driver) Write(ctx context.Context, filePath string, body io.Reader, opt
 	if client == nil {
 		return nil, fmt.Errorf("oss: write %q: driver is closed", filePath)
 	}
+	metadata := map[string]string(nil)
 
 	req := &oss.PutObjectRequest{
 		Bucket: oss.Ptr(d.cfg.Bucket),
@@ -447,8 +516,9 @@ func (d *Driver) Write(ctx context.Context, filePath string, body io.Reader, opt
 		if opt.ContentType != "" {
 			req.ContentType = oss.Ptr(opt.ContentType)
 		}
-		if len(opt.Metadata) > 0 {
-			req.Metadata = opt.Metadata
+		metadata = folder.MergeMetadataWithModTime(opt.Metadata, opt.ModTime)
+		if len(metadata) > 0 {
+			req.Metadata = metadata
 		}
 	}
 
@@ -457,12 +527,19 @@ func (d *Driver) Write(ctx context.Context, filePath string, body io.Reader, opt
 		return nil, fmt.Errorf("oss: write %q: %w", filePath, err)
 	}
 
-	return &folder.FileInfo{
+	fi := &folder.FileInfo{
 		Name: path.Base(filePath),
 		Path: filePath,
 		Type: folder.EntryTypeFile,
 		ETag: strings.Trim(oss.ToString(out.ETag), "\""),
-	}, nil
+	}
+	if len(metadata) > 0 {
+		fi.Metadata = metadata
+	}
+	if opt != nil {
+		fi.LastModified = folder.CloneTime(opt.ModTime)
+	}
+	return fi, nil
 }
 
 // -----------------------------------------------------------------------

@@ -20,6 +20,7 @@ type ListOptions struct {
 type WriteOptions struct {
 	ContentType string
 	Metadata    map[string]string
+	ModTime     *time.Time
 }
 
 type PresignOptions struct {
@@ -67,6 +68,12 @@ type HealthChecker interface {
 // Closer is an optional capability for releasing driver resources.
 type Closer interface {
 	Close() error
+}
+
+// DirectoryModTimeSetter is an optional capability for backends that can
+// explicitly restore a directory's modification time after creating children.
+type DirectoryModTimeSetter interface {
+	SetDirectoryModTime(ctx context.Context, path string, modTime time.Time) error
 }
 
 // ---------------------------------------------------------------------------

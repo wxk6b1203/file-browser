@@ -34,12 +34,14 @@ const (
 
 // TransferRequest describes a single upload or download to submit.
 type TransferRequest struct {
-	RemotePath  string            `json:"remotePath" yaml:"remotePath"` // path on the remote storage
-	LocalPath   string            `json:"localPath" yaml:"localPath"`   // local file path (upload source / download destination)
-	ContentType string            `json:"contentType,omitempty" yaml:"contentType,omitempty"`
-	Metadata    map[string]string `json:"metadata,omitempty" yaml:"metadata,omitempty"`
-	PartSize    int64             `json:"partSize,omitempty" yaml:"partSize,omitempty"`       // multipart part size in bytes; 0 = backend default
-	Concurrency int               `json:"concurrency,omitempty" yaml:"concurrency,omitempty"` // parallel part count; 0 = backend default
+	RemotePath      string            `json:"remotePath" yaml:"remotePath"` // path on the remote storage
+	LocalPath       string            `json:"localPath" yaml:"localPath"`   // local file path (upload source / download destination)
+	ContentType     string            `json:"contentType,omitempty" yaml:"contentType,omitempty"`
+	Metadata        map[string]string `json:"metadata,omitempty" yaml:"metadata,omitempty"`
+	PreserveModTime bool              `json:"preserveModTime,omitempty" yaml:"preserveModTime,omitempty"`
+	SourceModTime   *time.Time        `json:"sourceModTime,omitempty" yaml:"sourceModTime,omitempty"`
+	PartSize        int64             `json:"partSize,omitempty" yaml:"partSize,omitempty"`       // multipart part size in bytes; 0 = backend default
+	Concurrency     int               `json:"concurrency,omitempty" yaml:"concurrency,omitempty"` // parallel part count; 0 = backend default
 }
 
 // ProgressFunc is the callback signature for reporting transfer progress.

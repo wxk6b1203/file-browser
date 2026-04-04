@@ -308,14 +308,24 @@ func (tm *TransferManager) fallbackUpload(ctx context.Context, mgr Manager, req 
 		return fmt.Errorf("transfer: stat local file %q: %w", req.LocalPath, err)
 	}
 	total := info.Size()
+	modTime := CloneTime(req.SourceModTime)
+	if req.PreserveModTime && modTime == nil {
+		fileModTime := info.ModTime()
+		modTime = &fileModTime
+	}
 
 	body := NewProgressReader(f, total, progressFn)
 
 	var opt *WriteOptions
-	if req.ContentType != "" || len(req.Metadata) > 0 {
+	metadata := req.Metadata
+	if req.PreserveModTime {
+		metadata = MergeMetadataWithModTime(metadata, modTime)
+	}
+	if req.ContentType != "" || len(metadata) > 0 || modTime != nil {
 		opt = &WriteOptions{
 			ContentType: req.ContentType,
-			Metadata:    req.Metadata,
+			Metadata:    metadata,
+			ModTime:     modTime,
 		}
 	}
 
@@ -335,9 +345,13 @@ func (tm *TransferManager) fallbackDownload(ctx context.Context, mgr Manager, re
 
 	// Get total size for progress reporting.
 	var total int64
+	var modTime *time.Time
 	fi, err := mgr.Stat(ctx, req.RemotePath)
 	if err == nil && fi != nil {
 		total = fi.Size
+		if req.PreserveModTime {
+			modTime = ResolveModTime(req.SourceModTime, fi.Metadata, fi.LastModified)
+		}
 	}
 
 	rc, err := r.Read(ctx, req.RemotePath)
@@ -357,13 +371,21 @@ func (tm *TransferManager) fallbackDownload(ctx context.Context, mgr Manager, re
 	if err != nil {
 		return fmt.Errorf("transfer: create local file %q: %w", req.LocalPath, err)
 	}
-	defer f.Close()
 
 	pw := NewProgressWriter(f, total, progressFn)
 
 	buf := make([]byte, 256<<10) // 256 KiB
 	if _, err := io.CopyBuffer(pw, rc, buf); err != nil {
+		_ = f.Close()
 		return fmt.Errorf("transfer: download %q: %w", req.RemotePath, err)
+	}
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("transfer: close local file %q: %w", req.LocalPath, err)
+	}
+	if req.PreserveModTime {
+		if err := ApplyLocalModTime(req.LocalPath, modTime); err != nil {
+			return fmt.Errorf("transfer: restore local mod time for %q: %w", req.LocalPath, err)
+		}
 	}
 	return nil
 }

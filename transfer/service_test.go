@@ -1,13 +1,39 @@
 package transfer
 
 import (
+	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/wxk6b1203/file-util-manager/folder"
 )
+
+type instantUploadDriver struct {
+	folder.BaseDriver
+}
+
+func (d *instantUploadDriver) Capabilities() folder.Capabilities {
+	caps := folder.BaseCapabilities()
+	caps.CanWrite = true
+	return caps
+}
+
+func (d *instantUploadDriver) Write(_ context.Context, path string, body io.Reader, _ *folder.WriteOptions) (*folder.FileInfo, error) {
+	size, err := io.Copy(io.Discard, body)
+	if err != nil {
+		return nil, err
+	}
+	return &folder.FileInfo{
+		Name: filepath.Base(path),
+		Path: path,
+		Type: folder.EntryTypeFile,
+		Size: size,
+	}, nil
+}
 
 func TestBuildLocalUploadPlan_File(t *testing.T) {
 	root := t.TempDir()
@@ -56,12 +82,19 @@ func TestBuildLocalUploadPlan_Directory(t *testing.T) {
 		t.Fatalf("buildLocalUploadPlan error: %v", err)
 	}
 
-	wantDirectories := []string{
+	wantDirectoryPaths := []string{
 		"albums/photos",
 		"albums/photos/2026",
 	}
-	if !reflect.DeepEqual(plan.directories, wantDirectories) {
-		t.Fatalf("directories = %#v, want %#v", plan.directories, wantDirectories)
+	gotDirectoryPaths := make([]string, 0, len(plan.directories))
+	for _, dir := range plan.directories {
+		gotDirectoryPaths = append(gotDirectoryPaths, dir.remotePath)
+		if dir.modTime == nil {
+			t.Fatalf("directory %q modTime = nil", dir.remotePath)
+		}
+	}
+	if !reflect.DeepEqual(gotDirectoryPaths, wantDirectoryPaths) {
+		t.Fatalf("directories = %#v, want %#v", gotDirectoryPaths, wantDirectoryPaths)
 	}
 
 	wantFiles := []uploadFilePlan{
@@ -80,7 +113,11 @@ func TestBuildLocalUploadPlan_Directory(t *testing.T) {
 }
 
 func TestBuildLocalDownloadPlan_Directory(t *testing.T) {
-	plan, err := buildLocalDownloadPlan(filepath.Join("tmp", "downloads", "album"), "albums/photos", []*folder.FileInfo{
+	plan, err := buildLocalDownloadPlan(filepath.Join("tmp", "downloads", "album"), "albums/photos", &folder.FileInfo{
+		Name: "photos",
+		Path: "albums/photos",
+		Type: folder.EntryTypeDirectory,
+	}, []*folder.FileInfo{
 		{
 			Name: "2026",
 			Path: "albums/photos/2026",
@@ -101,9 +138,15 @@ func TestBuildLocalDownloadPlan_Directory(t *testing.T) {
 		t.Fatalf("buildLocalDownloadPlan error: %v", err)
 	}
 
-	wantDirectories := []string{
-		filepath.Join("tmp", "downloads", "album"),
-		filepath.Join("tmp", "downloads", "album", "2026"),
+	wantDirectories := []downloadDirectoryPlan{
+		{
+			localPath:  filepath.Join("tmp", "downloads", "album"),
+			remotePath: "albums/photos",
+		},
+		{
+			localPath:  filepath.Join("tmp", "downloads", "album", "2026"),
+			remotePath: "albums/photos/2026",
+		},
 	}
 	if !reflect.DeepEqual(plan.directories, wantDirectories) {
 		t.Fatalf("directories = %#v, want %#v", plan.directories, wantDirectories)
@@ -125,13 +168,20 @@ func TestBuildLocalDownloadPlan_Directory(t *testing.T) {
 }
 
 func TestBuildLocalDownloadPlan_EmptyDirectory(t *testing.T) {
-	plan, err := buildLocalDownloadPlan(filepath.Join("tmp", "downloads", "empty"), "albums/empty", nil)
+	plan, err := buildLocalDownloadPlan(filepath.Join("tmp", "downloads", "empty"), "albums/empty", &folder.FileInfo{
+		Name: "empty",
+		Path: "albums/empty",
+		Type: folder.EntryTypeDirectory,
+	}, nil)
 	if err != nil {
 		t.Fatalf("buildLocalDownloadPlan error: %v", err)
 	}
 
-	wantDirectories := []string{
-		filepath.Join("tmp", "downloads", "empty"),
+	wantDirectories := []downloadDirectoryPlan{
+		{
+			localPath:  filepath.Join("tmp", "downloads", "empty"),
+			remotePath: "albums/empty",
+		},
 	}
 	if !reflect.DeepEqual(plan.directories, wantDirectories) {
 		t.Fatalf("directories = %#v, want %#v", plan.directories, wantDirectories)
@@ -141,12 +191,47 @@ func TestBuildLocalDownloadPlan_EmptyDirectory(t *testing.T) {
 	}
 }
 
+func TestBuildLocalDownloadPlan_IncludesVirtualDirectories(t *testing.T) {
+	childModTime := time.Date(2026, time.April, 4, 18, 30, 0, 0, time.UTC)
+	plan, err := buildLocalDownloadPlan(filepath.Join("tmp", "downloads", "album"), "albums/photos", &folder.FileInfo{
+		Name: "photos",
+		Path: "albums/photos",
+		Type: folder.EntryTypeDirectory,
+	}, []*folder.FileInfo{
+		{
+			Name:         "trip.png",
+			Path:         "albums/photos/2026/trip.png",
+			Type:         folder.EntryTypeFile,
+			LastModified: &childModTime,
+		},
+	})
+	if err != nil {
+		t.Fatalf("buildLocalDownloadPlan error: %v", err)
+	}
+
+	if len(plan.directories) != 2 {
+		t.Fatalf("directories len = %d, want 2", len(plan.directories))
+	}
+	if got := plan.directories[1].remotePath; got != "albums/photos/2026" {
+		t.Fatalf("virtual directory path = %q", got)
+	}
+	if plan.directories[1].sourceMTime == nil || !plan.directories[1].sourceMTime.Equal(childModTime) {
+		t.Fatalf("virtual directory modTime = %v, want %v", plan.directories[1].sourceMTime, childModTime)
+	}
+}
+
 func TestBuildCrossConnectionTransferPlan_Directory(t *testing.T) {
 	downloadPlan := &localDownloadPlan{
 		rootPath: filepath.Join("tmp", "downloads", "photos"),
-		directories: []string{
-			filepath.Join("tmp", "downloads", "photos"),
-			filepath.Join("tmp", "downloads", "photos", "2026"),
+		directories: []downloadDirectoryPlan{
+			{
+				localPath:  filepath.Join("tmp", "downloads", "photos"),
+				remotePath: "source/photos",
+			},
+			{
+				localPath:  filepath.Join("tmp", "downloads", "photos", "2026"),
+				remotePath: "source/photos/2026",
+			},
 		},
 		files: []downloadFilePlan{
 			{
@@ -183,9 +268,13 @@ func TestBuildCrossConnectionTransferPlan_Directory(t *testing.T) {
 		t.Fatalf("buildCrossConnectionTransferPlan error: %v", err)
 	}
 
-	wantDirectories := []string{
-		"target/archive/photos",
-		"target/archive/photos/2026",
+	wantDirectories := []crossTransferDirectoryPlan{
+		{
+			targetRemotePath: "target/archive/photos",
+		},
+		{
+			targetRemotePath: "target/archive/photos/2026",
+		},
 	}
 	if !reflect.DeepEqual(plan.directories, wantDirectories) {
 		t.Fatalf("directories = %#v, want %#v", plan.directories, wantDirectories)
@@ -237,6 +326,83 @@ func TestProcessFollowUp_OpensDownloadedFile(t *testing.T) {
 	}
 }
 
+func TestRegisterDirectoryFinalizeReconcilesAlreadyCompletedTask(t *testing.T) {
+	dirPath := t.TempDir()
+	localFile := filepath.Join(t.TempDir(), "upload.txt")
+	if err := os.WriteFile(localFile, []byte("demo"), 0o644); err != nil {
+		t.Fatalf("write local file: %v", err)
+	}
+	wantModTime := time.Date(2026, time.April, 4, 19, 20, 21, 0, time.UTC)
+
+	svc := &Service{
+		manager:        folder.NewTransferManager(),
+		finalizers:     make(map[string]*pendingDirectoryFinalize),
+		taskFinalizers: make(map[string][]string),
+	}
+	taskID, err := svc.manager.Submit(&instantUploadDriver{}, "instant", "inst", folder.TransferUpload, newUploadRequest("remote/demo.txt", localFile))
+	if err != nil {
+		t.Fatalf("submit upload: %v", err)
+	}
+	if err := waitForTransferTask(svc.manager, taskID, 2*time.Second); err != nil {
+		t.Fatalf("wait for task: %v", err)
+	}
+
+	if err := svc.registerDirectoryFinalize(finalizeLocalDirectories, "", []directoryFinalizeEntry{{
+		path:    dirPath,
+		modTime: &wantModTime,
+	}}, 1, []string{taskID}); err != nil {
+		t.Fatalf("register finalizer: %v", err)
+	}
+
+	info, err := os.Stat(dirPath)
+	if err != nil {
+		t.Fatalf("stat dir: %v", err)
+	}
+	if !info.ModTime().Equal(wantModTime) {
+		t.Fatalf("dir modTime = %v, want %v", info.ModTime(), wantModTime)
+	}
+}
+
+func TestAttachDirectoryFinalizeTaskReconcilesAlreadyCompletedTask(t *testing.T) {
+	dirPath := t.TempDir()
+	localFile := filepath.Join(t.TempDir(), "upload.txt")
+	if err := os.WriteFile(localFile, []byte("demo"), 0o644); err != nil {
+		t.Fatalf("write local file: %v", err)
+	}
+	wantModTime := time.Date(2026, time.April, 4, 21, 22, 23, 0, time.UTC)
+
+	svc := &Service{
+		manager:        folder.NewTransferManager(),
+		finalizers:     make(map[string]*pendingDirectoryFinalize),
+		taskFinalizers: make(map[string][]string),
+	}
+	finalizeID, err := svc.registerDirectoryFinalizeID(finalizeLocalDirectories, "", []directoryFinalizeEntry{{
+		path:    dirPath,
+		modTime: &wantModTime,
+	}}, 1, nil)
+	if err != nil {
+		t.Fatalf("register deferred finalizer: %v", err)
+	}
+
+	taskID, err := svc.manager.Submit(&instantUploadDriver{}, "instant", "inst", folder.TransferUpload, newUploadRequest("remote/demo.txt", localFile))
+	if err != nil {
+		t.Fatalf("submit upload: %v", err)
+	}
+	if err := waitForTransferTask(svc.manager, taskID, 2*time.Second); err != nil {
+		t.Fatalf("wait for task: %v", err)
+	}
+
+	svc.attachDirectoryFinalizeTask(finalizeID, taskID)
+
+	info, err := os.Stat(dirPath)
+	if err != nil {
+		t.Fatalf("stat dir: %v", err)
+	}
+	if !info.ModTime().Equal(wantModTime) {
+		t.Fatalf("dir modTime = %v, want %v", info.ModTime(), wantModTime)
+	}
+}
+
 func TestCommandForOpen(t *testing.T) {
 	t.Run("darwin", func(t *testing.T) {
 		cmd := commandForOpen("darwin", "/tmp/demo.txt")
@@ -267,6 +433,22 @@ func TestCommandForOpen(t *testing.T) {
 			t.Fatalf("args = %#v", cmd.Args)
 		}
 	})
+}
+
+func waitForTransferTask(manager *folder.TransferManager, taskID string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		task := manager.Progress(taskID)
+		if task == nil {
+			return nil
+		}
+		switch task.Status {
+		case folder.TransferCompleted, folder.TransferFailed, folder.TransferCancelled:
+			return nil
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	return context.DeadlineExceeded
 }
 
 func TestCommandForReveal(t *testing.T) {

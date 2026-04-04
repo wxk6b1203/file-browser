@@ -40,6 +40,11 @@ func (d *Driver) Upload(ctx context.Context, req *folder.TransferRequest, progre
 		return fmt.Errorf("s3: upload: stat local file %q: %w", req.LocalPath, err)
 	}
 	total := info.Size()
+	modTime := folder.CloneTime(req.SourceModTime)
+	if req.PreserveModTime && modTime == nil {
+		value := info.ModTime()
+		modTime = &value
+	}
 
 	// Wrap the file with a progress reader.
 	body := folder.NewProgressReader(f, total, progressFn)
@@ -69,8 +74,12 @@ func (d *Driver) Upload(ctx context.Context, req *folder.TransferRequest, progre
 	if req.ContentType != "" {
 		input.ContentType = aws.String(req.ContentType)
 	}
-	if len(req.Metadata) > 0 {
-		input.Metadata = req.Metadata
+	metadata := req.Metadata
+	if req.PreserveModTime {
+		metadata = folder.MergeMetadataWithModTime(metadata, modTime)
+	}
+	if len(metadata) > 0 {
+		input.Metadata = metadata
 	}
 
 	_, err = uploader.Upload(ctx, input)
@@ -101,6 +110,7 @@ func (d *Driver) Download(ctx context.Context, req *folder.TransferRequest, prog
 		return fmt.Errorf("s3: download %q: head object: %w", req.RemotePath, err)
 	}
 	total = aws.ToInt64(headOut.ContentLength)
+	modTime := folder.ResolveModTime(req.SourceModTime, headOut.Metadata, headOut.LastModified)
 
 	// Ensure parent directory exists.
 	if dir := path.Dir(req.LocalPath); dir != "" && dir != "." {
@@ -113,7 +123,6 @@ func (d *Driver) Download(ctx context.Context, req *folder.TransferRequest, prog
 	if err != nil {
 		return fmt.Errorf("s3: download: create local file %q: %w", req.LocalPath, err)
 	}
-	defer f.Close()
 
 	partSize := int64(defaultPartSize)
 	if req.PartSize > 0 {
@@ -138,7 +147,16 @@ func (d *Driver) Download(ctx context.Context, req *folder.TransferRequest, prog
 		Key:    aws.String(key),
 	})
 	if err != nil {
+		_ = f.Close()
 		return fmt.Errorf("s3: download %q: %w", req.RemotePath, err)
+	}
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("s3: download: close local file %q: %w", req.LocalPath, err)
+	}
+	if req.PreserveModTime {
+		if err := folder.ApplyLocalModTime(req.LocalPath, modTime); err != nil {
+			return fmt.Errorf("s3: download: restore local mod time for %q: %w", req.LocalPath, err)
+		}
 	}
 	return nil
 }

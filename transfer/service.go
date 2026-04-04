@@ -31,11 +31,26 @@ type Service struct {
 	mu              sync.RWMutex
 	observer        folder.TransferObserver
 	pendingFollowUp map[string]pendingFollowUp
+	finalizeSeq     int64
+	finalizers      map[string]*pendingDirectoryFinalize
+	taskFinalizers  map[string][]string
+}
+
+type uploadDirectoryPlan struct {
+	localPath  string
+	remotePath string
+	modTime    *time.Time
 }
 
 type uploadFilePlan struct {
 	localPath  string
 	remotePath string
+}
+
+type downloadDirectoryPlan struct {
+	localPath   string
+	remotePath  string
+	sourceMTime *time.Time
 }
 
 type downloadFilePlan struct {
@@ -44,14 +59,19 @@ type downloadFilePlan struct {
 }
 
 type localUploadPlan struct {
-	directories []string
+	directories []uploadDirectoryPlan
 	files       []uploadFilePlan
 }
 
 type localDownloadPlan struct {
 	rootPath    string
-	directories []string
+	directories []downloadDirectoryPlan
 	files       []downloadFilePlan
+}
+
+type crossTransferDirectoryPlan struct {
+	targetRemotePath string
+	sourceMTime      *time.Time
 }
 
 type pendingFollowUpKind string
@@ -66,6 +86,29 @@ type pendingFollowUp struct {
 	localPath        string
 	targetConnection string
 	targetRemotePath string
+	finalizeID       string
+}
+
+type directoryFinalizeKind string
+
+const (
+	finalizeLocalDirectories  directoryFinalizeKind = "local"
+	finalizeRemoteDirectories directoryFinalizeKind = "remote"
+)
+
+type directoryFinalizeEntry struct {
+	path    string
+	modTime *time.Time
+}
+
+type pendingDirectoryFinalize struct {
+	kind         directoryFinalizeKind
+	connectionID string
+	directories  []directoryFinalizeEntry
+	expected     int
+	settled      int
+	active       map[string]struct{}
+	failed       bool
 }
 
 func NewService(connections *connection.Service, tempDir string, downloadDir string, overwrite string) *Service {
@@ -77,9 +120,42 @@ func NewService(connections *connection.Service, tempDir string, downloadDir str
 		overwrite:       normalizeOverwriteStrategy(overwrite),
 		opener:          openLocalPath,
 		pendingFollowUp: make(map[string]pendingFollowUp),
+		finalizers:      make(map[string]*pendingDirectoryFinalize),
+		taskFinalizers:  make(map[string][]string),
 	}
 	svc.manager.SetObserver(svc.onManagerEvent)
 	return svc
+}
+
+func newDownloadRequest(remotePath, localPath string) *folder.TransferRequest {
+	return &folder.TransferRequest{
+		RemotePath:      remotePath,
+		LocalPath:       localPath,
+		PreserveModTime: true,
+	}
+}
+
+func newUploadRequest(remotePath, localPath string) *folder.TransferRequest {
+	return &folder.TransferRequest{
+		RemotePath:      remotePath,
+		LocalPath:       localPath,
+		PreserveModTime: true,
+	}
+}
+
+func cloneTime(t *time.Time) *time.Time {
+	if t == nil {
+		return nil
+	}
+	value := *t
+	return &value
+}
+
+func fileInfoModTime(info *folder.FileInfo) *time.Time {
+	if info == nil {
+		return nil
+	}
+	return folder.ResolveModTime(nil, info.Metadata, info.LastModified)
 }
 
 func (s *Service) SetObserver(observer folder.TransferObserver) {
@@ -131,24 +207,24 @@ func (s *Service) DownloadToTemp(ctx context.Context, connectionID, remotePath s
 		}
 
 		for _, dir := range plan.directories {
-			if dir == "" {
+			if dir.localPath == "" {
 				continue
 			}
-			if err := os.MkdirAll(dir, 0o755); err != nil {
-				return nil, fmt.Errorf("create local download dir %q: %w", dir, err)
+			if err := os.MkdirAll(dir.localPath, 0o755); err != nil {
+				return nil, fmt.Errorf("create local download dir %q: %w", dir.localPath, err)
 			}
 		}
 
 		taskIDs := make([]string, 0, len(plan.files))
 		for _, item := range plan.files {
-			taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
-				RemotePath: item.remotePath,
-				LocalPath:  item.localPath,
-			})
+			taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, newDownloadRequest(item.remotePath, item.localPath))
 			if err != nil {
 				return nil, err
 			}
 			taskIDs = append(taskIDs, taskID)
+		}
+		if err := s.registerLocalDirectoryFinalize(plan.directories, taskIDs); err != nil {
+			return nil, err
 		}
 
 		return taskIDs, nil
@@ -159,10 +235,7 @@ func (s *Service) DownloadToTemp(ctx context.Context, connectionID, remotePath s
 		return nil, err
 	}
 
-	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
-		RemotePath: cleanRemotePath,
-		LocalPath:  localPath,
-	})
+	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, newDownloadRequest(cleanRemotePath, localPath))
 	if err != nil {
 		return nil, err
 	}
@@ -213,24 +286,24 @@ func (s *Service) DownloadToDirectory(ctx context.Context, connectionID, remoteP
 			return nil, err
 		}
 		for _, dir := range plan.directories {
-			if dir == "" {
+			if dir.localPath == "" {
 				continue
 			}
-			if err := os.MkdirAll(dir, 0o755); err != nil {
-				return nil, fmt.Errorf("create local download dir %q: %w", dir, err)
+			if err := os.MkdirAll(dir.localPath, 0o755); err != nil {
+				return nil, fmt.Errorf("create local download dir %q: %w", dir.localPath, err)
 			}
 		}
 
 		taskIDs := make([]string, 0, len(plan.files))
 		for _, item := range plan.files {
-			taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
-				RemotePath: item.remotePath,
-				LocalPath:  item.localPath,
-			})
+			taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, newDownloadRequest(item.remotePath, item.localPath))
 			if err != nil {
 				return nil, err
 			}
 			taskIDs = append(taskIDs, taskID)
+		}
+		if err := s.registerLocalDirectoryFinalize(plan.directories, taskIDs); err != nil {
+			return nil, err
 		}
 
 		return taskIDs, nil
@@ -241,10 +314,7 @@ func (s *Service) DownloadToDirectory(ctx context.Context, connectionID, remoteP
 		return nil, err
 	}
 
-	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
-		RemotePath: cleanRemotePath,
-		LocalPath:  localPath,
-	})
+	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, newDownloadRequest(cleanRemotePath, localPath))
 	if err != nil {
 		return nil, err
 	}
@@ -282,10 +352,7 @@ func (s *Service) DownloadFileToPath(ctx context.Context, connectionID, remotePa
 		return nil, err
 	}
 
-	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
-		RemotePath: cleanRemotePath,
-		LocalPath:  targetPath,
-	})
+	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, newDownloadRequest(cleanRemotePath, targetPath))
 	if err != nil {
 		return nil, err
 	}
@@ -328,10 +395,7 @@ func (s *Service) OpenFile(ctx context.Context, connectionID, remotePath string)
 		}
 	}
 
-	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, &folder.TransferRequest{
-		RemotePath: cleanRemotePath,
-		LocalPath:  localPath,
-	})
+	taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferDownload, newDownloadRequest(cleanRemotePath, localPath))
 	if err != nil {
 		return nil, err
 	}
@@ -364,24 +428,24 @@ func (s *Service) UploadLocalPath(ctx context.Context, connectionID, remoteDir, 
 	}
 
 	for _, dir := range plan.directories {
-		if dir == "" {
+		if dir.remotePath == "" {
 			continue
 		}
-		if err := mgr.Mkdir(ctx, dir); err != nil {
+		if err := mgr.Mkdir(ctx, dir.remotePath); err != nil {
 			return nil, err
 		}
 	}
 
 	taskIDs := make([]string, 0, len(plan.files))
 	for _, item := range plan.files {
-		taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferUpload, &folder.TransferRequest{
-			RemotePath: item.remotePath,
-			LocalPath:  item.localPath,
-		})
+		taskID, err := s.manager.Submit(mgr, def.Driver, def.ID, folder.TransferUpload, newUploadRequest(item.remotePath, item.localPath))
 		if err != nil {
 			return nil, err
 		}
 		taskIDs = append(taskIDs, taskID)
+	}
+	if err := s.registerRemoteDirectoryFinalize(connectionID, plan.directories, taskIDs); err != nil {
+		return nil, err
 	}
 
 	return taskIDs, nil
@@ -416,10 +480,7 @@ func (s *Service) TransferEntry(ctx context.Context, sourceConnectionID, sourceP
 		}
 
 		targetRemotePath := joinRemotePath(targetDir, path.Base(cleanSourcePath))
-		taskID, err := s.manager.Submit(sourceMgr, sourceDef.Driver, sourceDef.ID, folder.TransferDownload, &folder.TransferRequest{
-			RemotePath: cleanSourcePath,
-			LocalPath:  localPath,
-		})
+		taskID, err := s.manager.Submit(sourceMgr, sourceDef.Driver, sourceDef.ID, folder.TransferDownload, newDownloadRequest(cleanSourcePath, localPath))
 		if err != nil {
 			return nil, err
 		}
@@ -442,12 +503,20 @@ func (s *Service) TransferEntry(ctx context.Context, sourceConnectionID, sourceP
 	if err != nil {
 		return nil, err
 	}
+	items, err = enrichDirectoryItems(ctx, sourceMgr, items)
+	if err != nil {
+		return nil, err
+	}
+	rootInfo, err := sourceMgr.Stat(ctx, cleanSourcePath)
+	if err != nil {
+		return nil, err
+	}
 
 	localRootPath, err := s.buildTempDirectoryPath(sourceConnectionID, cleanSourcePath)
 	if err != nil {
 		return nil, err
 	}
-	downloadPlan, err := buildLocalDownloadPlan(localRootPath, cleanSourcePath, items)
+	downloadPlan, err := buildLocalDownloadPlan(localRootPath, cleanSourcePath, rootInfo, items)
 	if err != nil {
 		return nil, err
 	}
@@ -457,20 +526,22 @@ func (s *Service) TransferEntry(ctx context.Context, sourceConnectionID, sourceP
 	}
 
 	for _, dir := range crossPlan.directories {
-		if dir == "" {
+		if dir.targetRemotePath == "" {
 			continue
 		}
-		if err := targetMgr.Mkdir(ctx, dir); err != nil {
+		if err := targetMgr.Mkdir(ctx, dir.targetRemotePath); err != nil {
 			return nil, err
 		}
 	}
 
+	finalizeID, err := s.registerDeferredRemoteDirectoryFinalize(targetConnectionID, crossPlan.directories, len(crossPlan.files))
+	if err != nil {
+		return nil, err
+	}
+
 	taskIDs := make([]string, 0, len(crossPlan.files))
 	for _, item := range crossPlan.files {
-		taskID, err := s.manager.Submit(sourceMgr, sourceDef.Driver, sourceDef.ID, folder.TransferDownload, &folder.TransferRequest{
-			RemotePath: item.sourceRemotePath,
-			LocalPath:  item.localPath,
-		})
+		taskID, err := s.manager.Submit(sourceMgr, sourceDef.Driver, sourceDef.ID, folder.TransferDownload, newDownloadRequest(item.sourceRemotePath, item.localPath))
 		if err != nil {
 			return nil, err
 		}
@@ -480,6 +551,7 @@ func (s *Service) TransferEntry(ctx context.Context, sourceConnectionID, sourceP
 			localPath:        item.localPath,
 			targetConnection: targetConnectionID,
 			targetRemotePath: item.targetRemotePath,
+			finalizeID:       finalizeID,
 		})
 		taskIDs = append(taskIDs, taskID)
 	}
@@ -547,11 +619,44 @@ func (s *Service) buildTempDirectoryPath(connectionID, remotePath string) (strin
 }
 
 func (s *Service) buildDownloadPlanAtPath(ctx context.Context, mgr folder.Manager, remoteDir, localRootPath string) (*localDownloadPlan, error) {
+	rootInfo, err := mgr.Stat(ctx, remoteDir)
+	if err != nil {
+		return nil, err
+	}
 	items, err := mgr.List(ctx, remoteDir, &folder.ListOptions{Recursive: true})
 	if err != nil {
 		return nil, err
 	}
-	return buildLocalDownloadPlan(localRootPath, remoteDir, items)
+	items, err = enrichDirectoryItems(ctx, mgr, items)
+	if err != nil {
+		return nil, err
+	}
+	return buildLocalDownloadPlan(localRootPath, remoteDir, rootInfo, items)
+}
+
+func enrichDirectoryItems(ctx context.Context, mgr folder.Manager, items []*folder.FileInfo) ([]*folder.FileInfo, error) {
+	if len(items) == 0 {
+		return items, nil
+	}
+
+	result := make([]*folder.FileInfo, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		if !item.IsDir() {
+			result = append(result, item)
+			continue
+		}
+
+		stat, err := mgr.Stat(ctx, cleanRemotePath(item.Path))
+		if err == nil && stat != nil {
+			result = append(result, stat)
+			continue
+		}
+		result = append(result, item)
+	}
+	return result, nil
 }
 
 func cleanRemotePath(value string) string {
@@ -591,7 +696,7 @@ func buildLocalUploadPlan(remoteDir, localPath string) (*localUploadPlan, error)
 	}
 
 	plan := &localUploadPlan{
-		directories: []string{},
+		directories: []uploadDirectoryPlan{},
 		files:       []uploadFilePlan{},
 	}
 
@@ -605,7 +710,12 @@ func buildLocalUploadPlan(remoteDir, localPath string) (*localUploadPlan, error)
 
 	targetBaseRemotePath := joinRemotePath(remoteDir, filepath.Base(cleanLocalPath))
 	if targetBaseRemotePath != "" {
-		plan.directories = append(plan.directories, targetBaseRemotePath)
+		rootModTime := localInfo.ModTime()
+		plan.directories = append(plan.directories, uploadDirectoryPlan{
+			localPath:  cleanLocalPath,
+			remotePath: targetBaseRemotePath,
+			modTime:    &rootModTime,
+		})
 	}
 
 	err = filepath.WalkDir(cleanLocalPath, func(currentPath string, entry fs.DirEntry, walkErr error) error {
@@ -623,8 +733,17 @@ func buildLocalUploadPlan(remoteDir, localPath string) (*localUploadPlan, error)
 
 		targetPath := joinRemotePath(targetBaseRemotePath, filepath.ToSlash(relativePath))
 		if entry.IsDir() {
+			dirInfo, err := entry.Info()
+			if err != nil {
+				return err
+			}
 			if targetPath != "" {
-				plan.directories = append(plan.directories, targetPath)
+				modTime := dirInfo.ModTime()
+				plan.directories = append(plan.directories, uploadDirectoryPlan{
+					localPath:  currentPath,
+					remotePath: targetPath,
+					modTime:    &modTime,
+				})
 			}
 			return nil
 		}
@@ -639,7 +758,9 @@ func buildLocalUploadPlan(remoteDir, localPath string) (*localUploadPlan, error)
 		return nil, fmt.Errorf("walk local path %q: %w", cleanLocalPath, err)
 	}
 
-	sort.Strings(plan.directories)
+	sort.Slice(plan.directories, func(i, j int) bool {
+		return plan.directories[i].remotePath < plan.directories[j].remotePath
+	})
 	sort.Slice(plan.files, func(i, j int) bool {
 		return plan.files[i].remotePath < plan.files[j].remotePath
 	})
@@ -653,15 +774,24 @@ func (s *Service) buildLocalDownloadPlan(ctx context.Context, mgr folder.Manager
 		return nil, err
 	}
 
-	items, err := mgr.List(ctx, remoteDir, &folder.ListOptions{Recursive: true})
+	rootInfo, err := mgr.Stat(ctx, remoteDir)
 	if err != nil {
 		return nil, err
 	}
 
-	return buildLocalDownloadPlan(localRootPath, remoteDir, items)
+	items, err := mgr.List(ctx, remoteDir, &folder.ListOptions{Recursive: true})
+	if err != nil {
+		return nil, err
+	}
+	items, err = enrichDirectoryItems(ctx, mgr, items)
+	if err != nil {
+		return nil, err
+	}
+
+	return buildLocalDownloadPlan(localRootPath, remoteDir, rootInfo, items)
 }
 
-func buildLocalDownloadPlan(localRootPath, remoteDir string, items []*folder.FileInfo) (*localDownloadPlan, error) {
+func buildLocalDownloadPlan(localRootPath, remoteDir string, rootInfo *folder.FileInfo, items []*folder.FileInfo) (*localDownloadPlan, error) {
 	cleanRootPath := strings.TrimSpace(localRootPath)
 	if cleanRootPath == "" {
 		return nil, fmt.Errorf("local root path is required")
@@ -673,9 +803,16 @@ func buildLocalDownloadPlan(localRootPath, remoteDir string, items []*folder.Fil
 	}
 
 	plan := &localDownloadPlan{
-		rootPath:    cleanRootPath,
-		directories: []string{cleanRootPath},
-		files:       []downloadFilePlan{},
+		rootPath: cleanRootPath,
+		directories: []downloadDirectoryPlan{{
+			localPath:   cleanRootPath,
+			remotePath:  cleanRemoteDir,
+			sourceMTime: fileInfoModTime(rootInfo),
+		}},
+		files: []downloadFilePlan{},
+	}
+	directoryMtimes := map[string]*time.Time{
+		cleanRemoteDir: cloneTime(fileInfoModTime(rootInfo)),
 	}
 
 	for _, item := range items {
@@ -699,9 +836,11 @@ func buildLocalDownloadPlan(localRootPath, remoteDir string, items []*folder.Fil
 
 		localPath := filepath.Join(cleanRootPath, filepath.FromSlash(relativePath))
 		if item.IsDir() {
-			plan.directories = append(plan.directories, localPath)
+			mergeDirectoryModTime(directoryMtimes, cleanItemPath, fileInfoModTime(item), true)
 			continue
 		}
+
+		registerVirtualDirectories(directoryMtimes, cleanRemoteDir, cleanItemPath, fileInfoModTime(item))
 
 		plan.files = append(plan.files, downloadFilePlan{
 			localPath:  localPath,
@@ -709,12 +848,77 @@ func buildLocalDownloadPlan(localRootPath, remoteDir string, items []*folder.Fil
 		})
 	}
 
-	sort.Strings(plan.directories)
+	for remotePath, modTime := range directoryMtimes {
+		if remotePath == cleanRemoteDir {
+			plan.directories[0].sourceMTime = cloneTime(modTime)
+			continue
+		}
+
+		relativePath, err := filepath.Rel(cleanRemoteDir, remotePath)
+		if err != nil {
+			return nil, err
+		}
+		relativePath = filepath.ToSlash(relativePath)
+		if relativePath == "." {
+			continue
+		}
+
+		plan.directories = append(plan.directories, downloadDirectoryPlan{
+			localPath:   filepath.Join(cleanRootPath, filepath.FromSlash(relativePath)),
+			remotePath:  remotePath,
+			sourceMTime: cloneTime(modTime),
+		})
+	}
+
+	sort.Slice(plan.directories, func(i, j int) bool {
+		return plan.directories[i].localPath < plan.directories[j].localPath
+	})
 	sort.Slice(plan.files, func(i, j int) bool {
 		return plan.files[i].remotePath < plan.files[j].remotePath
 	})
 
 	return plan, nil
+}
+
+func registerVirtualDirectories(directoryMtimes map[string]*time.Time, rootDir, filePath string, fallback *time.Time) {
+	parent := cleanRemotePath(path.Dir(filePath))
+	rootDir = cleanRemotePath(rootDir)
+	for parent != "" && parent != "." {
+		mergeDirectoryModTime(directoryMtimes, parent, fallback, false)
+		if parent == rootDir {
+			return
+		}
+		nextParent := cleanRemotePath(path.Dir(parent))
+		if nextParent == parent {
+			return
+		}
+		parent = nextParent
+	}
+}
+
+func mergeDirectoryModTime(directoryMtimes map[string]*time.Time, remotePath string, candidate *time.Time, explicit bool) {
+	cleanPath := cleanRemotePath(remotePath)
+	if cleanPath == "" {
+		return
+	}
+
+	current, exists := directoryMtimes[cleanPath]
+	if explicit {
+		if candidate != nil || !exists {
+			directoryMtimes[cleanPath] = cloneTime(candidate)
+		}
+		return
+	}
+	if !exists || current == nil {
+		directoryMtimes[cleanPath] = cloneTime(candidate)
+		return
+	}
+	if candidate == nil {
+		return
+	}
+	if candidate.After(*current) {
+		directoryMtimes[cleanPath] = cloneTime(candidate)
+	}
 }
 
 type crossTransferFilePlan struct {
@@ -724,7 +928,7 @@ type crossTransferFilePlan struct {
 }
 
 type crossTransferPlan struct {
-	directories []string
+	directories []crossTransferDirectoryPlan
 	files       []crossTransferFilePlan
 }
 
@@ -740,11 +944,18 @@ func buildCrossConnectionTransferPlan(sourceDir, targetDir string, downloadPlan 
 
 	remoteBasePath := joinRemotePath(targetDir, path.Base(cleanSourceDir))
 	plan := &crossTransferPlan{
-		directories: []string{},
+		directories: []crossTransferDirectoryPlan{},
 		files:       []crossTransferFilePlan{},
 	}
 	if remoteBasePath != "" {
-		plan.directories = append(plan.directories, remoteBasePath)
+		rootModTime := (*time.Time)(nil)
+		if len(downloadPlan.directories) > 0 {
+			rootModTime = cloneTime(downloadPlan.directories[0].sourceMTime)
+		}
+		plan.directories = append(plan.directories, crossTransferDirectoryPlan{
+			targetRemotePath: remoteBasePath,
+			sourceMTime:      rootModTime,
+		})
 	}
 
 	itemByPath := make(map[string]*folder.FileInfo, len(items))
@@ -756,17 +967,20 @@ func buildCrossConnectionTransferPlan(sourceDir, targetDir string, downloadPlan 
 	}
 
 	for _, localDir := range downloadPlan.directories {
-		if localDir == "" || localDir == downloadPlan.rootPath {
+		if localDir.localPath == "" || localDir.localPath == downloadPlan.rootPath {
 			continue
 		}
-		relativePath, err := filepath.Rel(downloadPlan.rootPath, localDir)
+		relativePath, err := filepath.Rel(downloadPlan.rootPath, localDir.localPath)
 		if err != nil {
 			return nil, err
 		}
 		relativePath = filepath.ToSlash(relativePath)
 		targetPath := joinRemotePath(remoteBasePath, relativePath)
 		if targetPath != "" {
-			plan.directories = append(plan.directories, targetPath)
+			plan.directories = append(plan.directories, crossTransferDirectoryPlan{
+				targetRemotePath: targetPath,
+				sourceMTime:      cloneTime(localDir.sourceMTime),
+			})
 		}
 	}
 
@@ -789,7 +1003,9 @@ func buildCrossConnectionTransferPlan(sourceDir, targetDir string, downloadPlan 
 		})
 	}
 
-	sort.Strings(plan.directories)
+	sort.Slice(plan.directories, func(i, j int) bool {
+		return plan.directories[i].targetRemotePath < plan.directories[j].targetRemotePath
+	})
 	sort.Slice(plan.files, func(i, j int) bool {
 		return plan.files[i].sourceRemotePath < plan.files[j].sourceRemotePath
 	})
@@ -800,6 +1016,7 @@ func buildCrossConnectionTransferPlan(sourceDir, targetDir string, downloadPlan 
 func (s *Service) onManagerEvent(event folder.TransferEvent) {
 	if event.Type == folder.TransferEventUpsert && event.Task != nil {
 		s.processFollowUp(event.Task)
+		s.processDirectoryFinalizers(event.Task)
 	}
 
 	s.mu.RLock()
@@ -807,6 +1024,246 @@ func (s *Service) onManagerEvent(event folder.TransferEvent) {
 	s.mu.RUnlock()
 	if observer != nil {
 		observer(event)
+	}
+}
+
+func (s *Service) registerLocalDirectoryFinalize(directories []downloadDirectoryPlan, taskIDs []string) error {
+	entries := make([]directoryFinalizeEntry, 0, len(directories))
+	for _, dir := range directories {
+		if dir.localPath == "" || dir.sourceMTime == nil {
+			continue
+		}
+		entries = append(entries, directoryFinalizeEntry{
+			path:    dir.localPath,
+			modTime: cloneTime(dir.sourceMTime),
+		})
+	}
+	return s.registerDirectoryFinalize(finalizeLocalDirectories, "", entries, len(taskIDs), taskIDs)
+}
+
+func (s *Service) registerRemoteDirectoryFinalize(connectionID string, directories []uploadDirectoryPlan, taskIDs []string) error {
+	entries := make([]directoryFinalizeEntry, 0, len(directories))
+	for _, dir := range directories {
+		if dir.remotePath == "" || dir.modTime == nil {
+			continue
+		}
+		entries = append(entries, directoryFinalizeEntry{
+			path:    dir.remotePath,
+			modTime: cloneTime(dir.modTime),
+		})
+	}
+	return s.registerDirectoryFinalize(finalizeRemoteDirectories, connectionID, entries, len(taskIDs), taskIDs)
+}
+
+func (s *Service) registerDeferredRemoteDirectoryFinalize(connectionID string, directories []crossTransferDirectoryPlan, expected int) (string, error) {
+	entries := make([]directoryFinalizeEntry, 0, len(directories))
+	for _, dir := range directories {
+		if dir.targetRemotePath == "" || dir.sourceMTime == nil {
+			continue
+		}
+		entries = append(entries, directoryFinalizeEntry{
+			path:    dir.targetRemotePath,
+			modTime: cloneTime(dir.sourceMTime),
+		})
+	}
+	return s.registerDirectoryFinalizeID(finalizeRemoteDirectories, connectionID, entries, expected, nil)
+}
+
+func (s *Service) registerDirectoryFinalize(kind directoryFinalizeKind, connectionID string, directories []directoryFinalizeEntry, expected int, taskIDs []string) error {
+	_, err := s.registerDirectoryFinalizeID(kind, connectionID, directories, expected, taskIDs)
+	return err
+}
+
+func (s *Service) registerDirectoryFinalizeID(kind directoryFinalizeKind, connectionID string, directories []directoryFinalizeEntry, expected int, taskIDs []string) (string, error) {
+	entries := normalizeDirectoryFinalizeEntries(directories)
+	if len(entries) == 0 {
+		return "", nil
+	}
+	if expected == 0 {
+		return "", s.applyDirectoryFinalize(&pendingDirectoryFinalize{
+			kind:         kind,
+			connectionID: connectionID,
+			directories:  entries,
+		})
+	}
+
+	s.mu.Lock()
+	s.finalizeSeq++
+	finalizeID := fmt.Sprintf("dir-finalize:%d", s.finalizeSeq)
+	finalizer := &pendingDirectoryFinalize{
+		kind:         kind,
+		connectionID: connectionID,
+		directories:  entries,
+		expected:     expected,
+		active:       make(map[string]struct{}, len(taskIDs)),
+	}
+	for _, taskID := range taskIDs {
+		finalizer.active[taskID] = struct{}{}
+		s.taskFinalizers[taskID] = append(s.taskFinalizers[taskID], finalizeID)
+	}
+	s.finalizers[finalizeID] = finalizer
+	s.mu.Unlock()
+	s.reconcileCompletedTasks(taskIDs)
+	return finalizeID, nil
+}
+
+func normalizeDirectoryFinalizeEntries(entries []directoryFinalizeEntry) []directoryFinalizeEntry {
+	result := make([]directoryFinalizeEntry, 0, len(entries))
+	seen := make(map[string]struct{}, len(entries))
+	for _, entry := range entries {
+		if entry.path == "" || entry.modTime == nil {
+			continue
+		}
+		if _, ok := seen[entry.path]; ok {
+			continue
+		}
+		seen[entry.path] = struct{}{}
+		result = append(result, directoryFinalizeEntry{
+			path:    entry.path,
+			modTime: cloneTime(entry.modTime),
+		})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		if len(result[i].path) == len(result[j].path) {
+			return result[i].path > result[j].path
+		}
+		return len(result[i].path) > len(result[j].path)
+	})
+	return result
+}
+
+func (s *Service) attachDirectoryFinalizeTask(finalizeID, taskID string) {
+	if strings.TrimSpace(finalizeID) == "" || strings.TrimSpace(taskID) == "" {
+		return
+	}
+	s.mu.Lock()
+	finalizer, ok := s.finalizers[finalizeID]
+	if !ok {
+		s.mu.Unlock()
+		return
+	}
+	finalizer.active[taskID] = struct{}{}
+	s.taskFinalizers[taskID] = append(s.taskFinalizers[taskID], finalizeID)
+	s.mu.Unlock()
+	s.reconcileCompletedTasks([]string{taskID})
+}
+
+func (s *Service) reconcileCompletedTasks(taskIDs []string) {
+	for _, taskID := range taskIDs {
+		if strings.TrimSpace(taskID) == "" {
+			continue
+		}
+		task := s.manager.Progress(taskID)
+		if task == nil {
+			continue
+		}
+		switch task.Status {
+		case folder.TransferCompleted, folder.TransferFailed, folder.TransferCancelled:
+			s.processDirectoryFinalizers(task)
+		}
+	}
+}
+
+func (s *Service) failDirectoryFinalize(finalizeID string) error {
+	if strings.TrimSpace(finalizeID) == "" {
+		return nil
+	}
+
+	var finalize *pendingDirectoryFinalize
+	s.mu.Lock()
+	finalizer, ok := s.finalizers[finalizeID]
+	if !ok {
+		s.mu.Unlock()
+		return nil
+	}
+	finalizer.failed = true
+	finalizer.settled++
+	if finalizer.settled >= finalizer.expected && len(finalizer.active) == 0 {
+		finalize = finalizer
+		delete(s.finalizers, finalizeID)
+	}
+	s.mu.Unlock()
+	if finalize != nil && !finalize.failed {
+		return s.applyDirectoryFinalize(finalize)
+	}
+	return nil
+}
+
+func (s *Service) processDirectoryFinalizers(task *folder.TransferTask) {
+	if task == nil || task.ID == "" {
+		return
+	}
+	switch task.Status {
+	case folder.TransferCompleted, folder.TransferFailed, folder.TransferCancelled:
+	default:
+		return
+	}
+
+	var finalizeList []*pendingDirectoryFinalize
+
+	s.mu.Lock()
+	finalizeIDs := append([]string(nil), s.taskFinalizers[task.ID]...)
+	delete(s.taskFinalizers, task.ID)
+	for _, finalizeID := range finalizeIDs {
+		finalizer, ok := s.finalizers[finalizeID]
+		if !ok {
+			continue
+		}
+		delete(finalizer.active, task.ID)
+		finalizer.settled++
+		if task.Status != folder.TransferCompleted {
+			finalizer.failed = true
+		}
+		if finalizer.settled >= finalizer.expected && len(finalizer.active) == 0 {
+			finalizeList = append(finalizeList, finalizer)
+			delete(s.finalizers, finalizeID)
+		}
+	}
+	s.mu.Unlock()
+
+	for _, finalize := range finalizeList {
+		if finalize.failed {
+			continue
+		}
+		if err := s.applyDirectoryFinalize(finalize); err != nil {
+			s.emitErrorEvent(task.ID, err)
+		}
+	}
+}
+
+func (s *Service) applyDirectoryFinalize(finalizer *pendingDirectoryFinalize) error {
+	if finalizer == nil || len(finalizer.directories) == 0 {
+		return nil
+	}
+
+	switch finalizer.kind {
+	case finalizeLocalDirectories:
+		for _, entry := range finalizer.directories {
+			if err := folder.ApplyLocalModTime(entry.path, entry.modTime); err != nil {
+				return fmt.Errorf("restore local directory mod time for %q: %w", entry.path, err)
+			}
+		}
+		return nil
+	case finalizeRemoteDirectories:
+		mgr, _, err := s.connections.Manager(context.Background(), finalizer.connectionID)
+		if err != nil {
+			return fmt.Errorf("prepare directory mod time restore for connection %q: %w", finalizer.connectionID, err)
+		}
+		setter, ok := mgr.(folder.DirectoryModTimeSetter)
+		if !ok {
+			return nil
+		}
+		for _, entry := range finalizer.directories {
+			if entry.modTime == nil {
+				continue
+			}
+			if err := setter.SetDirectoryModTime(context.Background(), entry.path, *entry.modTime); err != nil {
+				return err
+			}
+		}
+		return nil
+	default:
+		return nil
 	}
 }
 
@@ -827,18 +1284,22 @@ func (s *Service) processFollowUp(task *folder.TransferTask) {
 			targetMgr, targetDef, err := s.connections.Manager(context.Background(), followUp.targetConnection)
 			if err != nil {
 				s.emitErrorEvent(task.ID, fmt.Errorf("prepare follow-up upload to connection %q: %w", followUp.targetConnection, err))
+				if finalizeErr := s.failDirectoryFinalize(followUp.finalizeID); finalizeErr != nil {
+					s.emitErrorEvent(task.ID, finalizeErr)
+				}
 				s.deletePendingFollowUp(task.ID)
 				return
 			}
-			_, err = s.manager.Submit(targetMgr, targetDef.Driver, targetDef.ID, folder.TransferUpload, &folder.TransferRequest{
-				RemotePath: followUp.targetRemotePath,
-				LocalPath:  followUp.localPath,
-			})
+			uploadTaskID, err := s.manager.Submit(targetMgr, targetDef.Driver, targetDef.ID, folder.TransferUpload, newUploadRequest(followUp.targetRemotePath, followUp.localPath))
 			if err != nil {
 				s.emitErrorEvent(task.ID, fmt.Errorf("create follow-up upload task for %q: %w", followUp.targetRemotePath, err))
+				if finalizeErr := s.failDirectoryFinalize(followUp.finalizeID); finalizeErr != nil {
+					s.emitErrorEvent(task.ID, finalizeErr)
+				}
 				s.deletePendingFollowUp(task.ID)
 				return
 			}
+			s.attachDirectoryFinalizeTask(followUp.finalizeID, uploadTaskID)
 		case followUpOpen:
 			if err := s.opener(followUp.localPath); err != nil {
 				s.emitErrorEvent(task.ID, fmt.Errorf("open downloaded file %q: %w", followUp.localPath, err))
@@ -848,6 +1309,9 @@ func (s *Service) processFollowUp(task *folder.TransferTask) {
 		}
 		s.deletePendingFollowUp(task.ID)
 	case folder.TransferFailed, folder.TransferCancelled:
+		if finalizeErr := s.failDirectoryFinalize(followUp.finalizeID); finalizeErr != nil {
+			s.emitErrorEvent(task.ID, finalizeErr)
+		}
 		s.deletePendingFollowUp(task.ID)
 	}
 }

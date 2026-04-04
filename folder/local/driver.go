@@ -336,6 +336,17 @@ func (d *Driver) Mkdir(_ context.Context, dir string) error {
 	return nil
 }
 
+func (d *Driver) SetDirectoryModTime(_ context.Context, dir string, modTime time.Time) error {
+	full, err := d.validFullPath(dir)
+	if err != nil {
+		return err
+	}
+	if err := os.Chtimes(full, modTime, modTime); err != nil {
+		return fmt.Errorf("local: set directory mod time %q: %w", dir, err)
+	}
+	return nil
+}
+
 // ---------------------------------------------------------------------------
 // folder.Reader
 // ---------------------------------------------------------------------------
@@ -360,7 +371,7 @@ func (d *Driver) Read(_ context.Context, filePath string) (io.ReadCloser, error)
 // folder.Writer
 // ---------------------------------------------------------------------------
 
-func (d *Driver) Write(_ context.Context, filePath string, body io.Reader, _ *folder.WriteOptions) (*folder.FileInfo, error) {
+func (d *Driver) Write(_ context.Context, filePath string, body io.Reader, opt *folder.WriteOptions) (*folder.FileInfo, error) {
 	full, err := d.validFullPath(filePath)
 	if err != nil {
 		return nil, err
@@ -388,13 +399,19 @@ func (d *Driver) Write(_ context.Context, filePath string, body io.Reader, _ *fo
 		return nil, fmt.Errorf("local: write %q: close: %w", filePath, err)
 	}
 
-	now := time.Now()
+	modTime := time.Now()
+	if opt != nil && opt.ModTime != nil {
+		modTime = *opt.ModTime
+		if err := os.Chtimes(full, modTime, modTime); err != nil {
+			return nil, fmt.Errorf("local: write %q: set mod time: %w", filePath, err)
+		}
+	}
 	return &folder.FileInfo{
 		Name:         filepath.Base(full),
 		Path:         filePath,
 		Type:         folder.EntryTypeFile,
 		Size:         n,
-		LastModified: &now,
+		LastModified: &modTime,
 	}, nil
 }
 

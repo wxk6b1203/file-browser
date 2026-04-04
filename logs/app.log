@@ -2682,3 +2682,106 @@
 2026-04-04 00:46:19.523	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-8-mnj4y6s0", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 827, "y": 599, "paths": ["/Users/wxk/Downloads/我的影片.mp4"]}
 2026-04-04 00:58:30.401	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
 2026-04-04 00:58:30.402	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-04 01:03:20.698	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:03:20.698	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:03:25.310	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:03:25.311	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:03:25.429	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:03:38.774	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:03:38.774	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:03:42.541	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:03:42.542	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:03:42.661	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:04:05.821	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:04:05.821	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:04:09.990	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:04:09.990	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:04:10.106	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:04:28.403	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:04:28.404	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:04:32.246	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:04:32.246	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:04:32.366	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:04:49.610	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:04:49.610	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:04:53.099	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:04:53.100	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:04:53.240	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:05:25.152	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:05:25.152	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:05:29.044	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:05:29.045	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:05:29.164	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:05:39.007	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:05:39.007	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:05:42.562	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:05:42.563	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:05:42.693	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:06:25.822	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-04 01:10:46.218	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:10:46.219	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:10:49.717	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:10:49.717	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:10:49.832	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:11:55.849	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:11:55.849	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:11:58.741	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:11:58.741	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:11:58.860	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:12:31.683	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:12:31.683	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:12:34.980	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:12:34.980	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:12:35.092	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:16:31.466	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:16:31.467	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:16:34.409	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:16:34.410	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:16:34.528	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:16:39.690	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:16:39.690	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:16:43.229	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:16:43.229	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:16:43.345	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:17:23.721	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:17:23.722	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:17:26.983	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:17:26.984	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:17:27.100	INFO	render/manager.go:26	Render manager started
+2026-04-04 01:17:47.291	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:17:47.292	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:17:50.529	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 01:17:50.529	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 01:17:50.650	INFO	render/manager.go:26	Render manager started
+2026-04-04 09:05:19.020	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:05:19.020	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:05:23.384	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:05:23.384	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:05:23.522	INFO	render/manager.go:26	Render manager started
+2026-04-04 09:05:27.357	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:05:27.357	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:05:30.317	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:05:30.317	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:05:30.432	INFO	render/manager.go:26	Render manager started
+2026-04-04 09:05:39.597	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:05:39.598	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:05:43.580	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:05:43.580	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:05:43.696	INFO	render/manager.go:26	Render manager started
+2026-04-04 09:05:52.070	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:05:52.071	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:05:55.357	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:05:55.357	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:05:55.525	INFO	render/manager.go:26	Render manager started
+2026-04-04 09:06:44.368	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:06:44.368	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:06:47.688	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:06:47.688	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:06:47.801	INFO	render/manager.go:26	Render manager started
+2026-04-04 09:06:49.636	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:06:49.637	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:06:52.512	INFO	file-browser/app.go:38	Creating new app
+2026-04-04 09:06:52.513	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-04 09:06:52.627	INFO	render/manager.go:26	Render manager started
+2026-04-04 09:09:01.764	INFO	render/manager.go:32	Render manager stopped
+2026-04-04 09:09:01.765	INFO	file-browser/app.go:82	App is shutting down

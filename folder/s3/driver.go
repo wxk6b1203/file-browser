@@ -211,8 +211,20 @@ func (d *Driver) List(ctx context.Context, dir string, opt *folder.ListOptions) 
 		// Files.
 		for _, obj := range page.Contents {
 			key := aws.ToString(obj.Key)
-			// Skip the directory marker itself.
 			if strings.HasSuffix(key, "/") {
+				if !opt.Recursive {
+					continue
+				}
+				rel := d.relPath(key)
+				if rel == "" {
+					continue
+				}
+				result = append(result, &folder.FileInfo{
+					Name:         path.Base(strings.TrimSuffix(rel, "/")),
+					Path:         rel,
+					Type:         folder.EntryTypeDirectory,
+					LastModified: folder.ResolveModTime(nil, nil, obj.LastModified),
+				})
 				continue
 			}
 			rel := d.relPath(key)
@@ -258,17 +270,16 @@ func (d *Driver) Stat(ctx context.Context, filePath string) (*folder.FileInfo, e
 	})
 	if err != nil {
 		if isNotFound(err) {
+			if dirInfo, dirErr := d.statDirMarker(ctx, filePath); dirErr == nil {
+				return dirInfo, nil
+			}
 			// Could be a directory — probe with a trailing slash list.
 			return d.statDir(ctx, filePath)
 		}
 		return nil, fmt.Errorf("s3: stat %q: %w", filePath, err)
 	}
 
-	var lastMod *time.Time
-	if out.LastModified != nil {
-		t := *out.LastModified
-		lastMod = &t
-	}
+	lastMod := folder.ResolveModTime(nil, out.Metadata, out.LastModified)
 
 	fi := &folder.FileInfo{
 		Name:         path.Base(filePath),
@@ -278,6 +289,32 @@ func (d *Driver) Stat(ctx context.Context, filePath string) (*folder.FileInfo, e
 		LastModified: lastMod,
 		ContentType:  aws.ToString(out.ContentType),
 		ETag:         strings.Trim(aws.ToString(out.ETag), "\""),
+	}
+	if out.Metadata != nil {
+		fi.Metadata = out.Metadata
+	}
+	return fi, nil
+}
+
+func (d *Driver) statDirMarker(ctx context.Context, dir string) (*folder.FileInfo, error) {
+	key := d.fullKey(dir)
+	if !strings.HasSuffix(key, "/") {
+		key += "/"
+	}
+	client := d.s3Client()
+	out, err := client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(d.cfg.Bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	fi := &folder.FileInfo{
+		Name:         path.Base(strings.TrimSuffix(dir, "/")),
+		Path:         strings.TrimSuffix(dir, "/"),
+		Type:         folder.EntryTypeDirectory,
+		LastModified: folder.ResolveModTime(nil, out.Metadata, out.LastModified),
 	}
 	if out.Metadata != nil {
 		fi.Metadata = out.Metadata
@@ -406,6 +443,25 @@ func (d *Driver) Mkdir(ctx context.Context, dir string) error {
 	return nil
 }
 
+func (d *Driver) SetDirectoryModTime(ctx context.Context, dir string, modTime time.Time) error {
+	key := d.fullKey(dir)
+	if !strings.HasSuffix(key, "/") {
+		key += "/"
+	}
+	client := d.s3Client()
+	metadata := folder.MergeMetadataWithModTime(nil, &modTime)
+	_, err := client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:        aws.String(d.cfg.Bucket),
+		Key:           aws.String(key),
+		ContentLength: aws.Int64(0),
+		Metadata:      metadata,
+	})
+	if err != nil {
+		return fmt.Errorf("s3: set directory mod time %q: %w", dir, err)
+	}
+	return nil
+}
+
 // -----------------------------------------------------------------------
 // folder.Reader
 // -----------------------------------------------------------------------
@@ -434,6 +490,7 @@ func (d *Driver) Read(ctx context.Context, filePath string) (io.ReadCloser, erro
 func (d *Driver) Write(ctx context.Context, filePath string, body io.Reader, opt *folder.WriteOptions) (*folder.FileInfo, error) {
 	key := d.fullKey(filePath)
 	client := d.s3Client()
+	metadata := map[string]string(nil)
 
 	input := &s3.PutObjectInput{
 		Bucket: aws.String(d.cfg.Bucket),
@@ -444,8 +501,9 @@ func (d *Driver) Write(ctx context.Context, filePath string, body io.Reader, opt
 		if opt.ContentType != "" {
 			input.ContentType = aws.String(opt.ContentType)
 		}
-		if len(opt.Metadata) > 0 {
-			input.Metadata = opt.Metadata
+		metadata = folder.MergeMetadataWithModTime(opt.Metadata, opt.ModTime)
+		if len(metadata) > 0 {
+			input.Metadata = metadata
 		}
 	}
 
@@ -454,12 +512,19 @@ func (d *Driver) Write(ctx context.Context, filePath string, body io.Reader, opt
 		return nil, fmt.Errorf("s3: write %q: %w", filePath, err)
 	}
 
-	return &folder.FileInfo{
+	fi := &folder.FileInfo{
 		Name: path.Base(filePath),
 		Path: filePath,
 		Type: folder.EntryTypeFile,
 		ETag: strings.Trim(aws.ToString(out.ETag), "\""),
-	}, nil
+	}
+	if len(metadata) > 0 {
+		fi.Metadata = metadata
+	}
+	if opt != nil {
+		fi.LastModified = folder.CloneTime(opt.ModTime)
+	}
+	return fi, nil
 }
 
 // -----------------------------------------------------------------------

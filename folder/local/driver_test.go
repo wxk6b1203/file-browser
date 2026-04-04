@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/wxk6b1203/file-util-manager/folder"
 )
@@ -94,6 +95,31 @@ func TestWriteReadStat(t *testing.T) {
 	}
 	if !bytes.Equal(got, content) {
 		t.Errorf("Read content = %q, want %q", got, content)
+	}
+}
+
+func TestWritePreservesModTime(t *testing.T) {
+	mgr, root := newTestDriver(t)
+	ctx := context.Background()
+
+	w, ok := mgr.(folder.Writer)
+	if !ok {
+		t.Fatal("driver does not implement Writer")
+	}
+
+	wantModTime := time.Date(2026, time.April, 4, 10, 11, 12, 0, time.UTC)
+	if _, err := w.Write(ctx, "test.txt", bytes.NewReader([]byte("hello local driver")), &folder.WriteOptions{
+		ModTime: &wantModTime,
+	}); err != nil {
+		t.Fatalf("Write error: %v", err)
+	}
+
+	info, err := os.Stat(filepath.Join(root, "test.txt"))
+	if err != nil {
+		t.Fatalf("stat error: %v", err)
+	}
+	if !modTimeClose(info.ModTime(), wantModTime) {
+		t.Fatalf("mod time = %v, want %v", info.ModTime(), wantModTime)
 	}
 }
 
@@ -236,6 +262,14 @@ func TestMoveFile(t *testing.T) {
 	if !exists {
 		t.Error("destination should exist after move")
 	}
+}
+
+func modTimeClose(got, want time.Time) bool {
+	diff := got.Sub(want)
+	if diff < 0 {
+		diff = -diff
+	}
+	return diff < time.Second
 }
 
 func TestListRecursive(t *testing.T) {

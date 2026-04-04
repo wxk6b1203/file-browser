@@ -3648,3 +3648,137 @@ connections:
 - `cd frontend && npm run test:unit -- src/components/Tabs/__tests__/useTabTree.spec.ts src/components/Tabs/__tests__/Tabs.spec.ts` 通过。
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
+
+## 2026-04-04 - Preserve Modification Time On Upload And Download
+
+### Goal
+
+- 按既定最小方案，为上传、下载和跨连接传输补上“保留文件修改时间”。
+- 优先保证文件级语义正确：
+  - `Local` / `SFTP` 直接写远端 mtime。
+  - `S3` / `OSS` 通过对象 metadata 保存原始 mtime，下载时恢复到本地。
+- 目录本身的 mtime 这轮暂不处理，避免把范围扩展到目录创建和回填链路。
+
+### Completed Changes
+
+- 在 `folder` 层补了统一 mtime 工具：
+  - 新增 `fileutil-mtime` metadata key。
+  - 新增 metadata 合并、解析和本地 `os.Chtimes()` 辅助。
+- 扩展传输和写入参数：
+  - `folder.TransferRequest` 新增 `PreserveModTime`、`SourceModTime`。
+  - `folder.WriteOptions` 新增 `ModTime`。
+- `TransferManager` fallback 路径补齐 mtime：
+  - 上传时从本地文件读取 `ModTime()`，传给 `WriteOptions.ModTime`。
+  - 下载时从 `Stat()` 的 `LastModified/Metadata` 解析源时间，写完后 `os.Chtimes()` 恢复本地时间。
+- 各驱动补齐写入与下载语义：
+  - `Local` 写完文件后调用 `os.Chtimes()`。
+  - `SFTP` 写完文件后调用 `client.Chtimes()`。
+  - `S3` / `OSS` 上传时把原始 mtime 写入对象 metadata，下载时优先从 metadata 恢复到本地文件；没有 metadata 时回退到对象自己的 `LastModified`。
+- `transfer.Service` 统一收口：
+  - 所有上传/下载/跨连接 follow-up 任务默认都带 `PreserveModTime: true`。
+  - 这样跨连接“先下载到临时文件，再上传”也会自然保留原始文件时间。
+
+### Notes
+
+- 这轮没有改前端展示逻辑。
+- 因此 `S3` / `OSS` 在文件列表中显示的仍然是对象系统自己的 `LastModified`，不是 metadata 里的原始文件时间。
+- 但实际下载到本地的文件时间，以及再次上传到其他连接后的文件时间，已经会被保留。
+
+### Verification
+
+- `go test ./folder/...` 通过。
+- `go test ./transfer/...` 通过。
+- `go test ./...` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+### Added Tests
+
+- `folder/transfer_manager_test.go`
+  - 新增 fallback upload 保留 mtime 测试。
+  - 新增 fallback download 恢复本地 mtime 测试。
+- `folder/local/driver_test.go`
+  - 新增 `Local` 直写保留 mtime 测试。
+
+## 2026-04-04 - Extend Modification Time Preservation To Directories
+
+### Root Cause
+
+- 文件 mtime 之前已经打通，但目录不能沿用同样策略。
+- 对 `Local` / `SFTP` 来说，目录如果在创建后立刻 `Chtimes()`，后续子文件上传或下载仍会再次改写父目录时间。
+- 因此目录 mtime 必须延后到“整批文件任务全部结束后”再统一回填。
+
+### Completed Changes
+
+- 新增可选能力 `folder.DirectoryModTimeSetter`：
+  - `Local` / `SFTP` 直接对真实目录调用 `Chtimes()`。
+  - `S3` / `OSS` 通过目录 marker object 的 metadata 写入原始目录 mtime。
+- `S3` / `OSS` 目录 `Stat()` 现在会优先探测 `dir/` marker：
+  - 如果存在 marker，就返回 metadata 里的原始目录 mtime。
+  - 仍兼容没有 marker 的虚拟目录回退逻辑。
+- `S3` / `OSS` 递归 `List()` 现在会把目录 marker 也作为目录项返回，便于传输计划识别目录层级。
+- `transfer.Service` 的目录传输计划已扩展：
+  - 上传计划会记录本地目录 mtime。
+  - 下载计划会记录远端目录 mtime。
+  - 跨连接计划会把源目录 mtime 带到目标目录。
+- 新增目录 finalize 链路：
+  - 目录下载：等所有文件下载结束后，再回填本地目录 mtime。
+  - 本地目录上传：等所有文件上传结束后，再回填远端目录 mtime。
+  - 跨连接目录传输：等 follow-up upload 全部结束后，再回填目标目录 mtime。
+- 空目录是单独处理的：
+  - 没有文件任务时，会在建目录后立即回填目录 mtime。
+
+### Notes
+
+- 对 `S3` / `OSS`，只有存在显式目录 marker 的目录才能携带原始目录 mtime。
+- 如果对象存储里目录只是由文件 key 隐式推导出来、没有 marker object，那么仍然只能当作虚拟目录处理，这类目录没有可恢复的原始 mtime。
+- 这与当前对象存储语义一致，也是这轮实现的边界。
+
+### Verification
+
+- `go test ./transfer/...` 通过。
+- `go test ./folder/...` 通过。
+- `go test ./...` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+### Updated Tests
+
+- `transfer/service_test.go`
+  - 调整目录上传 / 下载 / 跨连接计划测试，覆盖目录计划结构和 mtime 载体。
+
+## 2026-04-04 - Fix Directory Mtime Finalizer Races And Virtual Object Directories
+
+### Root Cause
+
+- 目录 mtime finalize 之前存在两个竞态窗口：
+  - 任务可能在 `taskFinalizers` 建立映射前就已经完成，导致 finalize 永远收不到终态事件。
+  - 跨连接 follow-up upload 在 `attachDirectoryFinalizeTask()` 之前就可能已经结束，导致 deferred finalize 永远不 settle。
+- 另外，`buildLocalDownloadPlan()` 之前只收显式目录项，没把对象存储里仅由文件 key 隐式推导出来的虚拟子目录纳入计划。
+
+### Completed Changes
+
+- 在注册和 attach 目录 finalizer 后，立即对已完成任务做一次 reconciliation：
+  - 如果任务已经处于 `Completed/Failed/Cancelled`，直接补跑 `processDirectoryFinalizers()`。
+  - 这样不会再丢失“先完成、后登记”的终态。
+- `buildLocalDownloadPlan()` 现在会从文件路径反推出虚拟子目录：
+  - 例如只有 `photos/2026/trip.png` 时，也会把 `photos/2026` 纳入目录计划。
+  - 如果没有显式目录 marker，就用子文件的最新 mtime 作为该虚拟目录的近似时间来源。
+- 这套虚拟目录推导会自然传递到：
+  - 下载目录回填
+  - 本地上传目录回填
+  - 跨连接目录回填
+
+### Verification
+
+- `go test ./transfer/...` 通过。
+- `go test ./...` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+### Added Tests
+
+- `transfer/service_test.go`
+  - 新增“任务已完成后再注册 finalizer”回归。
+  - 新增“任务已完成后再 attach deferred finalizer”回归。
+  - 新增“从文件 key 推导虚拟目录并携带 mtime”回归。
