@@ -102,7 +102,14 @@ S3/OSS 的对象 `LastModified` 由服务端控制，不能像本地文件一样
 
 ## 配置
 
-默认情况下，应用会在工作目录下查找：
+如果通过 `--config` / `-c` 显式传入配置文件路径，应用始终使用该文件。
+
+没有显式传入配置路径时：
+
+- 如果应用从项目源码根目录启动，默认文件仍位于当前工作目录，方便 `wails dev` 开发。
+- 如果是类 Unix 生产启动场景，包括 macOS app bundle 或 Linux 二进制从源码目录外启动，默认应用配置路径为 `~/.config/file-browser/config.yaml`。
+
+默认文件：
 
 - `config.yaml` - 应用配置。
 - `connections.yaml` - 已保存连接配置。

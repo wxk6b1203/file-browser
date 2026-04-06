@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -18,6 +19,7 @@ const (
 	DefaultLogFileName               = "logs/app.log"
 	DefaultTempDir                   = "tmp"
 	DefaultTransferTempDir           = "tmp/transfers"
+	DefaultUnixConfigDirName         = "file-browser"
 	DefaultUIExplorerFontSize        = 13
 	DefaultUIFileListFontSize        = 13
 	MinUIFontSize                    = 11
@@ -165,15 +167,12 @@ func ResolveAppConfigPath(input string) (string, error) {
 		return "", fmt.Errorf("resolve app config path: %w", err)
 	}
 
-	candidates := []string{
-		filepath.Join(wd, DefaultAppConfigFileName),
-		filepath.Join(wd, "config.yml"),
-		filepath.Join(wd, "config.json"),
+	if workingDirLooksLikeProjectRoot(wd) {
+		return resolveAppConfigPathInDir(wd)
 	}
-	for _, candidate := range candidates {
-		if _, statErr := os.Stat(candidate); statErr == nil {
-			return canonicalPath(candidate)
-		}
+
+	if dir, ok := defaultUnixConfigDir(); ok {
+		return resolveAppConfigPathInDir(dir)
 	}
 
 	return canonicalPath(filepath.Join(wd, DefaultAppConfigFileName))
@@ -183,6 +182,10 @@ func LoadAppConfig(path string) (*LoadedAppConfig, error) {
 	resolvedPath, err := ResolveAppConfigPath(path)
 	if err != nil {
 		return nil, err
+	}
+
+	if err := ensureParentDir(resolvedPath); err != nil {
+		return nil, fmt.Errorf("prepare app config directory: %w", err)
 	}
 
 	cfg := DefaultAppConfig()
@@ -228,6 +231,50 @@ func SaveAppConfig(path string, cfg *AppConfig) error {
 	}
 
 	return writeConfigFile(resolvedPath, cfg)
+}
+
+func appConfigCandidates(baseDir string) []string {
+	return []string{
+		filepath.Join(baseDir, DefaultAppConfigFileName),
+		filepath.Join(baseDir, "config.yml"),
+		filepath.Join(baseDir, "config.json"),
+	}
+}
+
+func resolveAppConfigPathInDir(dir string) (string, error) {
+	for _, candidate := range appConfigCandidates(dir) {
+		if _, statErr := os.Stat(candidate); statErr == nil {
+			return canonicalPath(candidate)
+		}
+	}
+	return canonicalPath(filepath.Join(dir, DefaultAppConfigFileName))
+}
+
+func workingDirLooksLikeProjectRoot(dir string) bool {
+	if strings.TrimSpace(dir) == "" {
+		return false
+	}
+
+	if _, err := os.Stat(filepath.Join(dir, "wails.json")); err != nil {
+		return false
+	}
+	if _, err := os.Stat(filepath.Join(dir, "frontend", "package.json")); err != nil {
+		return false
+	}
+	return true
+}
+
+func defaultUnixConfigDir() (string, bool) {
+	if runtime.GOOS == "windows" {
+		return "", false
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil || strings.TrimSpace(home) == "" {
+		return "", false
+	}
+
+	return filepath.Join(home, ".config", DefaultUnixConfigDirName), true
 }
 
 func LoadConnectionsConfig(path string) (*LoadedConnectionsConfig, error) {

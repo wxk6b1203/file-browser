@@ -4313,3 +4313,29 @@ connections:
 
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/release-build.yml")'` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-06 - Move Production Unix Default Config Path To User Config Directory
+
+### Root Cause
+
+- The app resolved the default app config path from the current working directory.
+- In a production macOS `.app` launch, the working directory can be unstable and may not be the project/source directory.
+- This caused production builds to look for `config.yaml` in the wrong place.
+
+### Completed Changes
+
+- Updated default app config path resolution:
+  - Explicit `--config` / `-c` still wins.
+  - If the working directory looks like the project source root, the app still uses working-directory config files. This keeps `wails dev` convenient.
+  - Otherwise, on non-Windows platforms, the default path is `~/.config/file-browser/config.yaml`.
+  - Windows keeps the existing working-directory fallback for now.
+- Because relative app config paths are normalized against the resolved config file directory, default `connections.yaml`, `state.yaml`, logs, temp paths, and transfer paths now also resolve under `~/.config/file-browser/` in production Unix launches.
+- `LoadAppConfig()` now creates the resolved config file parent directory if it does not exist.
+- Added config tests for source-root fallback, Unix user config fallback, directory creation, and existing `config.yml` discovery under the user config directory.
+- Updated `README.md` and `README_cn.md` configuration sections.
+
+### Verification
+
+- `go test ./config` 通过。
+- `go test ./...` 通过。
+- `git diff --check` 通过。

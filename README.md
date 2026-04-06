@@ -104,7 +104,14 @@ For S3 and OSS, object `LastModified` is controlled by the storage service and c
 
 ## Configuration
 
-By default the app looks for these files in the working directory:
+When an explicit config path is passed with `--config` / `-c`, that file is always used.
+
+Without an explicit config path:
+
+- When the app is launched from the project source root, the default files live in the working directory. This keeps `wails dev` convenient.
+- In production-like Unix launches, including macOS app bundles and Linux binaries launched outside the source root, the default app config is `~/.config/file-browser/config.yaml`.
+
+Default files:
 
 - `config.yaml` - app settings.
 - `connections.yaml` - saved connection definitions.

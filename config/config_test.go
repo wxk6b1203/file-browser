@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -24,6 +25,15 @@ func TestLoadAppConfigDefaultsWhenMissing(t *testing.T) {
 	}
 	if err := os.Chdir(tmpDir); err != nil {
 		t.Fatalf("chdir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tmpDir, "wails.json"), []byte("{}\n"), 0o644); err != nil {
+		t.Fatalf("write wails marker: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(tmpDir, "frontend"), 0o755); err != nil {
+		t.Fatalf("mkdir frontend marker: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(tmpDir, "frontend", "package.json"), []byte("{}\n"), 0o644); err != nil {
+		t.Fatalf("write frontend marker: %v", err)
 	}
 	t.Cleanup(func() {
 		_ = os.Chdir(prevWD)
@@ -57,6 +67,100 @@ func TestLoadAppConfigDefaultsWhenMissing(t *testing.T) {
 	}
 	if loaded.Config.Paths.ConnectionsFile != filepath.Join(canonicalTmpDir, DefaultConnectionsConfigFileName) {
 		t.Fatalf("unexpected connections file path: %q", loaded.Config.Paths.ConnectionsFile)
+	}
+}
+
+func TestLoadAppConfigDefaultsToUnixUserConfigDirOutsideProjectRoot(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("unix config directory default does not apply to windows")
+	}
+
+	tmpDir := t.TempDir()
+	homeDir := filepath.Join(tmpDir, "home")
+	wd := filepath.Join(tmpDir, "work")
+	if err := os.MkdirAll(homeDir, 0o755); err != nil {
+		t.Fatalf("mkdir home: %v", err)
+	}
+	if err := os.MkdirAll(wd, 0o755); err != nil {
+		t.Fatalf("mkdir wd: %v", err)
+	}
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	if err := os.Chdir(wd); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = os.Chdir(prevWD)
+	})
+
+	t.Setenv("HOME", homeDir)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, "ignored-xdg-config"))
+
+	loaded, err := LoadAppConfig("")
+	if err != nil {
+		t.Fatalf("LoadAppConfig: %v", err)
+	}
+
+	canonicalHome := mustCanonicalPath(t, homeDir)
+	expectedPath := filepath.Join(canonicalHome, ".config", DefaultUnixConfigDirName, DefaultAppConfigFileName)
+	if loaded.Path != expectedPath {
+		t.Fatalf("expected path %q, got %q", expectedPath, loaded.Path)
+	}
+	if loaded.Config.Paths.ConnectionsFile != filepath.Join(canonicalHome, ".config", DefaultUnixConfigDirName, DefaultConnectionsConfigFileName) {
+		t.Fatalf("unexpected connections path: %q", loaded.Config.Paths.ConnectionsFile)
+	}
+	if _, err := os.Stat(filepath.Dir(expectedPath)); err != nil {
+		t.Fatalf("expected config directory to be created: %v", err)
+	}
+}
+
+func TestLoadAppConfigUsesExistingUnixUserConfigYML(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("unix config directory default does not apply to windows")
+	}
+
+	tmpDir := t.TempDir()
+	homeDir := filepath.Join(tmpDir, "home")
+	wd := filepath.Join(tmpDir, "work")
+	configDir := filepath.Join(homeDir, ".config", DefaultUnixConfigDirName)
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		t.Fatalf("mkdir config dir: %v", err)
+	}
+	if err := os.MkdirAll(wd, 0o755); err != nil {
+		t.Fatalf("mkdir wd: %v", err)
+	}
+	configPath := filepath.Join(configDir, "config.yml")
+	if err := os.WriteFile(configPath, []byte("log:\n  level: warn\n"), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	if err := os.Chdir(wd); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = os.Chdir(prevWD)
+	})
+
+	t.Setenv("HOME", homeDir)
+
+	loaded, err := LoadAppConfig("")
+	if err != nil {
+		t.Fatalf("LoadAppConfig: %v", err)
+	}
+
+	canonicalConfigDir := mustCanonicalPath(t, configDir)
+	if loaded.Path != filepath.Join(canonicalConfigDir, "config.yml") {
+		t.Fatalf("expected existing config.yml, got %q", loaded.Path)
+	}
+	if loaded.Config.Log.Level != "warn" {
+		t.Fatalf("expected loaded log level warn, got %q", loaded.Config.Log.Level)
 	}
 }
 

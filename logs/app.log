@@ -3174,3 +3174,16 @@
 2026-04-06 21:50:53.677	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
 2026-04-06 21:50:53.793	INFO	render/manager.go:26	Render manager started
 2026-04-06 21:55:01.909	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 22:58:04.110	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 22:58:04.111	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 23:17:19.464	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 23:17:19.465	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 23:17:26.111	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 23:17:26.111	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 23:17:31.202	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 23:17:31.202	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 23:17:31.324	INFO	render/manager.go:26	Render manager started
+2026-04-06 23:17:47.370	INFO	render/manager.go:32	Render manager stopped
+2026-04-06 23:17:47.370	INFO	file-browser/app.go:82	App is shutting down
+2026-04-06 23:41:47.853	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 23:41:47.853	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
