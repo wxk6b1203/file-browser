@@ -4248,3 +4248,50 @@ connections:
 ### Verification
 
 - `git diff --check` 通过。
+
+## 2026-04-06 - Add Tag Release Build GitHub Action
+
+### Goal
+
+- Build release artifacts automatically when a Git tag is pushed.
+- Cover Windows, macOS, and Linux for amd64 and arm64.
+
+### Completed Changes
+
+- Added `.github/workflows/release-build.yml`.
+- The workflow builds these targets with Wails:
+  - `linux/amd64` on `ubuntu-22.04`
+  - `linux/arm64` on `ubuntu-22.04-arm`
+  - `windows/amd64` on `windows-2025`
+  - `windows/arm64` on `windows-11-arm`
+  - `darwin/amd64` on `macos-15-intel`
+  - `darwin/arm64` on `macos-15`
+- Each build is packaged as a `.tar.gz` artifact and uploaded to the Actions run.
+- A follow-up release job downloads all artifacts and uploads them to the GitHub Release for the pushed tag.
+
+### Notes
+
+- Linux builds install Wails GTK/WebKitGTK dependencies before building.
+- The workflow uses native runner architecture labels instead of relying on Wails/CGO cross-compilation.
+- ARM64 runner availability depends on GitHub-hosted runner support for the repository/plan.
+
+### Verification
+
+- `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/release-build.yml")'` 通过。
+- `git diff --check` 通过。
+
+## 2026-04-06 - Pin GitHub Actions Node.js To 24.14.0 LTS
+
+### Finding
+
+- Node.js `24.14.0` is a current LTS release in the `Krypton` line.
+- The frontend `package.json` engine range is `^20.19.0 || >=22.12.0`, so Node.js `24.14.0` satisfies the project constraint.
+
+### Completed Changes
+
+- Updated `.github/workflows/release-build.yml` from `NODE_VERSION: '22'` to `NODE_VERSION: '24.14.0'`.
+
+### Verification
+
+- `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/release-build.yml")'` 通过。
+- `git diff --check` 通过。
