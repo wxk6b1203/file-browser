@@ -3037,3 +3037,23 @@
 2026-04-06 20:44:52.403	INFO	render/drag.go:18	Drag enter signal received	{"x": 943, "y": 504}
 2026-04-06 20:44:52.827	INFO	render/drag.go:32	Drop signal received	{"x": 939, "y": 619, "paths": ["/Users/wxk/Downloads/Snipaste_2025-04-14_17-59-51.png"]}
 2026-04-06 20:44:52.828	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 939, "y": 619, "paths": ["/Users/wxk/Downloads/Snipaste_2025-04-14_17-59-51.png"]}
+2026-04-06 20:48:30.504	INFO	render/drag.go:18	Drag enter signal received	{"x": 1310, "y": 307}
+2026-04-06 20:48:30.755	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 835, "y": 368, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}
+2026-04-06 20:48:30.755	INFO	render/drag.go:32	Drop signal received	{"x": 835, "y": 368, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}
+2026-04-06 20:48:50.266	INFO	render/drag.go:18	Drag enter signal received	{"x": 1262, "y": 277}
+2026-04-06 20:48:50.525	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 941, "y": 318, "paths": ["/Users/wxk/Downloads/downloaded-image (1).jpg"]}
+2026-04-06 20:48:50.525	INFO	render/drag.go:32	Drop signal received	{"x": 941, "y": 318, "paths": ["/Users/wxk/Downloads/downloaded-image (1).jpg"]}
+2026-04-06 20:56:02.000	INFO	render/drag.go:18	Drag enter signal received	{"x": 1277, "y": 275}
+2026-04-06 20:56:02.149	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 964, "y": 367, "paths": ["/Users/wxk/Downloads/downloaded-image (1).jpg"]}
+2026-04-06 20:56:02.149	INFO	render/drag.go:32	Drop signal received	{"x": 964, "y": 367, "paths": ["/Users/wxk/Downloads/downloaded-image (1).jpg"]}
+2026-04-06 20:56:04.308	INFO	render/drag.go:18	Drag enter signal received	{"x": 1296, "y": 301}
+2026-04-06 20:56:04.474	INFO	render/drag.go:32	Drop signal received	{"x": 909, "y": 313, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}
+2026-04-06 20:56:04.474	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 909, "y": 313, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}
+2026-04-06 20:56:50.248	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 20:56:50.249	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 21:01:25.951	INFO	render/drag.go:18	Drag enter signal received	{"x": 1305, "y": 329}
+2026-04-06 21:01:26.103	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 1111, "y": 422, "paths": ["/Users/wxk/Downloads/downloaded-image (1).jpg"]}
+2026-04-06 21:01:26.103	INFO	render/drag.go:32	Drop signal received	{"x": 1111, "y": 422, "paths": ["/Users/wxk/Downloads/downloaded-image (1).jpg"]}
+2026-04-06 21:01:28.548	INFO	render/drag.go:18	Drag enter signal received	{"x": 1302, "y": 287}
+2026-04-06 21:01:28.735	INFO	render/drag.go:32	Drop signal received	{"x": 906, "y": 338, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}
+2026-04-06 21:01:28.735	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 906, "y": 338, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}

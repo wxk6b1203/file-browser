@@ -41,7 +41,6 @@ export const DEFAULT_SHORTCUTS: ShortcutDefinition[] = [
   { id: 'close-tab',      label: 'Close Tab',      accelerator: 'CmdOrCtrl+W' },
   { id: 'refresh',        label: 'Refresh',        accelerator: 'CmdOrCtrl+R' },
   { id: 'rename',         label: 'Rename',         accelerator: 'F2' },
-  { id: 'delete',         label: 'Delete',         accelerator: 'Delete' },
 ]
 
 // ---------------------------------------------------------------------------
@@ -302,4 +301,3 @@ export function useShortcutMap(map: Record<string, HandlerFn>) {
     }
   })
 }
-

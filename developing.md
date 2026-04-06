@@ -1746,6 +1746,64 @@ connections:
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
 
+## 2026-04-06 - Add Inline Delete Unit Tests
+
+### Scope
+
+- 为文件面板内联删除补充稳定的单元测试。
+- 初始尝试挂载完整 `ConnectionOverviewTab`，但 Element Plus 按需 CSS 在当前 Vitest 环境中会通过 `element-plus/es/.../style/css` 拉入真实 CSS，导致测试环境在加载 SFC 前失败。
+- 为避免把测试建立在脆弱的 CSS mock 上，本轮把内联删除的路径规划逻辑抽成纯 helper，并对 helper 与快捷键配置做纯单测。
+
+### Completed Changes
+
+- 新增 `inlineDelete.ts`：
+  - `buildInlineDeletePaths(targetPaths, orderedPaths)`
+  - `removeInlineDeletePath(paths, targetPath)`
+- `ConnectionOverviewTab` 的内联删除状态复用该 helper：
+  - 多选进入待确认状态时，按当前列表顺序排列待确认路径。
+  - 单项取消/确认时，只移除该路径。
+- 新增单测 `inlineDelete.spec.ts`，覆盖：
+  - 多选待删除路径按当前列表顺序排列。
+  - 目标路径不在当前有序列表时，回退到目标输入顺序。
+  - 单项取消/确认只移除一个待确认路径。
+  - `DEFAULT_SHORTCUTS` 不再注册 `delete -> Delete`，避免和 Wails/Edit Delete 冲突。
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/components/Workspace/__tests__/inlineDelete.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+## 2026-04-06 - Fix Delete Shortcut Conflict And Per-Item Delete Confirmation
+
+### Root Cause
+
+- 文件面板仍处理 `Delete` 键，会和 Wails/macOS 菜单中的 `Edit -> Delete` 语义产生冲突。
+- 多选进入内联删除确认后，所有待确认项共享同一个确认动作：
+  - 点击任意一个条目的“删除”，会批量删除全部待确认项。
+  - 这不符合“每个文件/目录独立确认”的交互预期。
+
+### Completed Changes
+
+- 文件面板不再拦截 `Delete` 键：
+  - `Delete` 保留给 Wails/系统菜单语义。
+  - 文件删除快捷键只使用用户指定的 `Backspace`。
+- 全局 shortcut 默认表移除 `delete -> Delete`：
+  - 避免全局快捷键层继续对 `Delete` 产生事件。
+- 内联删除确认改为按条目独立执行：
+  - 多选后可以让多个条目同时进入待确认状态。
+  - 点击某一项的“删除”只删除该项。
+  - 点击某一项的“取消”只取消该项的待确认状态。
+  - 删除完成后本地移除该条目，其他待确认条目保持原状态。
+- 删除忙碌状态从全局布尔值改为按路径记录：
+  - 当前正在删除的条目按钮禁用。
+  - 其他条目保持可见，避免误认为会一起删除。
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
 ### Current Product State
 
 到这一轮为止，文件列表视图已经从“偏卡片式文件块”收口到更接近系统文件管理器的使用方式：
@@ -3689,6 +3747,28 @@ connections:
 - `go test ./folder/...` 通过。
 - `go test ./transfer/...` 通过。
 - `go test ./...` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+## 2026-04-06 - Add Backspace Inline Delete Shortcut
+
+### Root Cause
+
+- 文件面板删除已经改为内联确认，但键盘 `Backspace` 仍优先执行“返回上级目录”。
+- 对文件管理器语义来说，当存在已选中文件/目录时，`Backspace` 应优先作用于选中项，而不是目录导航。
+- 右键菜单中的删除项没有提示对应快捷键，用户无法发现该键盘入口。
+
+### Completed Changes
+
+- `Backspace` 快捷键优先级调整：
+  - 当前有选中项时，进入内联删除待确认状态。
+  - 选中一个或多个文件/目录都走同一套 `deleteSelected()` / `beginInlineDelete()` 逻辑。
+  - 当前没有选中项时，保留原来的返回上级目录行为。
+- 右键菜单 `删除` 项右侧增加 `⌫` 快捷键标记。
+- 右键菜单项布局增加左右分布，快捷键标记固定在最右侧。
+
+### Verification
+
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
 

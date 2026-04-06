@@ -237,16 +237,16 @@
                     <button
                       type="button"
                       class="file-browser__inline-delete-btn file-browser__inline-delete-btn--danger"
-                      :disabled="inlineDeleteBusy"
-                      @click.stop="confirmInlineDelete"
+                      :disabled="isInlineDeleteBusy(item)"
+                      @click.stop="confirmInlineDelete(item)"
                     >
                       {{ t('workspace.fileBrowser.delete') }}
                     </button>
                     <button
                       type="button"
                       class="file-browser__inline-delete-btn"
-                      :disabled="inlineDeleteBusy"
-                      @click.stop="cancelInlineDelete"
+                      :disabled="isInlineDeleteBusy(item)"
+                      @click.stop="cancelInlineDelete(item)"
                     >
                       {{ t('workspace.fileBrowser.cancelDelete') }}
                     </button>
@@ -344,16 +344,16 @@
             <button
               type="button"
               class="file-browser__inline-delete-btn file-browser__inline-delete-btn--danger"
-              :disabled="inlineDeleteBusy"
-              @click.stop="confirmInlineDelete"
+              :disabled="isInlineDeleteBusy(item)"
+              @click.stop="confirmInlineDelete(item)"
             >
               {{ t('workspace.fileBrowser.delete') }}
             </button>
             <button
               type="button"
               class="file-browser__inline-delete-btn"
-              :disabled="inlineDeleteBusy"
-              @click.stop="cancelInlineDelete"
+              :disabled="isInlineDeleteBusy(item)"
+              @click.stop="cancelInlineDelete(item)"
             >
               {{ t('workspace.fileBrowser.cancelDelete') }}
             </button>
@@ -396,7 +396,8 @@
         </button>
         <div class="file-browser__context-menu-separator" />
         <button type="button" class="file-browser__context-menu-item file-browser__context-menu-item--danger" @click="executeContextMenuAction('delete')">
-          {{ t('workspace.fileBrowser.delete') }}
+          <span>{{ t('workspace.fileBrowser.delete') }}</span>
+          <span class="file-browser__context-menu-shortcut">⌫</span>
         </button>
       </div>
     </teleport>
@@ -420,6 +421,7 @@ import { DIRECTORY_ENTRY_TYPE, resolveFileIcon } from '@/composables/useFileIcon
 import { SPLITPANE_DRAG_TYPE, clearActiveInternalDrag, setActiveInternalDrag } from '@/composables/splitPaneDragState'
 import { useConnectionsStore } from '@/stores/connections'
 import { useWorkspaceStore } from '@/stores/workspace'
+import { buildInlineDeletePaths, removeInlineDeletePath } from './inlineDelete'
 
 const props = defineProps<{
   connectionId: string
@@ -506,7 +508,7 @@ const inlineCreateName = ref('')
 const inlineCreateBusy = ref(false)
 const inlineCreateInputRef = ref<HTMLInputElement | null>(null)
 const inlineDeletePaths = ref<string[]>([])
-const inlineDeleteBusy = ref(false)
+const inlineDeleteBusyPath = ref<string | null>(null)
 
 const connectionId = computed(() => props.connectionId)
 const definition = computed(() => connections.definitionMap.get(connectionId.value) ?? null)
@@ -779,6 +781,10 @@ function isSelected(item: folder.FileInfo) {
 
 function isInlineDeletePending(item: folder.FileInfo) {
   return inlineDeletePathSet.value.has(normalizeEntryPath(item.path))
+}
+
+function isInlineDeleteBusy(item: folder.FileInfo) {
+  return inlineDeleteBusyPath.value === normalizeEntryPath(item.path)
 }
 
 function clearSelection() {
@@ -1323,16 +1329,6 @@ function onViewportKeydown(event: KeyboardEvent) {
   }
 
   if (event.key === 'Delete') {
-    event.preventDefault()
-    if (selectedItems.value.length > 1) {
-      void deleteSelected()
-      return
-    }
-
-    const item = findItemByPath(activePath.value)
-    if (item) {
-      void deleteItem(item)
-    }
     return
   }
 
@@ -1345,6 +1341,12 @@ function onViewportKeydown(event: KeyboardEvent) {
   }
 
   if (event.key === 'Backspace') {
+    if (selectedItems.value.length > 0) {
+      event.preventDefault()
+      void deleteSelected()
+      return
+    }
+
     if (!currentPath.value) return
     event.preventDefault()
     void openPath(parentPath(currentPath.value))
@@ -1727,50 +1729,51 @@ function beginInlineDelete(targetItems: folder.FileInfo[]) {
   cancelInlineCreate()
   closeContextMenu()
   clearNativeSelection()
-  inlineDeletePaths.value = orderedPaths().filter((path) => nextPaths.includes(path))
-  if (inlineDeletePaths.value.length === 0) {
-    inlineDeletePaths.value = [...nextPaths]
-  }
+  inlineDeletePaths.value = buildInlineDeletePaths(nextPaths, orderedPaths())
   selectionAnchorPath.value = inlineDeletePaths.value[0] ?? null
   activePath.value = inlineDeletePaths.value[0] ?? null
   selectedPaths.value = inlineDeletePaths.value
   focusBrowserViewport()
 }
 
-function cancelInlineDelete() {
-  if (inlineDeleteBusy.value) return
+function cancelInlineDelete(item?: folder.FileInfo) {
+  if (inlineDeleteBusyPath.value) return
+  if (item) {
+    const path = normalizeEntryPath(item.path)
+    inlineDeletePaths.value = removeInlineDeletePath(inlineDeletePaths.value, path)
+    return
+  }
   inlineDeletePaths.value = []
 }
 
-async function confirmInlineDelete() {
-  if (inlineDeleteBusy.value || inlineDeletePaths.value.length === 0) return
+async function confirmInlineDelete(item: folder.FileInfo) {
+  const targetPath = normalizeEntryPath(item.path)
+  if (inlineDeleteBusyPath.value || !inlineDeletePathSet.value.has(targetPath)) return
 
-  const targetPathSet = new Set(inlineDeletePaths.value)
   const snapshot = normalizeFolderItems(items.value)
-    .filter((item) => targetPathSet.has(normalizeEntryPath(item.path)))
-  if (snapshot.length === 0) {
-    cancelInlineDelete()
+  const targetItem = snapshot.find((entry) => normalizeEntryPath(entry.path) === targetPath)
+  if (!targetItem) {
+    cancelInlineDelete(item)
     return
   }
 
-  inlineDeleteBusy.value = true
+  inlineDeleteBusyPath.value = targetPath
   try {
-    for (const entry of snapshot) {
-      await DeleteConnectionEntry(connectionId.value, entry.path)
+    await DeleteConnectionEntry(connectionId.value, targetItem.path)
+    inlineDeletePaths.value = removeInlineDeletePath(inlineDeletePaths.value, targetPath)
+    selectedPaths.value = selectedPaths.value.filter((itemPath) => itemPath !== targetPath)
+    if (activePath.value === targetPath) {
+      activePath.value = selectedPaths.value[0] ?? inlineDeletePaths.value[0] ?? null
     }
-
-    inlineDeletePaths.value = []
-    clearSelection()
-    await reload()
-    ElMessage.success(
-      snapshot.length === 1
-        ? t('workspace.fileBrowser.deleteSuccess')
-        : t('workspace.fileBrowser.deleteSelectedSuccess', { count: snapshot.length }),
-    )
+    if (selectionAnchorPath.value === targetPath) {
+      selectionAnchorPath.value = activePath.value
+    }
+    removeItemsByPath([targetPath])
+    ElMessage.success(t('workspace.fileBrowser.deleteSuccess'))
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : String(error))
   } finally {
-    inlineDeleteBusy.value = false
+    inlineDeleteBusyPath.value = null
   }
 }
 
@@ -2573,6 +2576,8 @@ onBeforeUnmount(() => {
 .file-browser__context-menu-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 18px;
   width: 100%;
   min-height: 34px;
   padding: 0 10px;
@@ -2591,6 +2596,18 @@ onBeforeUnmount(() => {
 
 .file-browser__context-menu-item--danger {
   color: var(--theme-color-danger);
+}
+
+.file-browser__context-menu-shortcut {
+  flex: 0 0 auto;
+  min-width: 22px;
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, currentColor 22%, var(--theme-color-border-light));
+  border-radius: 6px;
+  color: var(--theme-color-text-secondary);
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: center;
 }
 
 .file-browser__context-menu-separator {
