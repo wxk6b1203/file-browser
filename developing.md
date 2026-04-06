@@ -4074,3 +4074,35 @@ connections:
 - `go test ./...` 通过。
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
+
+## 2026-04-06 - Replace Wails Default Logo
+
+### Design Direction
+
+- 根据项目定位，Logo 使用“文件夹 + 远程连接节点”的组合：
+  - 文件夹代表文件管理器主语义。
+  - 顶部连接节点代表 `Local / SFTP / S3 / OSS` 等多接入模式。
+  - 色彩使用当前项目接近 VS Code 2026 Dark 主题的青蓝主色，避免继续沿用 Wails 默认视觉。
+- 采用可维护 SVG 作为源文件，再生成 Wails 构建和前端需要的 PNG/ICO 资源。
+
+### Completed Changes
+
+- 新增矢量源：
+  - `assets/logo.svg`
+- 从同一个源文件生成并替换：
+  - `assets/logo.png`
+  - `build/appicon.png`
+  - `build/windows/icon.ico`
+  - `frontend/public/favicon.ico`
+- 生成过程中发现 ImageMagick 对部分 SVG 滤镜/渐变输出不稳定，已把图标主体改成基础实体色矢量形状，确保 PNG/ICO 转换结果稳定。
+
+### Verification
+
+- 图标资源格式和尺寸已检查：
+  - `assets/logo.png` 为 `1024x1024` PNG。
+  - `build/appicon.png` 为 `1024x1024` PNG。
+  - `build/windows/icon.ico` 包含 `256/128/64/32/24/16` 多尺寸图标。
+  - `frontend/public/favicon.ico` 为 `32x32` favicon。
+- `git diff --check` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。

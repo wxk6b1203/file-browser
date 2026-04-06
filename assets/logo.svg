@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="File Browser logo">
+  <defs>
+    <linearGradient id="bgFill" x1="128" y1="96" x2="896" y2="928" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#202326"/>
+      <stop offset="1" stop-color="#101214"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="72" y="72" width="880" height="880" rx="224" fill="url(#bgFill)"/>
+  <rect x="72" y="72" width="880" height="880" rx="224" fill="none" stroke="#333536" stroke-width="20"/>
+
+  <path d="M238 772c-28 0-53-19-60-46l-16-60h700l-16 60c-7 27-32 46-60 46H238Z" fill="#08090A" opacity="0.22"/>
+  <path
+    d="M214 370c0-43 35-78 78-78h145c23 0 44 10 59 27l44 49h193c43 0 78 35 78 78v72H214v-148Z"
+    fill="#3994BC"
+  />
+  <rect x="214" y="415" width="596" height="330" rx="76" fill="#297AA0"/>
+  <path d="M262 486h500" stroke="#8BD4EE" stroke-width="28" stroke-linecap="round" opacity="0.55"/>
+  <path d="M290 604h184" stroke="#EAF9FF" stroke-width="30" stroke-linecap="round" opacity="0.86"/>
+  <path d="M290 672h292" stroke="#D8F5FF" stroke-width="30" stroke-linecap="round" opacity="0.72"/>
+
+  <g fill="none" stroke="#8BD4EE" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" opacity="0.92">
+    <path d="M512 308V196"/>
+    <path d="M512 214 370 158"/>
+    <path d="M512 214 654 158"/>
+  </g>
+
+  <g>
+    <circle cx="370" cy="158" r="58" fill="#191A1B" stroke="#56B3D6" stroke-width="24"/>
+    <circle cx="654" cy="158" r="58" fill="#191A1B" stroke="#56B3D6" stroke-width="24"/>
+    <circle cx="512" cy="214" r="66" fill="#3994BC" stroke="#B9ECFF" stroke-width="20"/>
+    <circle cx="512" cy="214" r="20" fill="#FFFFFF"/>
+  </g>
+
+  <path d="M676 594h70v96h-70z" fill="#EAF9FF" opacity="0.9"/>
+  <path d="M676 594h44l26 28v68h-70z" fill="#EAF9FF" opacity="0.9"/>
+  <path d="M720 594v28h26" fill="none" stroke="#297AA0" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+</svg>

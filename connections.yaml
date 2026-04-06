@@ -11,3 +11,9 @@ connections:
       enabled: true
       config:
         rootPath: /Users/wxk/Downloads
+    - id: 1fdf1897-d961-44e2-b681-a88d5d57abe9
+      name: TEST
+      driver: Local
+      enabled: true
+      config:
+        rootPath: /Users/wxk/Documents/huya/tmp/

@@ -3057,3 +3057,36 @@
 2026-04-06 21:01:28.548	INFO	render/drag.go:18	Drag enter signal received	{"x": 1302, "y": 287}
 2026-04-06 21:01:28.735	INFO	render/drag.go:32	Drop signal received	{"x": 906, "y": 338, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}
 2026-04-06 21:01:28.735	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 906, "y": 338, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}
+2026-04-06 21:02:50.261	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 21:05:49.254	INFO	render/drag.go:18	Drag enter signal received	{"x": 1386, "y": 298}
+2026-04-06 21:05:49.268	INFO	render/drag.go:25	Drag leave signal received	{"x": 1365, "y": 301}
+2026-04-06 21:05:49.287	INFO	render/drag.go:18	Drag enter signal received	{"x": 1337, "y": 309}
+2026-04-06 21:05:49.476	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:1fdf1897-d961-44e2-b681-a88d5d57abe9", "x": 1064, "y": 364, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}
+2026-04-06 21:05:49.476	INFO	render/drag.go:32	Drop signal received	{"x": 1064, "y": 364, "paths": ["/Users/wxk/Downloads/IMG_9277.HEIC"]}
+2026-04-06 21:06:02.925	INFO	render/drag.go:18	Drag enter signal received	{"x": 1399, "y": 280}
+2026-04-06 21:06:02.931	INFO	render/drag.go:25	Drag leave signal received	{"x": 1332, "y": 314}
+2026-04-06 21:06:02.970	INFO	render/drag.go:18	Drag enter signal received	{"x": 1244, "y": 355}
+2026-04-06 21:06:03.279	INFO	render/drag.go:32	Drop signal received	{"x": 987, "y": 467, "paths": ["/Users/wxk/Downloads/downloaded-image (1).jpg"]}
+2026-04-06 21:06:03.279	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:1fdf1897-d961-44e2-b681-a88d5d57abe9", "x": 987, "y": 467, "paths": ["/Users/wxk/Downloads/downloaded-image (1).jpg"]}
+2026-04-06 21:06:20.268	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 21:08:43.392	INFO	render/manager.go:32	Render manager stopped
+2026-04-06 21:08:48.028	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 21:08:48.028	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 21:08:54.797	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 21:08:54.797	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 21:09:04.588	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 21:09:04.589	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 21:09:04.704	INFO	render/manager.go:26	Render manager started
+2026-04-06 21:09:08.831	INFO	render/manager.go:32	Render manager stopped
+2026-04-06 21:09:08.831	INFO	file-browser/app.go:82	App is shutting down
+2026-04-06 21:10:12.309	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 21:10:12.309	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 21:10:19.037	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 21:10:19.037	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 21:10:22.263	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 21:10:22.263	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-06 21:10:22.376	INFO	render/manager.go:26	Render manager started
+2026-04-06 21:10:24.696	INFO	render/manager.go:32	Render manager stopped
+2026-04-06 21:10:24.696	INFO	file-browser/app.go:82	App is shutting down
+2026-04-06 21:11:32.990	INFO	file-browser/app.go:38	Creating new app
+2026-04-06 21:11:32.990	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
