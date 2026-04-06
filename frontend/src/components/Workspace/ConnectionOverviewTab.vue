@@ -1,5 +1,5 @@
 <template>
-  <div class="file-browser" :class="{ 'file-browser--busy': dropBusy }">
+  <div class="file-browser" :class="{ 'file-browser--busy': dropBusy }" @contextmenu="clearNativeSelection">
     <div v-if="dropBusy" class="file-browser__busy-mask">
       <div class="file-browser__busy-card">
         <i-ep-loading class="file-browser__busy-icon" />
@@ -155,18 +155,50 @@
         </div>
 
         <div class="file-browser__list-body">
-          <div v-if="sortedItems.length === 0" class="file-browser__viewport-empty file-browser__viewport-empty--list">
+          <div
+            v-if="inlineCreateActive"
+            class="file-browser__row file-browser__row--inline-create"
+            :style="listGridStyle"
+            @click.stop
+            @dblclick.stop
+            @contextmenu.prevent.stop="clearNativeSelection"
+          >
+            <span class="file-browser__cell file-browser__cell--name file-browser__cell--left">
+              <span class="file-browser__row-icon">
+                <component :is="resolveFileIcon({ name: inlineCreateName || 'folder', type: DIRECTORY_ENTRY_TYPE })" />
+              </span>
+              <input
+                ref="inlineCreateInputRef"
+                v-model="inlineCreateName"
+                class="file-browser__inline-create-input"
+                :placeholder="t('workspace.fileBrowser.newFolderPlaceholder')"
+                :disabled="inlineCreateBusy"
+                @keydown.enter.prevent="commitInlineCreate"
+                @keydown.esc.prevent="cancelInlineCreate"
+                @blur="commitInlineCreate"
+              >
+            </span>
+            <span
+              v-for="column in visibleColumns.slice(1)"
+              :key="`inline-create:${column.key}`"
+              class="file-browser__cell"
+              :class="[`file-browser__cell--${column.key}`, `file-browser__cell--${column.align}`]"
+            />
+          </div>
+          <div v-if="sortedItems.length === 0 && !inlineCreateActive" class="file-browser__viewport-empty file-browser__viewport-empty--list">
             <i-mdi-folder-outline class="file-browser__empty-icon" />
             <span>{{ t('workspace.fileBrowser.empty') }}</span>
           </div>
-          <button
+          <div
             v-for="item in sortedItems"
             :key="normalizeEntryPath(item.path)"
-            type="button"
+            role="button"
+            tabindex="-1"
             class="file-browser__row"
             :class="{
               'file-browser__row--selected': isSelected(item),
               'file-browser__row--active': activePath === normalizeEntryPath(item.path),
+              'file-browser__row--delete-pending': isInlineDeletePending(item),
               'file-browser__row--drop-target': isDirectory(item) && directoryDropPath === normalizeEntryPath(item.path),
             }"
             :style="listGridStyle"
@@ -181,10 +213,10 @@
             @drop="onDirectoryDrop(item, $event)"
             @dragstart="onItemDragStart(item, $event)"
             @dragend="onItemDragEnd"
-            @dblclick.stop.prevent="openItem(item)"
+            @dblclick.stop.prevent="onItemDoubleClick(item)"
           >
-              <span
-                v-for="column in visibleColumns"
+            <span
+              v-for="column in visibleColumns"
               :key="`${normalizeEntryPath(item.path)}:${column.key}`"
               class="file-browser__cell"
               :class="[`file-browser__cell--${column.key}`, `file-browser__cell--${column.align}`]"
@@ -193,7 +225,33 @@
                 <span class="file-browser__row-icon">
                   <component :is="resolveFileIcon(item)" />
                 </span>
-                <span class="file-browser__row-name">{{ item.name }}</span>
+                <span class="file-browser__entry-name-wrap">
+                  <span class="file-browser__row-name">{{ item.name }}</span>
+                  <span
+                    v-if="isInlineDeletePending(item)"
+                    class="file-browser__inline-delete-actions"
+                    @mousedown.stop
+                    @click.stop
+                    @dblclick.stop
+                  >
+                    <button
+                      type="button"
+                      class="file-browser__inline-delete-btn file-browser__inline-delete-btn--danger"
+                      :disabled="inlineDeleteBusy"
+                      @click.stop="confirmInlineDelete"
+                    >
+                      {{ t('workspace.fileBrowser.delete') }}
+                    </button>
+                    <button
+                      type="button"
+                      class="file-browser__inline-delete-btn"
+                      :disabled="inlineDeleteBusy"
+                      @click.stop="cancelInlineDelete"
+                    >
+                      {{ t('workspace.fileBrowser.cancelDelete') }}
+                    </button>
+                  </span>
+                </span>
               </template>
               <template v-else-if="column.key === 'modified'">
                 {{ formatTime(item.lastModified) }}
@@ -205,7 +263,7 @@
                 {{ formatType(item) }}
               </template>
             </span>
-          </button>
+          </div>
         </div>
       </div>
     </div>
@@ -221,18 +279,41 @@
       @dragleave="onBrowserDragLeave"
       @drop="onBrowserDrop"
     >
-      <div v-if="sortedItems.length === 0" class="file-browser__viewport-empty file-browser__viewport-empty--grid">
+      <div
+        v-if="inlineCreateActive"
+        class="file-browser__tile file-browser__tile--inline-create"
+        @click.stop
+        @dblclick.stop
+        @contextmenu.prevent.stop="clearNativeSelection"
+      >
+        <span class="file-browser__tile-icon">
+          <component :is="resolveFileIcon({ name: inlineCreateName || 'folder', type: DIRECTORY_ENTRY_TYPE })" />
+        </span>
+        <input
+          ref="inlineCreateInputRef"
+          v-model="inlineCreateName"
+          class="file-browser__inline-create-input file-browser__inline-create-input--tile"
+          :placeholder="t('workspace.fileBrowser.newFolderPlaceholder')"
+          :disabled="inlineCreateBusy"
+          @keydown.enter.prevent="commitInlineCreate"
+          @keydown.esc.prevent="cancelInlineCreate"
+          @blur="commitInlineCreate"
+        >
+      </div>
+      <div v-if="sortedItems.length === 0 && !inlineCreateActive" class="file-browser__viewport-empty file-browser__viewport-empty--grid">
         <i-mdi-folder-outline class="file-browser__empty-icon" />
         <span>{{ t('workspace.fileBrowser.empty') }}</span>
       </div>
-      <button
+      <div
         v-for="item in sortedItems"
         :key="normalizeEntryPath(item.path)"
-        type="button"
+        role="button"
+        tabindex="-1"
         class="file-browser__tile"
         :class="{
           'file-browser__tile--selected': isSelected(item),
           'file-browser__tile--active': activePath === normalizeEntryPath(item.path),
+          'file-browser__tile--delete-pending': isInlineDeletePending(item),
           'file-browser__tile--drop-target': isDirectory(item) && directoryDropPath === normalizeEntryPath(item.path),
         }"
         :data-entry-path="normalizeEntryPath(item.path)"
@@ -246,14 +327,40 @@
         @drop="onDirectoryDrop(item, $event)"
         @dragstart="onItemDragStart(item, $event)"
         @dragend="onItemDragEnd"
-        @dblclick.stop.prevent="openItem(item)"
+        @dblclick.stop.prevent="onItemDoubleClick(item)"
       >
         <span class="file-browser__tile-icon">
           <component :is="resolveFileIcon(item, { opened: isDirectory(item) })" />
         </span>
-        <span class="file-browser__tile-name">{{ item.name }}</span>
+        <span class="file-browser__tile-name-wrap">
+          <span class="file-browser__tile-name">{{ item.name }}</span>
+          <span
+            v-if="isInlineDeletePending(item)"
+            class="file-browser__inline-delete-actions file-browser__inline-delete-actions--tile"
+            @mousedown.stop
+            @click.stop
+            @dblclick.stop
+          >
+            <button
+              type="button"
+              class="file-browser__inline-delete-btn file-browser__inline-delete-btn--danger"
+              :disabled="inlineDeleteBusy"
+              @click.stop="confirmInlineDelete"
+            >
+              {{ t('workspace.fileBrowser.delete') }}
+            </button>
+            <button
+              type="button"
+              class="file-browser__inline-delete-btn"
+              :disabled="inlineDeleteBusy"
+              @click.stop="cancelInlineDelete"
+            >
+              {{ t('workspace.fileBrowser.cancelDelete') }}
+            </button>
+          </span>
+        </span>
         <span class="file-browser__tile-meta">{{ isDirectory(item) ? t('workspace.fileBrowser.directory') : formatSize(item.size) }}</span>
-      </button>
+      </div>
     </div>
 
     <teleport to="body">
@@ -351,6 +458,7 @@ const LIST_COLUMN_MIN_WIDTHS: Record<ListColumnKey, number> = {
   type: 96,
 }
 const DOUBLE_CLICK_DRAG_SUPPRESS_MS = 420
+const SINGLE_CLICK_SELECT_DELAY_MS = 180
 
 const { t, locale } = useI18n()
 const connections = useConnectionsStore()
@@ -392,6 +500,13 @@ const suppressedDrag = ref<{
   expiresAt: number
 } | null>(null)
 const resizingColumn = ref<ListColumnKey | null>(null)
+const pendingSingleClickTimer = ref<ReturnType<typeof window.setTimeout> | null>(null)
+const inlineCreateActive = ref(false)
+const inlineCreateName = ref('')
+const inlineCreateBusy = ref(false)
+const inlineCreateInputRef = ref<HTMLInputElement | null>(null)
+const inlineDeletePaths = ref<string[]>([])
+const inlineDeleteBusy = ref(false)
 
 const connectionId = computed(() => props.connectionId)
 const definition = computed(() => connections.definitionMap.get(connectionId.value) ?? null)
@@ -443,6 +558,7 @@ const listGridStyle = computed(() => ({
     .join(' '),
 }))
 const selectedPathSet = computed(() => new Set(selectedPaths.value))
+const inlineDeletePathSet = computed(() => new Set(inlineDeletePaths.value))
 const pendingHiddenPathSet = computed(() => new Set(pendingHiddenPaths.value))
 const visibleItems = computed(() =>
   normalizeFolderItems(items.value).filter((item) => !pendingHiddenPathSet.value.has(normalizeEntryPath(item.path))),
@@ -661,6 +777,10 @@ function isSelected(item: folder.FileInfo) {
   return selectedPathSet.value.has(normalizeEntryPath(item.path))
 }
 
+function isInlineDeletePending(item: folder.FileInfo) {
+  return inlineDeletePathSet.value.has(normalizeEntryPath(item.path))
+}
+
 function clearSelection() {
   selectedPaths.value = []
   selectionAnchorPath.value = null
@@ -669,7 +789,12 @@ function clearSelection() {
   focusBrowserViewport()
 }
 
+function clearNativeSelection() {
+  window.getSelection()?.removeAllRanges()
+}
+
 function selectSingle(item: folder.FileInfo) {
+  cancelInlineDelete()
   const path = normalizeEntryPath(item.path)
   selectedPaths.value = [path]
   selectionAnchorPath.value = path
@@ -678,6 +803,7 @@ function selectSingle(item: folder.FileInfo) {
 }
 
 function toggleSelection(targetPath: string) {
+  cancelInlineDelete()
   const next = new Set(selectedPaths.value)
   if (next.has(targetPath)) {
     next.delete(targetPath)
@@ -691,7 +817,31 @@ function toggleSelection(targetPath: string) {
   focusBrowserViewport()
 }
 
+function toggleClickSelection(item: folder.FileInfo) {
+  const path = normalizeEntryPath(item.path)
+  if (!selectedPathSet.value.has(path)) {
+    selectSingle(item)
+    return
+  }
+
+  selectedPaths.value = selectedPaths.value.filter((itemPath) => itemPath !== path)
+  if (activePath.value === path) {
+    activePath.value = selectedPaths.value[0] ?? null
+  }
+  if (selectionAnchorPath.value === path) {
+    selectionAnchorPath.value = selectedPaths.value[0] ?? null
+  }
+  focusBrowserViewport()
+}
+
+function clearPendingSingleClick() {
+  if (!pendingSingleClickTimer.value) return
+  window.clearTimeout(pendingSingleClickTimer.value)
+  pendingSingleClickTimer.value = null
+}
+
 function selectRange(targetPath: string, additive = false) {
+  cancelInlineDelete()
   const paths = orderedPaths()
   if (paths.length === 0) return
 
@@ -718,6 +868,7 @@ function selectRange(targetPath: string, additive = false) {
 }
 
 function onItemClick(item: folder.FileInfo, event: MouseEvent) {
+  clearPendingSingleClick()
   const path = normalizeEntryPath(item.path)
   if (event.shiftKey) {
     selectRange(path, event.metaKey || event.ctrlKey)
@@ -729,7 +880,15 @@ function onItemClick(item: folder.FileInfo, event: MouseEvent) {
     return
   }
 
-  selectSingle(item)
+  pendingSingleClickTimer.value = window.setTimeout(() => {
+    pendingSingleClickTimer.value = null
+    toggleClickSelection(item)
+  }, SINGLE_CLICK_SELECT_DELAY_MS)
+}
+
+function onItemDoubleClick(item: folder.FileInfo) {
+  clearPendingSingleClick()
+  return openItem(item)
 }
 
 function onItemMouseDown(item: folder.FileInfo, event: MouseEvent) {
@@ -1109,28 +1268,11 @@ async function deleteSelected() {
   const snapshot = [...selectedItems.value]
   if (snapshot.length === 0) return
 
-  try {
-    await ElMessageBox.confirm(
-      t('workspace.fileBrowser.deleteSelectedPrompt', { count: snapshot.length }),
-      t('workspace.fileBrowser.delete'),
-      { type: 'warning' },
-    )
-
-    for (const item of snapshot) {
-      await DeleteConnectionEntry(connectionId.value, item.path)
-    }
-
-    clearSelection()
-    await reload()
-    ElMessage.success(t('workspace.fileBrowser.deleteSelectedSuccess', { count: snapshot.length }))
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(error instanceof Error ? error.message : String(error))
-    }
-  }
+  beginInlineDelete(snapshot)
 }
 
 function onViewportKeydown(event: KeyboardEvent) {
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
   if (loading.value || items.value.length === 0) return
 
   const isMetaSelectAll = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a'
@@ -1413,6 +1555,9 @@ function onItemDragEnd() {
 }
 
 function resetTransientInteractionState() {
+  clearPendingSingleClick()
+  cancelInlineCreate()
+  cancelInlineDelete()
   closeContextMenu()
   clearDropIndicators()
   dragSession.value = null
@@ -1450,6 +1595,8 @@ async function positionContextMenu() {
 }
 
 function onItemContextMenu(item: folder.FileInfo, event: MouseEvent) {
+  clearNativeSelection()
+  clearPendingSingleClick()
   selectSingle(item)
   contextMenu.value = {
     visible: true,
@@ -1488,22 +1635,61 @@ function onWindowDragComplete() {
 }
 
 async function createDirectory() {
+  if (inlineCreateActive.value) {
+    await nextTick()
+    inlineCreateInputRef.value?.focus()
+    inlineCreateInputRef.value?.select()
+    return
+  }
+
+  clearPendingSingleClick()
+  closeContextMenu()
+  clearNativeSelection()
+  cancelInlineDelete()
+  selectedPaths.value = []
+  selectionAnchorPath.value = null
+  activePath.value = null
+  inlineCreateName.value = ''
+  inlineCreateActive.value = true
+  inlineCreateBusy.value = false
+
+  await nextTick()
+  browserViewportRef.value?.scrollTo({ top: 0, left: 0 })
+  await nextTick()
+  inlineCreateInputRef.value?.focus()
+  inlineCreateInputRef.value?.select()
+}
+
+function cancelInlineCreate() {
+  if (!inlineCreateActive.value && !inlineCreateName.value && !inlineCreateBusy.value) return
+  inlineCreateActive.value = false
+  inlineCreateName.value = ''
+  inlineCreateBusy.value = false
+}
+
+async function commitInlineCreate() {
+  if (!inlineCreateActive.value || inlineCreateBusy.value) return
+
+  const name = inlineCreateName.value.trim()
+  if (!name) {
+    cancelInlineCreate()
+    return
+  }
+
+  inlineCreateBusy.value = true
   try {
-    const { value } = await ElMessageBox.prompt(
-      t('workspace.fileBrowser.newFolderPrompt'),
-      t('workspace.fileBrowser.newFolder'),
-      {
-        inputPlaceholder: t('workspace.fileBrowser.newFolderPlaceholder'),
-      },
-    )
-    if (!value) return
-    await CreateConnectionDirectory(connectionId.value, currentPath.value, value)
+    await CreateConnectionDirectory(connectionId.value, currentPath.value, name)
+    inlineCreateActive.value = false
+    inlineCreateName.value = ''
     await reload()
     ElMessage.success(t('workspace.fileBrowser.newFolderSuccess'))
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(error instanceof Error ? error.message : String(error))
-    }
+    ElMessage.error(error instanceof Error ? error.message : String(error))
+    await nextTick()
+    inlineCreateInputRef.value?.focus()
+    inlineCreateInputRef.value?.select()
+  } finally {
+    inlineCreateBusy.value = false
   }
 }
 
@@ -1528,19 +1714,63 @@ async function renameItem(item: folder.FileInfo) {
 }
 
 async function deleteItem(item: folder.FileInfo) {
+  beginInlineDelete([item])
+}
+
+function beginInlineDelete(targetItems: folder.FileInfo[]) {
+  const nextPaths = targetItems
+    .map((item) => normalizeEntryPath(item.path))
+    .filter(Boolean)
+  if (nextPaths.length === 0) return
+
+  clearPendingSingleClick()
+  cancelInlineCreate()
+  closeContextMenu()
+  clearNativeSelection()
+  inlineDeletePaths.value = orderedPaths().filter((path) => nextPaths.includes(path))
+  if (inlineDeletePaths.value.length === 0) {
+    inlineDeletePaths.value = [...nextPaths]
+  }
+  selectionAnchorPath.value = inlineDeletePaths.value[0] ?? null
+  activePath.value = inlineDeletePaths.value[0] ?? null
+  selectedPaths.value = inlineDeletePaths.value
+  focusBrowserViewport()
+}
+
+function cancelInlineDelete() {
+  if (inlineDeleteBusy.value) return
+  inlineDeletePaths.value = []
+}
+
+async function confirmInlineDelete() {
+  if (inlineDeleteBusy.value || inlineDeletePaths.value.length === 0) return
+
+  const targetPathSet = new Set(inlineDeletePaths.value)
+  const snapshot = normalizeFolderItems(items.value)
+    .filter((item) => targetPathSet.has(normalizeEntryPath(item.path)))
+  if (snapshot.length === 0) {
+    cancelInlineDelete()
+    return
+  }
+
+  inlineDeleteBusy.value = true
   try {
-    await ElMessageBox.confirm(
-      t('workspace.fileBrowser.deletePrompt', { name: item.name }),
-      t('workspace.fileBrowser.delete'),
-      { type: 'warning' },
-    )
-    await DeleteConnectionEntry(connectionId.value, item.path)
-    await reload()
-    ElMessage.success(t('workspace.fileBrowser.deleteSuccess'))
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(error instanceof Error ? error.message : String(error))
+    for (const entry of snapshot) {
+      await DeleteConnectionEntry(connectionId.value, entry.path)
     }
+
+    inlineDeletePaths.value = []
+    clearSelection()
+    await reload()
+    ElMessage.success(
+      snapshot.length === 1
+        ? t('workspace.fileBrowser.deleteSuccess')
+        : t('workspace.fileBrowser.deleteSelectedSuccess', { count: snapshot.length }),
+    )
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : String(error))
+  } finally {
+    inlineDeleteBusy.value = false
   }
 }
 
@@ -1731,6 +1961,7 @@ onBeforeUnmount(() => {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--theme-color-bg-overlay) 35%, transparent), transparent 18%),
     var(--theme-color-bg-base);
+  user-select: none;
 }
 
 .file-browser--busy {
@@ -2099,6 +2330,19 @@ onBeforeUnmount(() => {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-color-success) 38%, transparent);
 }
 
+.file-browser__row--delete-pending {
+  background: color-mix(in srgb, var(--theme-color-danger) 8%, var(--theme-color-bg-surface));
+}
+
+.file-browser__row--inline-create {
+  cursor: default;
+  background: color-mix(in srgb, var(--theme-color-primary) 7%, var(--theme-color-bg-surface));
+}
+
+.file-browser__row--inline-create:hover {
+  background: color-mix(in srgb, var(--theme-color-primary) 7%, var(--theme-color-bg-surface));
+}
+
 .file-browser__cell {
   min-width: 0;
   padding: 0 12px;
@@ -2127,11 +2371,87 @@ onBeforeUnmount(() => {
   color: var(--theme-color-primary);
 }
 
+.file-browser__entry-name-wrap {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .file-browser__row-name {
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.file-browser__inline-delete-actions {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding-left: 8px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--theme-color-bg-surface) 92%, transparent) 16%);
+}
+
+.file-browser__inline-delete-actions--tile {
+  margin-left: 0;
+  padding-left: 0;
+  background: transparent;
+}
+
+.file-browser__inline-delete-btn {
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--theme-color-border-light);
+  border-radius: 7px;
+  background: var(--theme-color-bg-card);
+  color: var(--theme-color-text-secondary);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.file-browser__inline-delete-btn:hover:not(:disabled) {
+  background: var(--theme-color-bg-hover);
+  color: var(--theme-color-text-base);
+}
+
+.file-browser__inline-delete-btn:disabled {
+  opacity: 0.62;
+  cursor: default;
+}
+
+.file-browser__inline-delete-btn--danger {
+  border-color: color-mix(in srgb, var(--theme-color-danger) 38%, var(--theme-color-border-light));
+  color: var(--theme-color-danger);
+}
+
+.file-browser__inline-create-input {
+  min-width: 0;
+  width: 100%;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--theme-color-primary) 38%, var(--theme-color-border-light));
+  border-radius: 7px;
+  background: var(--theme-color-bg-base);
+  color: var(--theme-color-text-base);
+  font: inherit;
+  outline: none;
+  user-select: text;
+}
+
+.file-browser__inline-create-input:focus {
+  border-color: var(--theme-color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--theme-color-primary) 18%, transparent);
 }
 
 .file-browser__grid {
@@ -2181,6 +2501,20 @@ onBeforeUnmount(() => {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-color-success) 34%, transparent);
 }
 
+.file-browser__tile--delete-pending {
+  background: color-mix(in srgb, var(--theme-color-danger) 8%, var(--theme-color-bg-surface));
+  border-color: color-mix(in srgb, var(--theme-color-danger) 28%, var(--theme-color-border-light));
+}
+
+.file-browser__tile--inline-create {
+  cursor: default;
+  background: color-mix(in srgb, var(--theme-color-primary) 7%, var(--theme-color-bg-surface));
+}
+
+.file-browser__tile--inline-create:hover {
+  background: color-mix(in srgb, var(--theme-color-primary) 7%, var(--theme-color-bg-surface));
+}
+
 .file-browser__tile-icon {
   font-size: calc(var(--ui-file-list-font-size, 13px) + 15px);
   color: var(--theme-color-primary);
@@ -2188,6 +2522,7 @@ onBeforeUnmount(() => {
 }
 
 .file-browser__tile-name {
+  width: 100%;
   font-size: var(--ui-file-list-font-size, 13px);
   font-weight: 600;
   color: var(--theme-color-text-base);
@@ -2199,9 +2534,24 @@ onBeforeUnmount(() => {
   -webkit-line-clamp: 2;
 }
 
+.file-browser__tile-name-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+}
+
 .file-browser__tile-meta {
   font-size: clamp(11px, calc(var(--ui-file-list-font-size, 13px) - 1px), 17px);
   color: var(--theme-color-text-secondary);
+  text-align: center;
+}
+
+.file-browser__inline-create-input--tile {
+  width: min(128px, 100%);
   text-align: center;
 }
 
@@ -2217,6 +2567,7 @@ onBeforeUnmount(() => {
     0 16px 32px color-mix(in srgb, var(--theme-color-shadow) 22%, transparent),
     0 0 0 1px color-mix(in srgb, var(--theme-color-bg-overlay) 35%, transparent);
   backdrop-filter: blur(8px);
+  user-select: none;
 }
 
 .file-browser__context-menu-item {

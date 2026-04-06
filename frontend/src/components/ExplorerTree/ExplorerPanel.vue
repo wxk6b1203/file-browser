@@ -51,7 +51,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { ListConnectionDirectory } from '../../../wailsjs/go/main/App'
+import { ListConnectionDirectory, OpenConnectionFile } from '../../../wailsjs/go/main/App'
 import { folder } from '../../../wailsjs/go/models'
 import { buildConnectionEntryDropFeedback, executeConnectionEntryDrop, labelForDropTarget, type ConnectionEntryPanelDragPayload } from '@/composables/connectionEntryDrop'
 import { CONNECTION_CONFIG_REFRESH_EVENT, type ConnectionConfigRefreshDetail } from '@/composables/useConnectionConfigRefresh'
@@ -84,10 +84,11 @@ function normalizeFolderItems(input: folder.FileInfo[] | null | undefined): fold
   return Array.isArray(input) ? input : []
 }
 
-function nodeKey(kind: 'connection' | 'directory', connectionId: string, path = '') {
-  return kind === 'connection'
-    ? `connection:${connectionId}`
-    : `directory:${connectionId}:${normalizeRemotePath(path)}`
+function nodeKey(kind: 'connection' | 'directory' | 'file', connectionId: string, path = '') {
+  if (kind === 'connection') {
+    return `connection:${connectionId}`
+  }
+  return `${kind}:${connectionId}:${normalizeRemotePath(path)}`
 }
 
 function buildConnectionNode(connectionId: string): ExplorerNode {
@@ -109,18 +110,19 @@ function buildConnectionNode(connectionId: string): ExplorerNode {
 function buildDirectoryChildren(parentKey: string, connectionId: string, level: number): ExplorerNode[] {
   const items = childrenByKey.value[parentKey] ?? []
   return items
-    .filter((item) => item.type === DIRECTORY_TYPE)
     .map((item) => {
       const cleanPath = normalizeRemotePath(item.path)
-      const key = nodeKey('directory', connectionId, cleanPath)
+      const kind = item.type === DIRECTORY_TYPE ? 'directory' : 'file'
+      const key = nodeKey(kind, connectionId, cleanPath)
       return {
         key,
-        kind: 'directory',
+        kind,
         connectionId,
-        label: item.name,
+        label: item.name || cleanPath.split('/').pop() || cleanPath,
         path: cleanPath,
         level,
-        children: buildDirectoryChildren(key, connectionId, level + 1),
+        entry: item,
+        children: kind === 'directory' ? buildDirectoryChildren(key, connectionId, level + 1) : [],
       }
     })
 }
@@ -171,6 +173,8 @@ async function withPreservedExplorerScroll<T>(runner: () => Promise<T>) {
 async function loadChildren(node: ExplorerNode, options?: {
   preserveScroll?: boolean
 }) {
+  if (node.kind === 'file') return
+
   const runner = async () => {
     setLoading(node.key, true)
     try {
@@ -195,6 +199,8 @@ async function loadChildren(node: ExplorerNode, options?: {
 }
 
 async function toggleNode(node: ExplorerNode) {
+  if (node.kind === 'file') return
+
   const expanded = expandedKeys.value.has(node.key)
   if (expanded) {
     setExpanded(node.key, false)
@@ -211,12 +217,18 @@ async function openNode(node: ExplorerNode) {
   if (node.kind === 'connection') {
     return onOpenConnection(node.connectionId, node.label)
   }
+  if (node.kind === 'file') {
+    return openFileNode(node)
+  }
   return navigateToNode(node)
 }
 
 async function activateNode(node: ExplorerNode) {
   if (node.kind === 'connection') {
     return toggleNode(node)
+  }
+  if (node.kind === 'file') {
+    return
   }
   return navigateToNode(node)
 }
@@ -235,6 +247,19 @@ async function navigateToNode(node: ExplorerNode) {
   try {
     await connections.openConnection(node.connectionId)
     workspace.openConnection(node.connectionId, name, node.path)
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : String(error))
+  }
+}
+
+async function openFileNode(node: ExplorerNode) {
+  try {
+    await connections.openConnection(node.connectionId)
+    await OpenConnectionFile(node.connectionId, node.path)
+    ElMessage.success(t('workspace.fileBrowser.openQueued', {
+      count: 1,
+      name: node.label,
+    }))
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : String(error))
   }
@@ -299,6 +324,7 @@ async function confirmDeleteConnection(connectionId: string) {
 }
 
 async function onNodeHoverExpand(node: ExplorerNode) {
+  if (node.kind === 'file') return
   if (expandedKeys.value.has(node.key) || loadingKeys.value.has(node.key)) return
   if (!(node.key in childrenByKey.value)) {
     await loadChildren(node)
@@ -307,6 +333,7 @@ async function onNodeHoverExpand(node: ExplorerNode) {
 }
 
 async function onNodeDropEntries(node: ExplorerNode, payload: ConnectionEntryPanelDragPayload) {
+  if (node.kind === 'file') return
   const targetDir = node.kind === 'connection' ? '' : normalizeRemotePath(node.path)
   const targetName = connections.definitionMap.get(node.connectionId)?.name ?? node.connectionId
 

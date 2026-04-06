@@ -226,6 +226,7 @@
       "renamePrompt": "Enter a new name for {name}",
       "renameSuccess": "Rename completed",
       "delete": "Delete",
+      "cancelDelete": "Cancel",
       "deleteSelectedPrompt": "Delete the selected {count} item(s)?",
       "deleteSelectedSuccess": "{count} item(s) deleted",
       "deletePrompt": "Delete {name}?",

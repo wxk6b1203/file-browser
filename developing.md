@@ -3692,6 +3692,75 @@ connections:
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
 
+## 2026-04-06 - Inline File Delete Confirmation
+
+### Root Cause
+
+- 文件删除仍依赖 `ElMessageBox.confirm`。
+- 当前 WebView 下 Element 弹框链路不稳定，删除确认应收口到文件面板内部状态。
+- 内联确认按钮需要放在文件名右侧，但长文件名不能覆盖按钮；按钮必须在布局层级上固定可见。
+
+### Completed Changes
+
+- 删除触发入口改为内联确认：
+  - 右键菜单 `删除` 只让当前项进入确认态。
+  - 顶部 `删除所选` 让当前选中项进入批量确认态。
+  - 键盘 `Delete` 也复用同一套入口。
+- 列表视图中，确认按钮显示在文件名右侧：
+  - 文件名使用 flex ellipsis。
+  - `删除 / 取消` 按钮使用 `flex: 0 0 auto` 和更高层级，避免被长文件名覆盖。
+- 图标视图中，确认按钮显示在文件名下方，仍跟随对应文件卡片。
+- 文件项根节点从 `button` 改为 `div role="button"`：
+  - 避免在按钮内嵌套按钮造成无效 HTML。
+  - 仍保留现有点击、双击、右键和拖放事件。
+- 删除确认完成后按原逻辑执行 `DeleteConnectionEntry()`，再刷新当前目录。
+- 新增 `workspace.fileBrowser.cancelDelete` 中英文文案。
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+## 2026-04-06 - Show Files In Explorer Tree And Inline New Folder
+
+### Root Cause
+
+- Explorer 目录树之前在构建子节点时直接过滤掉非目录项，只展示目录。
+- Explorer 节点图标与中央工作区各自维护，文件类型图标没有统一匹配规则。
+- 中央工作区单击只会选中，不支持再次单击取消选中；双击打开和单击选择需要明确分离。
+- 新建目录依赖 `ElMessageBox.prompt`，在当前 WebView 下弹框链路不稳定。
+- 右键命中文本时，WebView 仍可能产生原生文本选区。
+
+### Completed Changes
+
+- Explorer 树节点类型扩展为：
+  - `connection`
+  - `directory`
+  - `file`
+- Explorer 加载目录时不再过滤文件，文件节点作为叶子节点展示：
+  - 文件节点不显示可用展开箭头。
+  - 文件节点不接收拖放目标。
+  - 文件节点不触发悬停展开。
+  - 双击文件节点调用 `OpenConnectionFile()`。
+- Explorer 图标改用中央工作区同一套 `resolveFileIcon()` 匹配逻辑。
+- 中央工作区单击选择改为延迟提交：
+  - 单击未选中项：选中。
+  - 单击已选中项：取消选中。
+  - 双击时取消挂起的单击选择，再执行打开。
+  - `Shift` 和 `Ctrl/Cmd` 多选逻辑保持即时执行。
+- 新建目录改为内联首项：
+  - 点击“新建目录”后滚动到顶部。
+  - 列表视图首行显示目录图标和输入框。
+  - 图标视图首个卡片显示目录图标和输入框。
+  - 输入框 blur 或 Enter 且文本非空时调用 `CreateConnectionDirectory()`。
+  - Escape 或空文本 blur 时取消。
+- 文件面板根节点和右键菜单增加 `user-select: none`，输入框显式恢复 `user-select: text`。
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
 ### Added Tests
 
 - `folder/transfer_manager_test.go`

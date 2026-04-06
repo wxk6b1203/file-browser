@@ -13,18 +13,23 @@
       @dragleave="onDragLeave"
       @drop="onDrop"
     >
-      <button type="button" class="explorer-node__toggle" @click.stop="emit('toggle', node)">
+      <button
+        v-if="canToggle"
+        type="button"
+        class="explorer-node__toggle"
+        @click.stop="emit('toggle', node)"
+      >
         <i-ep-arrow-right
           class="explorer-node__toggle-icon"
           :class="{ 'explorer-node__toggle-icon--open': expanded }"
         />
       </button>
+      <span v-else class="explorer-node__toggle explorer-node__toggle--placeholder" />
 
       <button type="button" class="explorer-node__main" @click="onActivate(node)">
         <span class="explorer-node__icon">
           <i-mdi-server-network-outline v-if="node.kind === 'connection'" />
-          <i-mdi-folder-open v-else-if="expanded" />
-          <i-mdi-folder v-else />
+          <component :is="explorerIcon" v-else />
         </span>
 
         <span class="explorer-node__label">{{ node.label }}</span>
@@ -114,6 +119,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { canDropConnectionEntries, resolveConnectionEntryDragPayload, type ConnectionEntryPanelDragPayload } from '@/composables/connectionEntryDrop'
+import { DIRECTORY_ENTRY_TYPE, resolveFileIcon } from '@/composables/useFileIcons'
 import type { ExplorerNode } from './types'
 
 const props = defineProps<{
@@ -137,6 +143,15 @@ const { t } = useI18n()
 
 const expanded = computed(() => props.expandedKeys.has(props.node.key))
 const loading = computed(() => props.loadingKeys.has(props.node.key))
+const canToggle = computed(() => props.node.kind !== 'file')
+const explorerIcon = computed(() => resolveFileIcon(
+  props.node.entry ?? {
+    name: props.node.label,
+    path: props.node.path,
+    type: props.node.kind === 'directory' ? DIRECTORY_ENTRY_TYPE : undefined,
+  },
+  { opened: props.node.kind === 'directory' && expanded.value },
+))
 const isDeletePending = computed(() => (
   props.node.kind === 'connection' && props.deletePendingConnectionId === props.node.connectionId
 ))
@@ -154,6 +169,9 @@ function onOpen(node: ExplorerNode) {
 function onActivate(node: ExplorerNode) {
   if (node.kind === 'connection') {
     emit('toggle', node)
+    return
+  }
+  if (node.kind === 'file') {
     return
   }
   emit('activate', node)
@@ -176,7 +194,7 @@ function forwardCommand(command: string, node: ExplorerNode) {
 }
 
 function scheduleHoverExpand() {
-  if (expanded.value || loading.value || hoverExpandTimer) return
+  if (!canToggle.value || expanded.value || loading.value || hoverExpandTimer) return
   hoverExpandTimer = setTimeout(() => {
     hoverExpandTimer = null
     dropExpandPending.value = false
@@ -194,12 +212,14 @@ function clearHoverExpandSchedule() {
 }
 
 function dropTargetPath() {
+  if (props.node.kind === 'file') return null
   return props.node.kind === 'connection' ? '' : props.node.path
 }
 
 function onDragEnter(event: DragEvent) {
   const payload = resolveConnectionEntryDragPayload(event)
-  if (!canDropConnectionEntries(payload, props.node.connectionId, dropTargetPath())) return
+  const targetPath = dropTargetPath()
+  if (targetPath === null || !canDropConnectionEntries(payload, props.node.connectionId, targetPath)) return
 
   event.preventDefault()
   event.stopPropagation()
@@ -209,7 +229,8 @@ function onDragEnter(event: DragEvent) {
 
 function onDragOver(event: DragEvent) {
   const payload = resolveConnectionEntryDragPayload(event)
-  if (!canDropConnectionEntries(payload, props.node.connectionId, dropTargetPath())) return
+  const targetPath = dropTargetPath()
+  if (targetPath === null || !canDropConnectionEntries(payload, props.node.connectionId, targetPath)) return
 
   event.preventDefault()
   event.stopPropagation()
@@ -231,9 +252,10 @@ function onDragLeave(event: DragEvent) {
 
 function onDrop(event: DragEvent) {
   const payload = resolveConnectionEntryDragPayload(event)
+  const targetPath = dropTargetPath()
   dropActive.value = false
   clearHoverExpandSchedule()
-  if (!payload || !canDropConnectionEntries(payload, props.node.connectionId, dropTargetPath())) return
+  if (targetPath === null || !payload || !canDropConnectionEntries(payload, props.node.connectionId, targetPath)) return
 
   event.preventDefault()
   event.stopPropagation()
@@ -261,6 +283,7 @@ onBeforeUnmount(() => {
   min-height: 34px;
   border-radius: 10px;
   font-size: var(--ui-explorer-font-size, 13px);
+  user-select: none;
 }
 
 .explorer-node__row:hover {
@@ -288,6 +311,10 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.explorer-node__toggle--placeholder {
+  cursor: default;
 }
 
 .explorer-node__toggle-icon {

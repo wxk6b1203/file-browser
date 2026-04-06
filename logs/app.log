@@ -2969,3 +2969,71 @@
 2026-04-06 17:49:18.211	INFO	render/drag.go:32	Drop signal received	{"x": 470, "y": 319, "paths": [""]}
 2026-04-06 17:50:52.911	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
 2026-04-06 17:54:52.921	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 18:00:52.923	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 18:00:52.924	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 18:02:20.746	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-06 18:02:21.461	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-06 18:03:22.925	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 18:03:22.926	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 20:28:26.047	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-06 20:28:59.658	INFO	render/drag.go:25	Drag leave signal received	{"x": 439, "y": 660}
+2026-04-06 20:28:59.666	INFO	render/drag.go:25	Drag leave signal received	{"x": 434, "y": 656}
+2026-04-06 20:28:59.675	INFO	render/drag.go:25	Drag leave signal received	{"x": 424, "y": 649}
+2026-04-06 20:28:59.684	INFO	render/drag.go:25	Drag leave signal received	{"x": 412, "y": 639}
+2026-04-06 20:28:59.700	INFO	render/drag.go:25	Drag leave signal received	{"x": 386, "y": 615}
+2026-04-06 20:28:59.708	INFO	render/drag.go:25	Drag leave signal received	{"x": 374, "y": 603}
+2026-04-06 20:28:59.717	INFO	render/drag.go:25	Drag leave signal received	{"x": 362, "y": 591}
+2026-04-06 20:28:59.724	INFO	render/drag.go:25	Drag leave signal received	{"x": 351, "y": 581}
+2026-04-06 20:28:59.733	INFO	render/drag.go:25	Drag leave signal received	{"x": 344, "y": 572}
+2026-04-06 20:28:59.742	INFO	render/drag.go:25	Drag leave signal received	{"x": 334, "y": 562}
+2026-04-06 20:28:59.757	INFO	render/drag.go:25	Drag leave signal received	{"x": 325, "y": 550}
+2026-04-06 20:28:59.778	INFO	render/drag.go:25	Drag leave signal received	{"x": 313, "y": 536}
+2026-04-06 20:28:59.803	INFO	render/drag.go:25	Drag leave signal received	{"x": 300, "y": 519}
+2026-04-06 20:28:59.836	INFO	render/drag.go:25	Drag leave signal received	{"x": 281, "y": 494}
+2026-04-06 20:28:59.927	INFO	render/drag.go:25	Drag leave signal received	{"x": 260, "y": 462}
+2026-04-06 20:28:59.936	INFO	render/drag.go:25	Drag leave signal received	{"x": 257, "y": 458}
+2026-04-06 20:28:59.999	INFO	render/drag.go:25	Drag leave signal received	{"x": 235, "y": 426}
+2026-04-06 20:29:00.009	INFO	render/drag.go:25	Drag leave signal received	{"x": 232, "y": 424}
+2026-04-06 20:29:00.391	INFO	render/drag.go:25	Drag leave signal received	{"x": 210, "y": 425}
+2026-04-06 20:29:00.408	INFO	render/drag.go:25	Drag leave signal received	{"x": 209, "y": 427}
+2026-04-06 20:29:00.935	INFO	render/drag.go:32	Drop signal received	{"x": 193, "y": 444, "paths": [""]}
+2026-04-06 20:29:05.477	INFO	render/drag.go:25	Drag leave signal received	{"x": 429, "y": 712}
+2026-04-06 20:29:05.486	INFO	render/drag.go:25	Drag leave signal received	{"x": 417, "y": 699}
+2026-04-06 20:29:05.494	INFO	render/drag.go:25	Drag leave signal received	{"x": 408, "y": 689}
+2026-04-06 20:29:05.502	INFO	render/drag.go:25	Drag leave signal received	{"x": 396, "y": 674}
+2026-04-06 20:29:05.511	INFO	render/drag.go:25	Drag leave signal received	{"x": 384, "y": 659}
+2026-04-06 20:29:05.527	INFO	render/drag.go:25	Drag leave signal received	{"x": 364, "y": 631}
+2026-04-06 20:29:05.536	INFO	render/drag.go:25	Drag leave signal received	{"x": 357, "y": 620}
+2026-04-06 20:29:05.544	INFO	render/drag.go:25	Drag leave signal received	{"x": 347, "y": 607}
+2026-04-06 20:29:05.552	INFO	render/drag.go:25	Drag leave signal received	{"x": 337, "y": 592}
+2026-04-06 20:29:05.569	INFO	render/drag.go:25	Drag leave signal received	{"x": 321, "y": 570}
+2026-04-06 20:29:05.577	INFO	render/drag.go:25	Drag leave signal received	{"x": 313, "y": 559}
+2026-04-06 20:29:05.586	INFO	render/drag.go:25	Drag leave signal received	{"x": 305, "y": 547}
+2026-04-06 20:29:05.594	INFO	render/drag.go:25	Drag leave signal received	{"x": 296, "y": 534}
+2026-04-06 20:29:05.602	INFO	render/drag.go:25	Drag leave signal received	{"x": 287, "y": 520}
+2026-04-06 20:29:05.619	INFO	render/drag.go:25	Drag leave signal received	{"x": 270, "y": 491}
+2026-04-06 20:29:05.650	INFO	render/drag.go:25	Drag leave signal received	{"x": 253, "y": 462}
+2026-04-06 20:29:05.660	INFO	render/drag.go:25	Drag leave signal received	{"x": 249, "y": 455}
+2026-04-06 20:29:05.699	INFO	render/drag.go:25	Drag leave signal received	{"x": 231, "y": 426}
+2026-04-06 20:29:05.708	INFO	render/drag.go:25	Drag leave signal received	{"x": 226, "y": 418}
+2026-04-06 20:29:05.732	INFO	render/drag.go:25	Drag leave signal received	{"x": 213, "y": 389}
+2026-04-06 20:29:05.742	INFO	render/drag.go:25	Drag leave signal received	{"x": 210, "y": 381}
+2026-04-06 20:29:05.775	INFO	render/drag.go:25	Drag leave signal received	{"x": 200, "y": 352}
+2026-04-06 20:29:05.791	INFO	render/drag.go:25	Drag leave signal received	{"x": 197, "y": 342}
+2026-04-06 20:29:05.827	INFO	render/drag.go:25	Drag leave signal received	{"x": 191, "y": 324}
+2026-04-06 20:29:05.844	INFO	render/drag.go:25	Drag leave signal received	{"x": 188, "y": 315}
+2026-04-06 20:29:05.861	INFO	render/drag.go:25	Drag leave signal received	{"x": 186, "y": 307}
+2026-04-06 20:29:05.911	INFO	render/drag.go:25	Drag leave signal received	{"x": 181, "y": 288}
+2026-04-06 20:29:05.927	INFO	render/drag.go:25	Drag leave signal received	{"x": 179, "y": 282}
+2026-04-06 20:29:05.952	INFO	render/drag.go:25	Drag leave signal received	{"x": 176, "y": 274}
+2026-04-06 20:29:06.290	INFO	render/drag.go:32	Drop signal received	{"x": 171, "y": 262, "paths": [""]}
+2026-04-06 20:32:20.192	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 20:32:20.193	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 20:37:42.756	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-06 20:37:43.371	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-06 20:39:20.210	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 20:39:20.212	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 20:40:50.211	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-06 20:44:52.403	INFO	render/drag.go:18	Drag enter signal received	{"x": 943, "y": 504}
+2026-04-06 20:44:52.827	INFO	render/drag.go:32	Drop signal received	{"x": 939, "y": 619, "paths": ["/Users/wxk/Downloads/Snipaste_2025-04-14_17-59-51.png"]}
+2026-04-06 20:44:52.828	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 939, "y": 619, "paths": ["/Users/wxk/Downloads/Snipaste_2025-04-14_17-59-51.png"]}

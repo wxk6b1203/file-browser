@@ -226,6 +226,7 @@
       "renamePrompt": "请输入 {name} 的新名称",
       "renameSuccess": "重命名成功",
       "delete": "删除",
+      "cancelDelete": "取消",
       "deleteSelectedPrompt": "确定删除已选择的 {count} 项吗？",
       "deleteSelectedSuccess": "已删除 {count} 项",
       "deletePrompt": "确定删除 {name} 吗？",
