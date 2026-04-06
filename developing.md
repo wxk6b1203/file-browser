@@ -4295,3 +4295,21 @@ connections:
 
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/release-build.yml")'` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-06 - Fix GitHub Release Job Repository Context
+
+### Root Cause
+
+- The `release` job downloaded artifacts but did not check out the repository.
+- `gh release view/create/upload` can invoke git to infer repository context, so the job failed with `fatal: not a git repository`.
+
+### Completed Changes
+
+- Added `actions/checkout@v4` to the `release` job.
+- Added `GH_REPO: ${{ github.repository }}`.
+- Passed `--repo "$GH_REPO"` to `gh release view`, `gh release create`, and `gh release upload`.
+
+### Verification
+
+- `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/release-build.yml")'` 通过。
+- `git diff --check` 通过。
