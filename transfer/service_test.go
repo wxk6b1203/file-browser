@@ -9,7 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/wxk6b1203/file-util-manager/connection"
 	"github.com/wxk6b1203/file-util-manager/folder"
+	_ "github.com/wxk6b1203/file-util-manager/folder/local"
 )
 
 type instantUploadDriver struct {
@@ -220,6 +222,41 @@ func TestBuildLocalDownloadPlan_IncludesVirtualDirectories(t *testing.T) {
 	}
 }
 
+func TestBuildLocalDownloadPlan_ExplicitDirectoryModTimeWins(t *testing.T) {
+	markerModTime := time.Date(2026, time.April, 4, 10, 0, 0, 0, time.UTC)
+	childModTime := time.Date(2026, time.April, 4, 18, 30, 0, 0, time.UTC)
+
+	plan, err := buildLocalDownloadPlan(filepath.Join("tmp", "downloads", "album"), "albums/photos", &folder.FileInfo{
+		Name: "photos",
+		Path: "albums/photos",
+		Type: folder.EntryTypeDirectory,
+	}, []*folder.FileInfo{
+		{
+			Name:         "2026",
+			Path:         "albums/photos/2026",
+			Type:         folder.EntryTypeDirectory,
+			LastModified: &markerModTime,
+		},
+		{
+			Name:         "trip.png",
+			Path:         "albums/photos/2026/trip.png",
+			Type:         folder.EntryTypeFile,
+			LastModified: &childModTime,
+		},
+	})
+	if err != nil {
+		t.Fatalf("buildLocalDownloadPlan error: %v", err)
+	}
+
+	dir := findDownloadDirectoryPlan(plan, "albums/photos/2026")
+	if dir == nil {
+		t.Fatalf("explicit directory not found in plan: %#v", plan.directories)
+	}
+	if dir.sourceMTime == nil || !dir.sourceMTime.Equal(markerModTime) {
+		t.Fatalf("explicit directory modTime = %v, want %v", dir.sourceMTime, markerModTime)
+	}
+}
+
 func TestBuildCrossConnectionTransferPlan_Directory(t *testing.T) {
 	downloadPlan := &localDownloadPlan{
 		rootPath: filepath.Join("tmp", "downloads", "photos"),
@@ -322,6 +359,62 @@ func TestProcessFollowUp_OpensDownloadedFile(t *testing.T) {
 		t.Fatalf("opened path = %q", opened)
 	}
 	if _, ok := svc.pendingFollowUp["task-open"]; ok {
+		t.Fatalf("expected pending follow-up to be removed")
+	}
+}
+
+func TestProcessFollowUpUploadRestoresDirectoryModTime(t *testing.T) {
+	ctx := context.Background()
+	targetRoot := t.TempDir()
+	repo := connection.NewFileRepository(filepath.Join(t.TempDir(), "connections.yaml"))
+	connections := connection.NewService(repo)
+	svc := NewService(connections, "", "", "")
+
+	saved, err := connections.Save(ctx, connection.Definition{
+		ID:      "target-local",
+		Name:    "Target Local",
+		Driver:  "Local",
+		Enabled: true,
+		Config: map[string]any{
+			"rootPath": targetRoot,
+		},
+	})
+	if err != nil {
+		t.Fatalf("save connection: %v", err)
+	}
+
+	localFile := filepath.Join(t.TempDir(), "demo.txt")
+	if err := os.WriteFile(localFile, []byte("demo"), 0o644); err != nil {
+		t.Fatalf("write local file: %v", err)
+	}
+
+	wantModTime := time.Date(2026, time.April, 4, 22, 23, 24, 0, time.UTC)
+	finalizeID, err := svc.registerDeferredRemoteDirectoryFinalize(saved.ID, []crossTransferDirectoryPlan{{
+		targetRemotePath: "target",
+		sourceMTime:      &wantModTime,
+	}}, 1)
+	if err != nil {
+		t.Fatalf("register deferred finalizer: %v", err)
+	}
+
+	svc.setPendingFollowUp("download-task", pendingFollowUp{
+		kind:             followUpUpload,
+		localPath:        localFile,
+		targetConnection: saved.ID,
+		targetRemotePath: "target/demo.txt",
+		finalizeID:       finalizeID,
+	})
+	svc.processFollowUp(&folder.TransferTask{
+		ID:        "download-task",
+		Direction: folder.TransferDownload,
+		Status:    folder.TransferCompleted,
+	})
+
+	targetDir := filepath.Join(targetRoot, "target")
+	if err := waitForDirectoryModTime(targetDir, wantModTime, 2*time.Second); err != nil {
+		t.Fatalf("wait for directory mod time: %v", err)
+	}
+	if _, ok := svc.getPendingFollowUp("download-task"); ok {
 		t.Fatalf("expected pending follow-up to be removed")
 	}
 }
@@ -449,6 +542,38 @@ func waitForTransferTask(manager *folder.TransferManager, taskID string, timeout
 		time.Sleep(10 * time.Millisecond)
 	}
 	return context.DeadlineExceeded
+}
+
+func findDownloadDirectoryPlan(plan *localDownloadPlan, remotePath string) *downloadDirectoryPlan {
+	if plan == nil {
+		return nil
+	}
+	for i := range plan.directories {
+		if plan.directories[i].remotePath == remotePath {
+			return &plan.directories[i]
+		}
+	}
+	return nil
+}
+
+func waitForDirectoryModTime(dirPath string, want time.Time, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		info, err := os.Stat(dirPath)
+		if err == nil && modTimeClose(info.ModTime(), want) {
+			return nil
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	return context.DeadlineExceeded
+}
+
+func modTimeClose(got, want time.Time) bool {
+	diff := got.Sub(want)
+	if diff < 0 {
+		diff = -diff
+	}
+	return diff < time.Second
 }
 
 func TestCommandForReveal(t *testing.T) {

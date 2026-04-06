@@ -135,18 +135,20 @@
       <div class="file-browser__list-table">
         <div class="file-browser__list-header" :style="listGridStyle">
           <button
-            v-for="column in visibleColumns"
+            v-for="(column, index) in visibleColumns"
             :key="column.key"
             type="button"
             class="file-browser__list-header-btn"
             :class="[`file-browser__list-header-btn--${column.align}`]"
-            @click="toggleSort(column.key)"
+            @click="onHeaderClick(column.key, $event)"
+            @dragstart.prevent
           >
             <span>{{ column.label }}</span>
             <span class="file-browser__sort-indicator">{{ sortIndicator(column.key) }}</span>
             <span
+              v-if="canResizeColumn(index)"
               class="file-browser__column-resizer"
-              @mousedown.stop.prevent="startColumnResize(column.key, $event)"
+              @mousedown.stop.prevent="startColumnResize(index, $event)"
               @click.stop
             />
           </button>
@@ -389,6 +391,7 @@ const suppressedDrag = ref<{
   path: string
   expiresAt: number
 } | null>(null)
+const resizingColumn = ref<ListColumnKey | null>(null)
 
 const connectionId = computed(() => props.connectionId)
 const definition = computed(() => connections.definitionMap.get(connectionId.value) ?? null)
@@ -558,11 +561,19 @@ function normalizeColumnWidths(input: unknown): Record<ListColumnKey, number> {
 }
 
 function resolveColumnWidth(column: ListColumnDefinition) {
-  const width = Math.max(columnWidths.value[column.key] ?? column.defaultWidth, column.minWidth)
-  if (column.key === 'name') {
-    return `minmax(${width}px, 1fr)`
-  }
+  const width = resolveColumnPixelWidth(column.key)
   return `${width}px`
+}
+
+function resolveColumnPixelWidth(key: ListColumnKey) {
+  const column = allColumns.value.find((item) => item.key === key)
+  const defaultWidth = column?.defaultWidth ?? LIST_COLUMN_DEFAULT_WIDTHS[key]
+  const minWidth = column?.minWidth ?? LIST_COLUMN_MIN_WIDTHS[key]
+  return Math.max(columnWidths.value[key] ?? defaultWidth, minWidth)
+}
+
+function canResizeColumn(index: number) {
+  return index >= 0 && index < visibleColumns.value.length - 1
 }
 
 function setColumnVisible(key: ListColumnKey, visible: boolean) {
@@ -587,6 +598,15 @@ function toggleSort(nextKey: ListColumnKey) {
   }
   sortKey.value = nextKey
   sortDirection.value = nextKey === 'modified' || nextKey === 'size' ? 'desc' : 'asc'
+}
+
+function onHeaderClick(nextKey: ListColumnKey, event: MouseEvent) {
+  if (resizingColumn.value) {
+    event.preventDefault()
+    event.stopPropagation()
+    return
+  }
+  toggleSort(nextKey)
 }
 
 function sortIndicator(key: ListColumnKey) {
@@ -927,6 +947,11 @@ function applyDropEffect(event: DragEvent, sameConnection: boolean) {
 }
 
 function onBrowserDragOver(event: DragEvent) {
+  if (resizingColumn.value) {
+    event.preventDefault()
+    event.stopPropagation()
+    return
+  }
   const target = event.target as HTMLElement | null
   if (target?.closest?.('[data-entry-path]')) {
     browserDropActive.value = false
@@ -945,6 +970,10 @@ function onBrowserDragOver(event: DragEvent) {
 }
 
 function onBrowserDragLeave(event: DragEvent) {
+  if (resizingColumn.value) {
+    browserDropActive.value = false
+    return
+  }
   const relatedTarget = event.relatedTarget
   if (relatedTarget instanceof Node && (event.currentTarget as HTMLElement | null)?.contains(relatedTarget)) {
     return
@@ -953,6 +982,12 @@ function onBrowserDragLeave(event: DragEvent) {
 }
 
 async function onBrowserDrop(event: DragEvent) {
+  if (resizingColumn.value) {
+    event.preventDefault()
+    event.stopPropagation()
+    clearDropIndicators()
+    return
+  }
   const target = event.target as HTMLElement | null
   if (target?.closest?.('[data-entry-path]')) {
     clearDropIndicators()
@@ -1220,45 +1255,72 @@ function hydrateListPreferences() {
 }
 
 type ColumnResizeState = {
-  key: ListColumnKey
+  leftKey: ListColumnKey
+  rightKey: ListColumnKey
   startX: number
-  startWidth: number
+  startLeftWidth: number
+  startRightWidth: number
 }
 
 let activeColumnResize: ColumnResizeState | null = null
 
 function onColumnResizeMove(event: MouseEvent) {
   if (!activeColumnResize) return
-  const nextWidth = activeColumnResize.startWidth + (event.clientX - activeColumnResize.startX)
+  event.preventDefault()
+  event.stopPropagation()
+
+  const minLeft = LIST_COLUMN_MIN_WIDTHS[activeColumnResize.leftKey]
+  const minRight = LIST_COLUMN_MIN_WIDTHS[activeColumnResize.rightKey]
+  const rawDelta = event.clientX - activeColumnResize.startX
+  const minDelta = minLeft - activeColumnResize.startLeftWidth
+  const maxDelta = activeColumnResize.startRightWidth - minRight
+  const delta = Math.max(minDelta, Math.min(rawDelta, maxDelta))
+
   columnWidths.value = {
     ...columnWidths.value,
-    [activeColumnResize.key]: Math.max(
-      LIST_COLUMN_MIN_WIDTHS[activeColumnResize.key],
-      Math.round(nextWidth),
-    ),
+    [activeColumnResize.leftKey]: Math.round(activeColumnResize.startLeftWidth + delta),
+    [activeColumnResize.rightKey]: Math.round(activeColumnResize.startRightWidth - delta),
   }
 }
 
 function stopColumnResize() {
   if (!activeColumnResize) return
   activeColumnResize = null
+  resizingColumn.value = null
   document.body.style.cursor = ''
   document.body.style.userSelect = ''
-  window.removeEventListener('mousemove', onColumnResizeMove)
-  window.removeEventListener('mouseup', stopColumnResize)
+  window.removeEventListener('mousemove', onColumnResizeMove, true)
+  window.removeEventListener('mouseup', stopColumnResize, true)
+  window.removeEventListener('blur', stopColumnResize)
+  document.removeEventListener('visibilitychange', stopColumnResize)
 }
 
-function startColumnResize(key: ListColumnKey, event: MouseEvent) {
+function startColumnResize(index: number, event: MouseEvent) {
+  const leftColumn = visibleColumns.value[index]
+  const rightColumn = visibleColumns.value[index + 1]
+  if (!leftColumn || !rightColumn) return
+
+  event.preventDefault()
+  event.stopPropagation()
+  closeContextMenu()
+  clearDropIndicators()
+  suppressedDrag.value = null
+  clearActiveInternalDrag()
   activeColumnResize = {
-    key,
+    leftKey: leftColumn.key,
+    rightKey: rightColumn.key,
     startX: event.clientX,
-    startWidth: columnWidths.value[key] ?? LIST_COLUMN_DEFAULT_WIDTHS[key],
+    startLeftWidth: resolveColumnPixelWidth(leftColumn.key),
+    startRightWidth: resolveColumnPixelWidth(rightColumn.key),
   }
+  resizingColumn.value = leftColumn.key
 
   document.body.style.cursor = 'col-resize'
   document.body.style.userSelect = 'none'
-  window.addEventListener('mousemove', onColumnResizeMove)
-  window.addEventListener('mouseup', stopColumnResize)
+  window.addEventListener('mousemove', onColumnResizeMove, true)
+  window.addEventListener('mouseup', stopColumnResize, true)
+  window.addEventListener('blur', stopColumnResize)
+  document.addEventListener('visibilitychange', stopColumnResize)
 }
 
 async function load(dir = '') {
@@ -1357,6 +1419,7 @@ function resetTransientInteractionState() {
   removeDragPreview()
   suppressedDrag.value = null
   clearActiveInternalDrag()
+  stopColumnResize()
 }
 
 function closeContextMenu() {
@@ -1413,6 +1476,7 @@ function onWindowPointerDown(event: PointerEvent) {
 
 function onWindowKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
+    stopColumnResize()
     closeContextMenu()
   }
 }
@@ -1935,7 +1999,6 @@ onBeforeUnmount(() => {
   z-index: 2;
   min-width: 100%;
   background: color-mix(in srgb, var(--theme-color-bg-overlay) 92%, var(--theme-color-bg-surface));
-  border-bottom: 1px solid var(--theme-color-border-light);
 }
 
 .file-browser__list-header-btn {
@@ -1976,11 +2039,8 @@ onBeforeUnmount(() => {
   width: 10px;
   height: calc(100% - 12px);
   border-radius: 999px;
+  background: transparent;
   cursor: col-resize;
-}
-
-.file-browser__column-resizer:hover {
-  background: color-mix(in srgb, var(--theme-color-primary) 16%, transparent);
 }
 
 .file-browser__list-body {

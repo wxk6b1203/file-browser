@@ -3782,3 +3782,146 @@ connections:
   - 新增“任务已完成后再注册 finalizer”回归。
   - 新增“任务已完成后再 attach deferred finalizer”回归。
   - 新增“从文件 key 推导虚拟目录并携带 mtime”回归。
+
+## 2026-04-06 - Fix OSS/S3 Directory Move Semantics
+
+### Root Cause
+
+- OSS 和 S3 驱动之前把 `Move()` / `Rename()` 实现成单对象 `CopyObject + DeleteObject`。
+- 这对普通文件成立，但对象存储目录是 prefix/listing 语义：
+  - 拖动目录时，源路径实际代表 `dir/` 下的一组 objects。
+  - 单对象 copy 不会递归复制子对象。
+  - `Delete()` 也只在入参已经带 `/` 时才递归删除 prefix，而上层 `fileops.MoveEntry()` 会把路径清洗成不带尾部 `/`。
+- 因此 OSS 目录拖动会失败或不完整；S3 也存在同类隐患。
+
+### Completed Changes
+
+- `OSS` / `S3` 的 `Copy()`：
+  - 先 `Stat()` 判断源路径类型。
+  - 文件走原有单对象 copy。
+  - 目录走 prefix 级递归 copy。
+- `OSS` / `S3` 的 `Move()`：
+  - 文件走单对象 copy + delete。
+  - 目录走 prefix copy，然后 prefix delete。
+  - 增加目标 prefix 位于源 prefix 内部的防御性校验，避免直接调用驱动时把目录移动到自身子目录。
+- `OSS` / `S3` 的 `Rename()`：
+  - 统一走 `Move()`，让目录重命名也获得 prefix 语义。
+- `OSS` / `S3` 的 `Delete()`：
+  - 不再只依赖尾部 `/` 判断目录。
+  - 对不带 `/` 的路径也会先 `Stat()`，确认是目录时执行 prefix delete。
+
+### Tests
+
+- `folder/alibaba-oss/driver_test.go`
+  - 新增 `MoveDirectory` 集成测试：目录内有子文件，移动目录后源子文件应消失，目标子文件应存在。
+- `folder/s3/driver_test.go`
+  - 新增同等 `MoveDirectory` 集成测试。
+- 无云端凭据时，这两组集成测试继续按既有规则自动跳过。
+
+### Verification
+
+- `go test ./folder/... ./fileops` 通过。
+- `go test ./...` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+## 2026-04-06 - Fix File List Header Resize Interaction
+
+### Root Cause
+
+- 中央工作区列表视图的表头列宽拖动依赖 `mousemove/mouseup` 更新宽度，但没有把 resize 状态和文件面板的拖放 / 排序交互隔离。
+- 在 WebView 里拖动 header/resizer 时，容易出现：
+  - resize 后触发 header click 排序。
+  - 触发表格区域的 drag/drop 状态。
+  - 鼠标离开窗口或窗口失焦后 resize 状态没有稳定收口。
+
+### Completed Changes
+
+- 新增 `resizingColumn` 状态作为显式交互锁。
+- 表头 click 改为 `onHeaderClick()`：
+  - resize 期间不触发排序。
+- 表头按钮增加 `@dragstart.prevent`：
+  - 避免浏览器 / WebView 把 header 拖动识别成原生 drag。
+- 列表根区域的 `dragover/dragleave/drop` 在 resize 期间直接屏蔽并清理 drop 指示。
+- 列宽 resize 的全局 `mousemove/mouseup` 改为 capture 阶段监听：
+  - 避免被内部元素事件时序干扰。
+- 增加收口兜底：
+  - `Escape`
+  - `window blur`
+  - `document visibilitychange`
+  - 组件卸载 / transient state reset
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+## 2026-04-06 - Refine File List Adjacent Column Resize
+
+### Root Cause
+
+- 列表视图表头拖动之前仍是“只修改当前列宽度”：
+  - 拖动某列右侧 resizer，只会改该列宽。
+  - `name` 列使用 `minmax(width, 1fr)`，会让剩余空间吸收变化，表现不像原生文件列表的相邻分割线。
+- 用户期望的行为是：
+  - 拖中间分割线向左，左列缩小、右列扩大。
+  - 拖中间分割线向右，左列扩大、右列缩小。
+  - 只影响分割线两侧相邻两列，不影响其他列。
+
+### Completed Changes
+
+- `ColumnResizeState` 从单列状态改为成对状态：
+  - `leftKey`
+  - `rightKey`
+  - `startLeftWidth`
+  - `startRightWidth`
+- resize 计算改为 clamp 后的相邻列联动：
+  - `left = startLeft + delta`
+  - `right = startRight - delta`
+  - 总宽度保持不变。
+  - 两列都遵守各自最小宽度。
+- 所有列表列宽都改为确定的 `px` track：
+  - 不再让 `name` 列用 `1fr` 吸收剩余空间。
+- 最后一列不再显示 resize hit area，因为右侧没有相邻列。
+- 表头取消可见 divider：
+  - 移除 resizer hover 背景。
+  - 移除 header bottom border。
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+## 2026-04-06 - Add Mtime Preservation Regression Tests
+
+### Review Findings
+
+- 目录 mtime 保留仍有两个测试缺口：
+  - 缺少完整 `processFollowUp(followUpUpload)` 路径的回归测试。
+  - 缺少“显式目录 marker mtime 优先于虚拟目录推导 mtime”的回归测试。
+- 新增显式 marker 优先级测试后，暴露了一个真实缺陷：
+  - `buildLocalDownloadPlan()` 只记录目录时间值，没有记录来源。
+  - 当显式目录 marker 的 mtime 早于子文件 mtime 时，后续虚拟目录推导会用子文件时间覆盖 marker 时间。
+
+### Completed Changes
+
+- 为目录 mtime 聚合新增来源标记：
+  - `directoryModTimeSource.modTime`
+  - `directoryModTimeSource.explicit`
+- `mergeDirectoryModTime()` 现在遵循以下规则：
+  - 显式目录 marker 有有效 mtime 时，优先级高于虚拟目录推导。
+  - 显式目录没有 mtime 时，仍允许后续用子文件时间作为虚拟目录近似值。
+  - 虚拟目录之间仍使用子文件最新 mtime 作为近似值。
+- 新增完整 follow-up upload 路径测试：
+  - 通过真实 `Local` 连接执行 `processFollowUp(followUpUpload)`。
+  - 验证 follow-up upload 完成后，deferred directory finalizer 会回填目标目录 mtime。
+- 新增显式目录 marker 优先级测试：
+  - 同一目录同时存在显式 marker mtime 和更晚的子文件 mtime。
+  - 验证最终目录计划保留 marker mtime，不被子文件推导覆盖。
+
+### Verification
+
+- `go test ./transfer/...` 通过。
+- `go test ./...` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。

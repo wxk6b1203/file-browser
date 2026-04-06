@@ -236,6 +236,45 @@ func TestRunOSSDriver(t *testing.T) {
 		}
 	})
 
+	dirMoveSrc := dir + "/move-src"
+	dirMoveDstParent := dir + "/move-dst"
+	dirMoveDst := dirMoveDstParent + "/move-src"
+	dirMoveSrcChild := dirMoveSrc + "/child.txt"
+	dirMoveDstChild := dirMoveDst + "/child.txt"
+
+	t.Run("MoveDirectory", func(t *testing.T) {
+		w, ok := drv.(folder.Writer)
+		if !ok {
+			t.Skip("driver does not implement Writer")
+		}
+		if err := drv.Mkdir(ctx, dirMoveSrc); err != nil {
+			t.Fatalf("Mkdir(%q) error: %v", dirMoveSrc, err)
+		}
+		if err := drv.Mkdir(ctx, dirMoveDstParent); err != nil {
+			t.Fatalf("Mkdir(%q) error: %v", dirMoveDstParent, err)
+		}
+		if _, err := w.Write(ctx, dirMoveSrcChild, strings.NewReader("directory move"), nil); err != nil {
+			t.Fatalf("Write(%q) error: %v", dirMoveSrcChild, err)
+		}
+		if err := drv.Move(ctx, folder.PathOp{SrcPath: dirMoveSrc, DstPath: dirMoveDst}); err != nil {
+			t.Fatalf("Move directory error: %v", err)
+		}
+		srcExists, err := drv.Exist(ctx, dirMoveSrcChild)
+		if err != nil {
+			t.Fatalf("Exist(%q) after MoveDirectory error: %v", dirMoveSrcChild, err)
+		}
+		if srcExists {
+			t.Errorf("Exist(%q) after MoveDirectory = true, want false", dirMoveSrcChild)
+		}
+		dstExists, err := drv.Exist(ctx, dirMoveDstChild)
+		if err != nil {
+			t.Fatalf("Exist(%q) after MoveDirectory error: %v", dirMoveDstChild, err)
+		}
+		if !dstExists {
+			t.Errorf("Exist(%q) after MoveDirectory = false, want true", dirMoveDstChild)
+		}
+	})
+
 	renamedPath := dir + "/hello-renamed.txt"
 
 	t.Run("Rename", func(t *testing.T) {
@@ -283,12 +322,12 @@ func TestRunOSSDriver(t *testing.T) {
 
 	// --- cleanup: delete all test files and verify removal ----------------
 	t.Run("Delete", func(t *testing.T) {
-		for _, p := range []string{filePath, renamedPath} {
+		for _, p := range []string{filePath, renamedPath, dirMoveDst, dirMoveDstParent} {
 			if err := drv.Delete(ctx, p); err != nil {
 				t.Errorf("Delete(%q) error: %v", p, err)
 			}
 		}
-		for _, p := range []string{filePath, renamedPath} {
+		for _, p := range []string{filePath, renamedPath, dirMoveDstChild} {
 			ok, err := drv.Exist(ctx, p)
 			if err != nil {
 				t.Errorf("Exist(%q) after Delete error: %v", p, err)

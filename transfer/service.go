@@ -58,6 +58,11 @@ type downloadFilePlan struct {
 	remotePath string
 }
 
+type directoryModTimeSource struct {
+	modTime  *time.Time
+	explicit bool
+}
+
 type localUploadPlan struct {
 	directories []uploadDirectoryPlan
 	files       []uploadFilePlan
@@ -811,8 +816,11 @@ func buildLocalDownloadPlan(localRootPath, remoteDir string, rootInfo *folder.Fi
 		}},
 		files: []downloadFilePlan{},
 	}
-	directoryMtimes := map[string]*time.Time{
-		cleanRemoteDir: cloneTime(fileInfoModTime(rootInfo)),
+	directoryMtimes := map[string]directoryModTimeSource{
+		cleanRemoteDir: {
+			modTime:  cloneTime(fileInfoModTime(rootInfo)),
+			explicit: fileInfoModTime(rootInfo) != nil,
+		},
 	}
 
 	for _, item := range items {
@@ -848,9 +856,9 @@ func buildLocalDownloadPlan(localRootPath, remoteDir string, rootInfo *folder.Fi
 		})
 	}
 
-	for remotePath, modTime := range directoryMtimes {
+	for remotePath, source := range directoryMtimes {
 		if remotePath == cleanRemoteDir {
-			plan.directories[0].sourceMTime = cloneTime(modTime)
+			plan.directories[0].sourceMTime = cloneTime(source.modTime)
 			continue
 		}
 
@@ -866,7 +874,7 @@ func buildLocalDownloadPlan(localRootPath, remoteDir string, rootInfo *folder.Fi
 		plan.directories = append(plan.directories, downloadDirectoryPlan{
 			localPath:   filepath.Join(cleanRootPath, filepath.FromSlash(relativePath)),
 			remotePath:  remotePath,
-			sourceMTime: cloneTime(modTime),
+			sourceMTime: cloneTime(source.modTime),
 		})
 	}
 
@@ -880,7 +888,7 @@ func buildLocalDownloadPlan(localRootPath, remoteDir string, rootInfo *folder.Fi
 	return plan, nil
 }
 
-func registerVirtualDirectories(directoryMtimes map[string]*time.Time, rootDir, filePath string, fallback *time.Time) {
+func registerVirtualDirectories(directoryMtimes map[string]directoryModTimeSource, rootDir, filePath string, fallback *time.Time) {
 	parent := cleanRemotePath(path.Dir(filePath))
 	rootDir = cleanRemotePath(rootDir)
 	for parent != "" && parent != "." {
@@ -896,7 +904,7 @@ func registerVirtualDirectories(directoryMtimes map[string]*time.Time, rootDir, 
 	}
 }
 
-func mergeDirectoryModTime(directoryMtimes map[string]*time.Time, remotePath string, candidate *time.Time, explicit bool) {
+func mergeDirectoryModTime(directoryMtimes map[string]directoryModTimeSource, remotePath string, candidate *time.Time, explicit bool) {
 	cleanPath := cleanRemotePath(remotePath)
 	if cleanPath == "" {
 		return
@@ -905,19 +913,25 @@ func mergeDirectoryModTime(directoryMtimes map[string]*time.Time, remotePath str
 	current, exists := directoryMtimes[cleanPath]
 	if explicit {
 		if candidate != nil || !exists {
-			directoryMtimes[cleanPath] = cloneTime(candidate)
+			directoryMtimes[cleanPath] = directoryModTimeSource{
+				modTime:  cloneTime(candidate),
+				explicit: candidate != nil,
+			}
 		}
 		return
 	}
-	if !exists || current == nil {
-		directoryMtimes[cleanPath] = cloneTime(candidate)
+	if exists && current.explicit {
+		return
+	}
+	if !exists || current.modTime == nil {
+		directoryMtimes[cleanPath] = directoryModTimeSource{modTime: cloneTime(candidate)}
 		return
 	}
 	if candidate == nil {
 		return
 	}
-	if candidate.After(*current) {
-		directoryMtimes[cleanPath] = cloneTime(candidate)
+	if candidate.After(*current.modTime) {
+		directoryMtimes[cleanPath] = directoryModTimeSource{modTime: cloneTime(candidate)}
 	}
 }
 

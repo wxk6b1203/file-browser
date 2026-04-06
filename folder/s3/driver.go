@@ -126,8 +126,16 @@ func (d *Driver) Exist(ctx context.Context, filePath string) (bool, error) {
 }
 
 func (d *Driver) Rename(ctx context.Context, filePath string, newName string) error {
-	dir := path.Dir(filePath)
+	cleanPath := strings.TrimSuffix(filePath, "/")
+	dir := path.Dir(cleanPath)
 	newPath := path.Join(dir, newName)
+	info, err := d.Stat(ctx, filePath)
+	if err != nil {
+		return err
+	}
+	if info != nil && info.IsDir() {
+		return d.Move(ctx, folder.PathOp{SrcPath: filePath, DstPath: newPath})
+	}
 
 	// S3 Express One Zone directory buckets support a native RenameObject API
 	// that is atomic and avoids the extra copy. Detect by the mandatory suffix.
@@ -350,13 +358,19 @@ func (d *Driver) statDir(ctx context.Context, dir string) (*folder.FileInfo, err
 func (d *Driver) Delete(ctx context.Context, filePath string) error {
 	key := d.fullKey(filePath)
 
-	// If it looks like a directory, recursively delete all children.
 	if strings.HasSuffix(filePath, "/") {
 		return d.deletePrefix(ctx, key)
 	}
+	info, err := d.Stat(ctx, filePath)
+	if err != nil && !folder.IsNotFound(err) {
+		return err
+	}
+	if info != nil && info.IsDir() {
+		return d.deletePrefix(ctx, directoryKey(key))
+	}
 
 	client := d.s3Client()
-	_, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{
+	_, err = client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(d.cfg.Bucket),
 		Key:    aws.String(key),
 	})
@@ -400,6 +414,17 @@ func (d *Driver) deletePrefix(ctx context.Context, prefix string) error {
 }
 
 func (d *Driver) Copy(ctx context.Context, op folder.PathOp) error {
+	info, err := d.Stat(ctx, op.SrcPath)
+	if err != nil {
+		return err
+	}
+	if info != nil && info.IsDir() {
+		return d.copyPrefix(ctx, op)
+	}
+	return d.copyObject(ctx, op)
+}
+
+func (d *Driver) copyObject(ctx context.Context, op folder.PathOp) error {
 	src := d.fullKey(op.SrcPath)
 	dst := d.fullKey(op.DstPath)
 	client := d.s3Client()
@@ -416,13 +441,72 @@ func (d *Driver) Copy(ctx context.Context, op folder.PathOp) error {
 }
 
 func (d *Driver) Move(ctx context.Context, op folder.PathOp) error {
-	if err := d.Copy(ctx, op); err != nil {
+	info, err := d.Stat(ctx, op.SrcPath)
+	if err != nil {
+		return err
+	}
+	if info != nil && info.IsDir() {
+		if err := d.copyPrefix(ctx, op); err != nil {
+			return fmt.Errorf("s3: move %q -> %q: %w", op.SrcPath, op.DstPath, err)
+		}
+		if err := d.deletePrefix(ctx, directoryKey(d.fullKey(op.SrcPath))); err != nil {
+			return fmt.Errorf("s3: move %q -> %q: delete source: %w", op.SrcPath, op.DstPath, err)
+		}
+		return nil
+	}
+	if err := d.copyObject(ctx, op); err != nil {
 		return fmt.Errorf("s3: move %q -> %q: %w", op.SrcPath, op.DstPath, err)
 	}
 	if err := d.Delete(ctx, op.SrcPath); err != nil {
 		return fmt.Errorf("s3: move %q -> %q: delete source: %w", op.SrcPath, op.DstPath, err)
 	}
 	return nil
+}
+
+func (d *Driver) copyPrefix(ctx context.Context, op folder.PathOp) error {
+	srcPrefix := directoryKey(d.fullKey(op.SrcPath))
+	dstPrefix := directoryKey(d.fullKey(op.DstPath))
+	if srcPrefix == "" || dstPrefix == "" {
+		return fmt.Errorf("s3: copy directory %q -> %q: %w", op.SrcPath, op.DstPath, folder.ErrInvalidPath)
+	}
+	if srcPrefix == dstPrefix {
+		return nil
+	}
+	if strings.HasPrefix(dstPrefix, srcPrefix) {
+		return fmt.Errorf("s3: copy directory %q -> %q: %w", op.SrcPath, op.DstPath, folder.ErrInvalidPath)
+	}
+
+	client := d.s3Client()
+	paginator := s3.NewListObjectsV2Paginator(client, &s3.ListObjectsV2Input{
+		Bucket: aws.String(d.cfg.Bucket),
+		Prefix: aws.String(srcPrefix),
+	})
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return fmt.Errorf("s3: copy directory %q -> %q list: %w", op.SrcPath, op.DstPath, err)
+		}
+		for _, obj := range page.Contents {
+			srcKey := aws.ToString(obj.Key)
+			rel := strings.TrimPrefix(srcKey, srcPrefix)
+			dstKey := dstPrefix + rel
+			if _, err := client.CopyObject(ctx, &s3.CopyObjectInput{
+				Bucket:     aws.String(d.cfg.Bucket),
+				CopySource: aws.String(d.cfg.Bucket + "/" + srcKey),
+				Key:        aws.String(dstKey),
+			}); err != nil {
+				return fmt.Errorf("s3: copy directory object %q -> %q: %w", srcKey, dstKey, err)
+			}
+		}
+	}
+	return nil
+}
+
+func directoryKey(key string) string {
+	if key != "" && !strings.HasSuffix(key, "/") {
+		key += "/"
+	}
+	return key
 }
 
 func (d *Driver) Mkdir(ctx context.Context, dir string) error {

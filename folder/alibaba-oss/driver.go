@@ -329,17 +329,23 @@ func (d *Driver) statDir(ctx context.Context, dir string) (*folder.FileInfo, err
 }
 
 func (d *Driver) Delete(ctx context.Context, filePath string) error {
-	// If it looks like a directory, recursively delete all children.
-	if strings.HasSuffix(filePath, "/") {
-		return d.deletePrefix(ctx, d.fullKey(filePath))
-	}
-
 	client := d.ossClient()
 	if client == nil {
 		return fmt.Errorf("oss: delete %q: driver is closed", filePath)
 	}
 
-	_, err := client.DeleteObject(ctx, &oss.DeleteObjectRequest{
+	if strings.HasSuffix(filePath, "/") {
+		return d.deletePrefix(ctx, d.fullKey(filePath))
+	}
+	info, err := d.Stat(ctx, filePath)
+	if err != nil && !folder.IsNotFound(err) {
+		return err
+	}
+	if info != nil && info.IsDir() {
+		return d.deletePrefix(ctx, directoryKey(d.fullKey(filePath)))
+	}
+
+	_, err = client.DeleteObject(ctx, &oss.DeleteObjectRequest{
 		Bucket: oss.Ptr(d.cfg.Bucket),
 		Key:    oss.Ptr(d.fullKey(filePath)),
 	})
@@ -398,6 +404,17 @@ func (d *Driver) deletePrefix(ctx context.Context, prefix string) error {
 }
 
 func (d *Driver) Copy(ctx context.Context, op folder.PathOp) error {
+	info, err := d.Stat(ctx, op.SrcPath)
+	if err != nil {
+		return err
+	}
+	if info != nil && info.IsDir() {
+		return d.copyPrefix(ctx, op)
+	}
+	return d.copyObject(ctx, op)
+}
+
+func (d *Driver) copyObject(ctx context.Context, op folder.PathOp) error {
 	client := d.ossClient()
 	if client == nil {
 		return fmt.Errorf("oss: copy %q -> %q: driver is closed", op.SrcPath, op.DstPath)
@@ -415,19 +432,89 @@ func (d *Driver) Copy(ctx context.Context, op folder.PathOp) error {
 }
 
 func (d *Driver) Move(ctx context.Context, op folder.PathOp) error {
-	if err := d.Copy(ctx, op); err != nil {
+	info, err := d.Stat(ctx, op.SrcPath)
+	if err != nil {
 		return err
 	}
-	return d.Delete(ctx, op.SrcPath)
+	if info != nil && info.IsDir() {
+		if err := d.copyPrefix(ctx, op); err != nil {
+			return fmt.Errorf("oss: move %q -> %q: %w", op.SrcPath, op.DstPath, err)
+		}
+		if err := d.deletePrefix(ctx, directoryKey(d.fullKey(op.SrcPath))); err != nil {
+			return fmt.Errorf("oss: move %q -> %q: delete source: %w", op.SrcPath, op.DstPath, err)
+		}
+		return nil
+	}
+	if err := d.copyObject(ctx, op); err != nil {
+		return fmt.Errorf("oss: move %q -> %q: %w", op.SrcPath, op.DstPath, err)
+	}
+	if err := d.Delete(ctx, op.SrcPath); err != nil {
+		return fmt.Errorf("oss: move %q -> %q: delete source: %w", op.SrcPath, op.DstPath, err)
+	}
+	return nil
 }
 
 func (d *Driver) Rename(ctx context.Context, filePath string, newName string) error {
-	dir := path.Dir(filePath)
+	cleanPath := strings.TrimSuffix(filePath, "/")
+	dir := path.Dir(cleanPath)
 	newPath := path.Join(dir, newName)
-	if err := d.Copy(ctx, folder.PathOp{SrcPath: filePath, DstPath: newPath}); err != nil {
-		return fmt.Errorf("oss: rename %q -> %q: %w", filePath, newName, err)
+	return d.Move(ctx, folder.PathOp{SrcPath: filePath, DstPath: newPath})
+}
+
+func (d *Driver) copyPrefix(ctx context.Context, op folder.PathOp) error {
+	srcPrefix := directoryKey(d.fullKey(op.SrcPath))
+	dstPrefix := directoryKey(d.fullKey(op.DstPath))
+	if srcPrefix == "" || dstPrefix == "" {
+		return fmt.Errorf("oss: copy directory %q -> %q: %w", op.SrcPath, op.DstPath, folder.ErrInvalidPath)
 	}
-	return d.Delete(ctx, filePath)
+	if srcPrefix == dstPrefix {
+		return nil
+	}
+	if strings.HasPrefix(dstPrefix, srcPrefix) {
+		return fmt.Errorf("oss: copy directory %q -> %q: %w", op.SrcPath, op.DstPath, folder.ErrInvalidPath)
+	}
+
+	client := d.ossClient()
+	if client == nil {
+		return fmt.Errorf("oss: copy directory %q -> %q: driver is closed", op.SrcPath, op.DstPath)
+	}
+
+	var contToken *string
+	for {
+		resp, err := client.ListObjectsV2(ctx, &oss.ListObjectsV2Request{
+			Bucket:            oss.Ptr(d.cfg.Bucket),
+			Prefix:            oss.Ptr(srcPrefix),
+			MaxKeys:           1000,
+			ContinuationToken: contToken,
+		})
+		if err != nil {
+			return fmt.Errorf("oss: copy directory %q -> %q list: %w", op.SrcPath, op.DstPath, err)
+		}
+		for _, obj := range resp.Contents {
+			srcKey := oss.ToString(obj.Key)
+			rel := strings.TrimPrefix(srcKey, srcPrefix)
+			dstKey := dstPrefix + rel
+			if _, err := client.CopyObject(ctx, &oss.CopyObjectRequest{
+				Bucket:    oss.Ptr(d.cfg.Bucket),
+				Key:       oss.Ptr(dstKey),
+				SourceKey: oss.Ptr(srcKey),
+			}); err != nil {
+				return fmt.Errorf("oss: copy directory object %q -> %q: %w", srcKey, dstKey, err)
+			}
+		}
+		if !resp.IsTruncated {
+			break
+		}
+		contToken = resp.NextContinuationToken
+	}
+	return nil
+}
+
+func directoryKey(key string) string {
+	if key != "" && !strings.HasSuffix(key, "/") {
+		key += "/"
+	}
+	return key
 }
 
 func (d *Driver) Mkdir(ctx context.Context, dir string) error {
