@@ -3173,3 +3173,4 @@
 2026-04-06 21:50:53.677	INFO	file-browser/app.go:38	Creating new app
 2026-04-06 21:50:53.677	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
 2026-04-06 21:50:53.793	INFO	render/manager.go:26	Render manager started
+2026-04-06 21:55:01.909	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>

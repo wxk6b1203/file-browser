@@ -4195,3 +4195,56 @@ connections:
 
 - `go test ./folder/s3 ./folder/alibaba-oss ./folder/sftp` 通过。
 - `go test ./...` 通过。
+
+## 2026-04-06 - Rewrite Top-Level README Documents
+
+### Goal
+
+- Replace the default Wails template README with project-specific documentation.
+- Keep `README.md` as the default English entry point.
+- Add `README_cn.md` for Chinese readers.
+
+### Completed Changes
+
+- Rewrote `README.md` to cover:
+  - Project positioning and current storage backends.
+  - Main feature set.
+  - Backend and frontend architecture.
+  - Storage driver semantics and object-store directory boundaries.
+  - Configuration files and example connection definitions.
+  - Development and test commands.
+  - Known boundaries, including SFTP host key verification and object-store prefix semantics.
+- Added `README_cn.md` with equivalent Chinese documentation.
+
+### Verification
+
+- `git diff --check` 通过。
+
+## 2026-04-06 - Add Commercial Authorization Notice To AGPL License
+
+### Goal
+
+- Keep the project under AGPL-3.0-only.
+- Add a commercial authorization path for modified non-open-source use.
+- Treat accepted bugfix or functional enhancement contributions, excluding comment-only/non-functional edits, as qualifying for contributor commercial authorization.
+
+### Design Note
+
+- Did not rewrite the GNU AGPL v3 text itself because the FSF license text requires verbatim copying and GPL/AGPL terms do not allow arbitrary further restrictions on the AGPL grant.
+- Added a project-specific licensing notice before the verbatim AGPL text.
+- The notice phrases the commercial license requirement as an alternative path for users who do not make corresponding modified source code available under AGPL-3.0-only to entitled recipients or network users.
+- Added an inbound contribution license grant so accepted external contributions can be included in future commercial-license distributions.
+
+### Completed Changes
+
+- Prepended `LICENSE` with:
+  - Project copyright notice.
+  - AGPL-3.0-only statement.
+  - Dual licensing and one-time commercial authorization notice.
+  - Contributor commercial authorization definition.
+  - Contribution relicensing grant for accepted contributions.
+- Updated `README.md` and `README_cn.md` license sections to point to `LICENSE` and summarize the commercial authorization rule.
+
+### Verification
+
+- `git diff --check` 通过。

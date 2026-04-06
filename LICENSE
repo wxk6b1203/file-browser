@@ -1,3 +1,62 @@
+File Browser Licensing Notice
+=============================
+
+Copyright (C) wxk6b1203 and contributors, unless otherwise stated.
+
+This project is licensed under the GNU Affero General Public License,
+version 3 (AGPL-3.0-only), as set out below. The full text of the GNU
+Affero General Public License is included after this notice and remains
+unchanged.
+
+Dual Licensing and Commercial Authorization
+-------------------------------------------
+
+You may use, copy, modify, convey, and provide network access to this
+project under the AGPL-3.0-only license. If you modify the source code
+and do not make the corresponding modified source code available under
+the AGPL-3.0-only license to the recipients or network users who are
+entitled to receive it under AGPL-3.0, you must obtain a separate
+one-time commercial authorization from the copyright holder before such
+non-open-source use, distribution, deployment, or network provision.
+
+A commercial authorization is a separate license from the copyright
+holder. Unless a written commercial authorization states otherwise, it is
+personal to the authorized legal person or organization, non-transferable,
+non-sublicensable, and does not remove third-party license obligations
+for dependencies or other materials not owned by the copyright holder.
+
+Contributor Commercial Authorization
+------------------------------------
+
+For the purposes of this notice, a "Qualifying Contribution" means a
+bugfix or functional enhancement submitted to this project and accepted
+into the project's main codebase by the maintainer. Changes consisting
+only of comments, documentation, formatting, whitespace, metadata,
+configuration without functional effect, or other non-functional edits do
+not qualify.
+
+When a Qualifying Contribution is accepted, the contributor who submitted
+that contribution is deemed to have received a one-time commercial
+authorization for this project, subject to the same scope and limitations
+as the standard one-time commercial authorization described above, unless
+a separate written agreement states otherwise.
+
+By submitting a contribution to this project, you license that
+contribution under AGPL-3.0-only and also grant the project maintainer and
+copyright holder a perpetual, worldwide, royalty-free, irrevocable,
+non-exclusive license to use, reproduce, modify, distribute, sublicense,
+and relicense the contribution as part of this project, including under
+commercial license terms. You represent that you have the right to grant
+these permissions.
+
+No Warranty
+-----------
+
+The project is provided without warranty under the terms of AGPL-3.0 and,
+for commercial authorizations, except to the extent expressly agreed in a
+separate written commercial agreement.
+
+
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 
