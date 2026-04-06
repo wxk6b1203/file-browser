@@ -396,9 +396,11 @@ function validateForm() {
   if (form.driver === 'SFTP') {
     const password = String(form.config.password ?? '').trim()
     const privateKey = String(form.config.privateKey ?? '').trim()
-    if (!password && !privateKey) {
+    const privateKeyPath = String(form.config.privateKeyPath ?? '').trim()
+    if (!password && !privateKey && !privateKeyPath) {
       nextErrors['config.password'] = t('workspace.connectionForm.validationSftpAuthRequired')
       nextErrors['config.privateKey'] = t('workspace.connectionForm.validationSftpAuthRequired')
+      nextErrors['config.privateKeyPath'] = t('workspace.connectionForm.validationSftpAuthRequired')
     }
   }
 

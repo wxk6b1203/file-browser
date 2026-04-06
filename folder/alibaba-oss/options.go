@@ -41,11 +41,14 @@ func (o *Options) Validate() error {
 	o.AccessKeyID = strings.TrimSpace(o.AccessKeyID)
 	o.AccessKeySecret = strings.TrimSpace(o.AccessKeySecret)
 	o.Endpoint = strings.TrimSpace(o.Endpoint)
-	o.Prefix = strings.TrimSpace(o.Prefix)
-
-	// Normalize prefix: ensure it ends with "/" if non-empty.
-	if o.Prefix != "" {
-		o.Prefix = strings.TrimRight(o.Prefix, "/") + "/"
-	}
+	o.Prefix = normalizePrefix(o.Prefix)
 	return nil
+}
+
+func normalizePrefix(prefix string) string {
+	prefix = strings.Trim(strings.TrimSpace(prefix), "/")
+	if prefix == "" {
+		return ""
+	}
+	return prefix + "/"
 }

@@ -263,7 +263,7 @@
       "validationNameRequired": "连接名称不能为空。",
       "validationDriverRequired": "请选择驱动类型。",
       "validationFieldRequired": "{field} 不能为空。",
-      "validationSftpAuthRequired": "SFTP 至少需要填写密码或私钥之一。",
+      "validationSftpAuthRequired": "SFTP 至少需要填写密码、私钥路径或私钥文本之一。",
       "reset": "重置",
       "basic": "基础信息",
       "driverConfig": "驱动参数",

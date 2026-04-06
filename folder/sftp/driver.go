@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -102,13 +103,16 @@ func New(_ context.Context, opt *folder.DriverOptions, cfg *Options) (folder.Man
 func (d *Driver) dial() (*ssh.Client, *sftp.Client, error) {
 	authMethods := make([]ssh.AuthMethod, 0, 2)
 
-	if d.cfg.PrivateKey != "" {
+	if d.cfg.PrivateKey != "" || d.cfg.PrivateKeyPath != "" {
+		key, err := loadPrivateKeyMaterial(d.cfg)
+		if err != nil {
+			return nil, nil, err
+		}
 		var signer ssh.Signer
-		var err error
 		if d.cfg.Passphrase != "" {
-			signer, err = ssh.ParsePrivateKeyWithPassphrase([]byte(d.cfg.PrivateKey), []byte(d.cfg.Passphrase))
+			signer, err = ssh.ParsePrivateKeyWithPassphrase(key, []byte(d.cfg.Passphrase))
 		} else {
-			signer, err = ssh.ParsePrivateKey([]byte(d.cfg.PrivateKey))
+			signer, err = ssh.ParsePrivateKey(key)
 		}
 		if err != nil {
 			return nil, nil, fmt.Errorf("parse private key: %w", err)
@@ -145,6 +149,74 @@ func (d *Driver) dial() (*ssh.Client, *sftp.Client, error) {
 	}
 
 	return sshConn, sftpClient, nil
+}
+
+func loadPrivateKeyMaterial(cfg *Options) ([]byte, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("sftp: missing configuration")
+	}
+
+	privateKey := strings.TrimSpace(cfg.PrivateKey)
+	if privateKey != "" {
+		if looksLikePrivateKey(privateKey) {
+			return []byte(privateKey), nil
+		}
+		if strings.TrimSpace(cfg.PrivateKeyPath) == "" {
+			return readPrivateKeyFile(privateKey)
+		}
+	}
+
+	privateKeyPath := strings.TrimSpace(cfg.PrivateKeyPath)
+	if privateKeyPath == "" {
+		return nil, fmt.Errorf("sftp: private key is empty")
+	}
+	return readPrivateKeyFile(privateKeyPath)
+}
+
+func looksLikePrivateKey(value string) bool {
+	return strings.Contains(value, "-----BEGIN ") && strings.Contains(value, "PRIVATE KEY-----")
+}
+
+func readPrivateKeyFile(filePath string) ([]byte, error) {
+	resolvedPath, err := expandUserPath(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("resolve private key path %q: %w", filePath, err)
+	}
+
+	info, err := os.Stat(resolvedPath)
+	if err != nil {
+		return nil, fmt.Errorf("read private key path %q: %w", filePath, err)
+	}
+	if info.IsDir() {
+		return nil, fmt.Errorf("read private key path %q: is a directory", filePath)
+	}
+
+	body, err := os.ReadFile(resolvedPath)
+	if err != nil {
+		return nil, fmt.Errorf("read private key path %q: %w", filePath, err)
+	}
+	if strings.TrimSpace(string(body)) == "" {
+		return nil, fmt.Errorf("read private key path %q: file is empty", filePath)
+	}
+	return body, nil
+}
+
+func expandUserPath(filePath string) (string, error) {
+	cleaned := strings.TrimSpace(filePath)
+	if cleaned == "" {
+		return "", fmt.Errorf("path is empty")
+	}
+	if cleaned == "~" {
+		return os.UserHomeDir()
+	}
+	if strings.HasPrefix(cleaned, "~/") || strings.HasPrefix(cleaned, `~\`) {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(home, strings.TrimLeft(cleaned[1:], `/\`)), nil
+	}
+	return filepath.Clean(cleaned), nil
 }
 
 // doConnect dials a new connection and installs it, cleaning up any stale one.
@@ -348,21 +420,29 @@ func retryVoid(d *Driver, op func(*sftp.Client) error) error {
 // fullPath maps a caller-supplied relative path to an absolute remote path
 // by joining "/" + RootPath + relPath, with a traversal guard.
 func (d *Driver) fullPath(relPath string) string {
-	p := path.Join("/", d.cfg.RootPath, relPath)
+	root := normalizeRemoteRoot(d.cfg.RootPath)
+	p := path.Join(root, relPath)
 
 	// When no root is configured every absolute path is valid.
-	if d.cfg.RootPath == "" {
+	if root == "/" {
 		return p
 	}
 
 	// Directory-boundary check: p must be the root itself or a child of it.
 	// A naive HasPrefix("/dataXYZ", "/data") would pass — the extra "/"
 	// ensures we compare on a directory boundary.
-	root := "/" + d.cfg.RootPath
 	if p != root && !strings.HasPrefix(p, root+"/") {
 		return "" // sentinel — traversal detected
 	}
 	return p
+}
+
+func normalizeRemoteRoot(rootPath string) string {
+	root := strings.TrimSpace(rootPath)
+	if root == "" || root == "/" {
+		return "/"
+	}
+	return path.Clean("/" + strings.TrimLeft(root, "/"))
 }
 
 // validFullPath is a convenience wrapper that returns folder.ErrInvalidPath

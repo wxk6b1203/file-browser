@@ -21,10 +21,11 @@
 | `username`   | string | ✅        | SSH 用户名                                           |
 | `password`   | string | ①        | 密码认证                                              |
 | `privateKey` | string | ①        | PEM 格式的私钥内容                                    |
+| `privateKeyPath` | string | ①    | 本地私钥文件路径，支持 `~` 展开                         |
 | `passphrase` | string |          | 私钥的加密口令（仅当 privateKey 加密时需要）           |
 | `rootPath`   | string |          | 远程根路径，所有操作相对于此路径 (如 `/home/user/data`)|
 
-> ① `password` 和 `privateKey` 至少需要提供一个。两者同时存在时，先尝试私钥认证，再回退到密码认证。
+> ① `password`、`privateKey` 和 `privateKeyPath` 至少需要提供一个。`privateKey` 和 `privateKeyPath` 同时存在时，优先使用 `privateKey` 文本；为兼容旧配置，如果 `privateKey` 不像私钥文本，会尝试按路径读取。
 
 ## 特性
 

@@ -263,7 +263,7 @@
       "validationNameRequired": "Connection name is required.",
       "validationDriverRequired": "Driver selection is required.",
       "validationFieldRequired": "{field} is required.",
-      "validationSftpAuthRequired": "SFTP requires either a password or a private key.",
+      "validationSftpAuthRequired": "SFTP requires a password, private key path, or private key text.",
       "reset": "Reset",
       "basic": "Basic",
       "driverConfig": "Driver Config",

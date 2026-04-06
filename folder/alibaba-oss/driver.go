@@ -43,8 +43,10 @@ func New(_ context.Context, opt *folder.DriverOptions, cfg *Options) (folder.Man
 
 	// Merge DriverOptions.Root into prefix when specified.
 	if opt != nil && opt.Root != "" {
-		root := strings.TrimRight(opt.Root, "/") + "/"
-		cfg.Prefix = root + cfg.Prefix
+		root := normalizePrefix(opt.Root)
+		if root != "" {
+			cfg.Prefix = normalizePrefix(root + cfg.Prefix)
+		}
 	}
 
 	d := &Driver{

@@ -13,25 +13,28 @@ type Options struct {
 	Username       string `yaml:"username" json:"username"`
 	Password       string `yaml:"password,omitempty" json:"password,omitempty"`
 	PrivateKey     string `yaml:"privateKey,omitempty" json:"privateKey,omitempty"`
+	PrivateKeyPath string `yaml:"privateKeyPath,omitempty" json:"privateKeyPath,omitempty"`
 	Passphrase     string `yaml:"passphrase,omitempty" json:"passphrase,omitempty"`
 	RootPath       string `yaml:"rootPath,omitempty" json:"rootPath,omitempty"`
 	DialTimeoutSec int    `yaml:"dialTimeoutSec,omitempty" json:"dialTimeoutSec,omitempty"`
 }
 
 func (o *Options) Validate() error {
+	o.Address = strings.TrimSpace(o.Address)
+	o.Username = strings.TrimSpace(o.Username)
+	o.PrivateKey = strings.TrimSpace(o.PrivateKey)
+	o.PrivateKeyPath = strings.TrimSpace(o.PrivateKeyPath)
+	o.RootPath = strings.TrimSpace(o.RootPath)
+
 	if o.Address == "" {
 		return fmt.Errorf("sftp: address is required")
 	}
 	if o.Username == "" {
 		return fmt.Errorf("sftp: username is required")
 	}
-	if o.Password == "" && o.PrivateKey == "" {
-		return fmt.Errorf("sftp: password or privateKey is required")
+	if o.Password == "" && o.PrivateKey == "" && o.PrivateKeyPath == "" {
+		return fmt.Errorf("sftp: password, privateKey, or privateKeyPath is required")
 	}
-
-	o.Address = strings.TrimSpace(o.Address)
-	o.Username = strings.TrimSpace(o.Username)
-	o.RootPath = strings.TrimSpace(o.RootPath)
 
 	if o.Port <= 0 {
 		o.Port = 22

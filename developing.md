@@ -4106,3 +4106,92 @@ connections:
 - `git diff --check` 通过。
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
+
+## 2026-04-06 - SFTP Private Key Path Support
+
+### Requirement
+
+- SFTP 私钥认证需要支持两种输入：
+  - `privateKey`: 私钥文本本身。
+  - `privateKeyPath`: 本地私钥文件路径。
+- 两者存在其一即可连接；如果给出路径，驱动读取文件内容后作为私钥认证材料。
+
+### Completed Changes
+
+- 后端 `folder/sftp.Options` 新增 `privateKeyPath` 字段，并把认证校验改为 `password / privateKey / privateKeyPath` 三选一。
+- SFTP 驱动连接时新增私钥材料解析链路：
+  - 优先使用 `privateKey` 文本。
+  - 如果没有文本，则读取 `privateKeyPath` 指向的文件。
+  - 为兼容旧误用场景，如果 `privateKey` 不像私钥文本且没有显式 `privateKeyPath`，会尝试把 `privateKey` 当路径读取。
+  - 路径支持 `~` 展开，并会拒绝空文件和目录路径。
+- 前端 SFTP 表单新增 `Private Key Path` 输入项，原私钥输入项改名为 `Private Key Text`。
+- 前端校验改为密码、私钥路径、私钥文本三选一。
+- 更新 SFTP README 和集成测试环境变量说明，新增 `SFTP_PRIVATE_KEY_PATH`。
+- 新增 `folder/sftp/options_test.go`，覆盖：
+  - `privateKeyPath` 通过配置校验。
+  - 从私钥路径读取文件内容。
+  - 兼容旧配置中把路径填入 `privateKey` 的场景。
+  - 同时存在文本和路径时优先使用文本。
+  - `privateKey` 不是私钥文本且存在显式路径时使用显式路径。
+
+### Verification
+
+- `go test ./folder/sftp` 通过。
+- `go test ./...` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+- `git diff --check` 通过。
+
+## 2026-04-06 - Fix SFTP Absolute RootPath Boundary Check
+
+### Root Cause
+
+- SFTP `fullPath()` 之前使用 `path.Join("/", RootPath, relPath)` 生成远端路径，但边界检查里的 root 使用 `"/" + RootPath`。
+- 当 `RootPath` 是 `/home/ping` 时：
+  - 实际路径会生成 `/home/ping`。
+  - 边界 root 会错误生成 `//home/ping`。
+  - 因此合法根路径会被误判为越界，导致 `List("")` 等操作失败。
+- 当 `RootPath` 是 `/` 时，`Validate()` 会把它归一成空 root，所以没有触发这个问题。
+
+### Completed Changes
+
+- 新增 `normalizeRemoteRoot()`，把 SFTP remote root 统一规整为单一绝对路径：
+  - `""` 和 `/` -> `/`
+  - `/home/ping` 和 `home/ping` -> `/home/ping`
+- `fullPath()` 改为先归一 root，再拼接相对路径和做目录边界检查。
+- 新增测试覆盖：
+  - `RootPath=/home/ping` 下根目录、子路径、调用方传绝对路径、越界路径。
+  - `RootPath=/` 下根目录和子路径。
+
+### Verification
+
+- `go test ./folder/sftp` 通过。
+- `go test ./...` 通过。
+- 使用真实 SFTP 连接验证 `rootPath=/home/ping` 且用户 `ping` 时 `List("")` 通过，返回 `31` 个条目。
+
+## 2026-04-06 - Normalize S3 and OSS Prefix Roots
+
+### Finding
+
+- S3/OSS 也存在和 SFTP root 类似的路径语义风险。
+- 旧逻辑只去掉 `prefix` 尾部 `/`，没有去掉前导 `/`：
+  - `/home/ping` 会变成 `/home/ping/`。
+  - `/` 会变成 `/`。
+- 对象存储 key 通常按 `home/ping/` 这类无前导 slash 的 prefix 组织，因此前端如果把 prefix 填成类似本地路径的 `/home/ping`，驱动会查找错误前缀。
+
+### Completed Changes
+
+- S3 和 OSS 都新增 `normalizePrefix()`：
+  - `""` 和 `/` -> `""`
+  - `/home/ping` 和 `home/ping` -> `home/ping/`
+  - 多余首尾 slash 会被收口。
+- `DriverOptions.Root` 与驱动自身 `prefix` 合并时也统一走 `normalizePrefix()`，避免生成带前导 slash 的对象 key 前缀。
+- 新增 S3/OSS 单测覆盖：
+  - prefix 归一化。
+  - `/root` + `/child/` 合并为 `root/child/`。
+  - `fullKey("")` 和 `fullKey("/file.txt")` 不产生前导 slash。
+
+### Verification
+
+- `go test ./folder/s3 ./folder/alibaba-oss ./folder/sftp` 通过。
+- `go test ./...` 通过。

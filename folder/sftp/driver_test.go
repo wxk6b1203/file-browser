@@ -28,6 +28,7 @@ func envOrSkip(t *testing.T, key string) string {
 //	SFTP_USERNAME         – SSH username                                    (required)
 //	SFTP_PASSWORD         – password authentication                         (required if no private key)
 //	SFTP_PRIVATE_KEY      – PEM-encoded private key                         (required if no password)
+//	SFTP_PRIVATE_KEY_PATH – path to a PEM/OpenSSH private key file           (required if no password/private key text)
 //	SFTP_PASSPHRASE       – passphrase for encrypted private key            (optional)
 //	SFTP_PORT             – SSH port, default 22                            (optional)
 //	SFTP_ROOT_PATH        – remote root path for scoping operations         (optional)
@@ -40,8 +41,9 @@ func newDriverFromEnv(t *testing.T) folder.Manager {
 
 	password := os.Getenv("SFTP_PASSWORD")
 	privateKey := os.Getenv("SFTP_PRIVATE_KEY")
-	if password == "" && privateKey == "" {
-		t.Skip("neither SFTP_PASSWORD nor SFTP_PRIVATE_KEY is set, skipping integration test")
+	privateKeyPath := os.Getenv("SFTP_PRIVATE_KEY_PATH")
+	if password == "" && privateKey == "" && privateKeyPath == "" {
+		t.Skip("neither SFTP_PASSWORD, SFTP_PRIVATE_KEY, nor SFTP_PRIVATE_KEY_PATH is set, skipping integration test")
 	}
 
 	port := 22
@@ -68,6 +70,7 @@ func newDriverFromEnv(t *testing.T) folder.Manager {
 		Username:       username,
 		Password:       password,
 		PrivateKey:     privateKey,
+		PrivateKeyPath: privateKeyPath,
 		Passphrase:     os.Getenv("SFTP_PASSPHRASE"),
 		RootPath:       os.Getenv("SFTP_ROOT_PATH"),
 		DialTimeoutSec: dialTimeout,
