@@ -116,6 +116,11 @@ S3/OSS 的对象 `LastModified` 由服务端控制，不能像本地文件一样
 - `state.yaml` - UI/运行时状态。
 - `logs/app.log` - 默认日志文件。
 
+默认传输临时目录：
+
+- 类 Unix 系统：`/tmp/file-browser/transfers`
+- Windows：`%USERPROFILE%\AppData\Local\Temp\file-browser\transfers`
+
 应用配置也支持 `config.yml` 和 `config.json`。连接配置支持 YAML 和 JSON。
 
 最小 `connections.yaml` 示例：

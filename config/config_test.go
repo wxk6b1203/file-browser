@@ -68,6 +68,9 @@ func TestLoadAppConfigDefaultsWhenMissing(t *testing.T) {
 	if loaded.Config.Paths.ConnectionsFile != filepath.Join(canonicalTmpDir, DefaultConnectionsConfigFileName) {
 		t.Fatalf("unexpected connections file path: %q", loaded.Config.Paths.ConnectionsFile)
 	}
+	if loaded.Config.Transfer.TempDir != DefaultTransferTempDirPath() {
+		t.Fatalf("unexpected default transfer temp dir: %q", loaded.Config.Transfer.TempDir)
+	}
 }
 
 func TestLoadAppConfigDefaultsToUnixUserConfigDirOutsideProjectRoot(t *testing.T) {
@@ -111,6 +114,9 @@ func TestLoadAppConfigDefaultsToUnixUserConfigDirOutsideProjectRoot(t *testing.T
 	}
 	if loaded.Config.Paths.ConnectionsFile != filepath.Join(canonicalHome, ".config", DefaultUnixConfigDirName, DefaultConnectionsConfigFileName) {
 		t.Fatalf("unexpected connections path: %q", loaded.Config.Paths.ConnectionsFile)
+	}
+	if loaded.Config.Transfer.TempDir != DefaultTransferTempDirPath() {
+		t.Fatalf("unexpected transfer temp dir: %q", loaded.Config.Transfer.TempDir)
 	}
 	if _, err := os.Stat(filepath.Dir(expectedPath)); err != nil {
 		t.Fatalf("expected config directory to be created: %v", err)

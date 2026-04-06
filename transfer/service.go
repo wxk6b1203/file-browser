@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/wxk6b1203/file-util-manager/config"
 	"github.com/wxk6b1203/file-util-manager/connection"
 	"github.com/wxk6b1203/file-util-manager/folder"
 )
@@ -583,7 +584,7 @@ func (s *Service) RemoveFinishedTasks() {
 func (s *Service) buildTempFilePath(connectionID, remotePath string) (string, error) {
 	baseDir := s.currentTempDir()
 	if baseDir == "" {
-		baseDir = filepath.Join(".", "tmp", "transfers")
+		baseDir = config.DefaultTransferTempDirPath()
 	}
 
 	fileName := path.Base(remotePath)
@@ -606,7 +607,7 @@ func (s *Service) buildTempFilePath(connectionID, remotePath string) (string, er
 func (s *Service) buildTempDirectoryPath(connectionID, remotePath string) (string, error) {
 	baseDir := s.currentTempDir()
 	if baseDir == "" {
-		baseDir = filepath.Join(".", "tmp", "transfers")
+		baseDir = config.DefaultTransferTempDirPath()
 	}
 
 	dirName := path.Base(remotePath)

@@ -140,7 +140,7 @@
       "transferTitle": "Transfer",
       "transferDesc": "Downloads, uploads, and cross-connection transfers reuse this temp directory setting.",
       "transferTempDirLabel": "Transfer Temp Directory",
-      "transferTempDirPlaceholder": "For example: tmp/transfers",
+      "transferTempDirPlaceholder": "Unix default: /tmp/file-browser/transfers; Windows default: %USERPROFILE%\\AppData\\Local\\Temp\\file-browser\\transfers",
       "transferDownloadDirLabel": "Default Download Directory",
       "transferDownloadDirPlaceholder": "Leave empty to keep using temp; when set and existing, downloads prefer this directory",
       "transferOverwriteLabel": "Overwrite Strategy",

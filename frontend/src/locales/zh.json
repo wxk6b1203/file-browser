@@ -140,7 +140,7 @@
       "transferTitle": "传输",
       "transferDesc": "下载、上传和跨连接传输会复用这里的临时目录配置。",
       "transferTempDirLabel": "传输临时目录",
-      "transferTempDirPlaceholder": "例如：tmp/transfers",
+      "transferTempDirPlaceholder": "类 Unix 默认：/tmp/file-browser/transfers；Windows 默认：%USERPROFILE%\\AppData\\Local\\Temp\\file-browser\\transfers",
       "transferDownloadDirLabel": "默认下载目录",
       "transferDownloadDirPlaceholder": "为空时继续使用临时目录，已设置且目录存在时优先下载到这里",
       "transferOverwriteLabel": "覆盖策略",

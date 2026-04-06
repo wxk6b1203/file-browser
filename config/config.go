@@ -18,7 +18,7 @@ const (
 	DefaultStateFileName             = "state.yaml"
 	DefaultLogFileName               = "logs/app.log"
 	DefaultTempDir                   = "tmp"
-	DefaultTransferTempDir           = "tmp/transfers"
+	DefaultTransferTempDirName       = "transfers"
 	DefaultUnixConfigDirName         = "file-browser"
 	DefaultUIExplorerFontSize        = 13
 	DefaultUIFileListFontSize        = 13
@@ -138,7 +138,7 @@ func DefaultAppConfig() *AppConfig {
 			ResultLimit:    500,
 		},
 		Transfer: TransferSection{
-			TempDir:           DefaultTransferTempDir,
+			TempDir:           DefaultTransferTempDirPath(),
 			DownloadDir:       "",
 			OverwriteStrategy: "rename",
 		},
@@ -155,6 +155,17 @@ func DefaultConnectionsConfig() *ConnectionsConfig {
 	return &ConnectionsConfig{
 		Connections: make([]ConnectionDefinition, 0),
 	}
+}
+
+func DefaultTransferTempDirPath() string {
+	if runtime.GOOS == "windows" {
+		base := strings.TrimSpace(os.Getenv("USERPROFILE"))
+		if base == "" {
+			base = os.TempDir()
+		}
+		return filepath.Join(base, "AppData", "Local", "Temp", DefaultUnixConfigDirName, DefaultTransferTempDirName)
+	}
+	return filepath.Join(string(os.PathSeparator), "tmp", DefaultUnixConfigDirName, DefaultTransferTempDirName)
 }
 
 func ResolveAppConfigPath(input string) (string, error) {
@@ -391,7 +402,7 @@ func (c *AppConfig) Normalize(baseDir string) {
 		c.Search.ResultLimit = 500
 	}
 
-	c.Transfer.TempDir = resolvePath(baseDir, defaultString(c.Transfer.TempDir, DefaultTransferTempDir))
+	c.Transfer.TempDir = defaultPath(c.Transfer.TempDir, DefaultTransferTempDirPath(), baseDir)
 	c.Transfer.DownloadDir = resolvePath(baseDir, c.Transfer.DownloadDir)
 	c.Transfer.OverwriteStrategy = defaultString(c.Transfer.OverwriteStrategy, "rename")
 
@@ -550,6 +561,14 @@ func resolvePath(baseDir, value string) string {
 		return filepath.Clean(trimmed)
 	}
 	return filepath.Clean(filepath.Join(baseDir, trimmed))
+}
+
+func defaultPath(value, fallback, baseDir string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return filepath.Clean(fallback)
+	}
+	return resolvePath(baseDir, trimmed)
 }
 
 func canonicalPath(path string) (string, error) {

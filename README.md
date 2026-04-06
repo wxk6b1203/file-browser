@@ -118,6 +118,11 @@ Default files:
 - `state.yaml` - persisted UI/runtime state.
 - `logs/app.log` - default log file when file logging is enabled.
 
+Default transfer temporary directory:
+
+- Unix-like systems: `/tmp/file-browser/transfers`
+- Windows: `%USERPROFILE%\AppData\Local\Temp\file-browser\transfers`
+
 The app config can also be loaded from `config.yml` or `config.json`. Connection config supports YAML and JSON.
 
 A minimal `connections.yaml` example:

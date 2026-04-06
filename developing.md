@@ -4339,3 +4339,45 @@ connections:
 - `go test ./config` 通过。
 - `go test ./...` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-06 - Change Default Transfer Temp Directory
+
+### Goal
+
+- Move the default transfer temporary directory out of the project/current working directory.
+- Use OS-specific temp locations by default.
+
+### Completed Changes
+
+- Replaced the old relative default `tmp/transfers` with `config.DefaultTransferTempDirPath()`.
+- New defaults:
+  - Unix-like systems: `/tmp/file-browser/transfers`
+  - Windows: `%USERPROFILE%\AppData\Local\Temp\file-browser\transfers`
+- Updated app config normalization so an empty `transfer.temp_dir` uses the OS-specific default path.
+- Updated `transfer.Service` fallback paths so empty runtime temp dir also uses the same OS-specific default.
+- Updated frontend placeholder text and README configuration notes.
+- Extended config tests to assert the default transfer temp directory.
+
+### Verification
+
+- `go test ./config ./transfer` 通过。
+- `go test ./...` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+- `git diff --check` 通过。
+
+## 2026-04-06 - Correct Default Transfer Temp Directory Suffix
+
+### Completed Changes
+
+- Corrected the default transfer temp directory suffix from singular `transfer` to plural `transfers`.
+- Final defaults:
+  - Unix-like systems: `/tmp/file-browser/transfers`
+  - Windows: `%USERPROFILE%\AppData\Local\Temp\file-browser\transfers`
+- Updated README and frontend setting placeholder text accordingly.
+
+### Verification
+
+- `go test ./config ./transfer` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `git diff --check` 通过。
