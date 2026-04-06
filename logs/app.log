@@ -3187,3 +3187,7 @@
 2026-04-06 23:17:47.370	INFO	file-browser/app.go:82	App is shutting down
 2026-04-06 23:41:47.853	INFO	file-browser/app.go:38	Creating new app
 2026-04-06 23:41:47.853	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 00:06:03.592	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 00:06:03.592	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 00:22:19.100	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 00:22:19.100	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}

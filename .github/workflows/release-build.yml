@@ -29,26 +29,32 @@ jobs:
             platform: linux/amd64
             suffix: linux-amd64
             os: linux
+            binary_ext: ''
           - runner: ubuntu-22.04-arm
             platform: linux/arm64
             suffix: linux-arm64
             os: linux
+            binary_ext: ''
           - runner: windows-2025
             platform: windows/amd64
             suffix: windows-amd64
             os: windows
+            binary_ext: '.exe'
           - runner: windows-11-arm
             platform: windows/arm64
             suffix: windows-arm64
             os: windows
+            binary_ext: '.exe'
           - runner: macos-15-intel
             platform: darwin/amd64
             suffix: darwin-amd64
             os: macos
+            binary_ext: ''
           - runner: macos-15
             platform: darwin/arm64
             suffix: darwin-arm64
             os: macos
+            binary_ext: ''
 
     steps:
       - name: Checkout
@@ -88,7 +94,7 @@ jobs:
           wails build \
             -clean \
             -platform "${{ matrix.platform }}" \
-            -o "${{ env.APP_NAME }}-${{ matrix.suffix }}" \
+            -o "${{ env.APP_NAME }}-${{ matrix.suffix }}${{ matrix.binary_ext }}" \
             -trimpath
 
       - name: Package artifact
