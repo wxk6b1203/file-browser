@@ -4552,3 +4552,28 @@ connections:
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-07 - Normalize Scrollbar Appearance Across WebViews
+
+### Goal
+
+- WebKit and WebView2 render native scrollbars differently.
+- Normalize the app scrollbar appearance so Explorer, file lists, task panels, notification panels, tabs, and Element Plus internal scroll containers use a thin theme-colored style.
+
+### Completed Changes
+
+- Added global scrollbar variables:
+  - `--ui-scrollbar-size: 8px`
+  - `--ui-scrollbar-thumb-size: 5px`
+- Added global native scrollbar rules in `frontend/src/assets/main.css`:
+  - Firefox `scrollbar-width: thin`
+  - WebKit/WebView2 `::-webkit-scrollbar` and thumb styling
+  - transparent track/corner
+  - theme-driven thumb and hover colors
+- Added Element Plus scrollbar bridge for `.el-scrollbar__bar` / `.el-scrollbar__thumb`.
+- Updated `TabBar` to use the same scrollbar variables instead of its previous local `2px` WebKit override.
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。

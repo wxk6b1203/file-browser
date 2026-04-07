@@ -3380,3 +3380,71 @@
 2026-04-07 17:42:51.868	INFO	render/drag.go:32	Drop signal received	{"x": 565, "y": 534, "paths": [""]}
 2026-04-07 17:44:21.729	INFO	render/manager.go:32	Render manager stopped
 2026-04-07 17:44:21.730	INFO	file-browser/app.go:82	App is shutting down
+2026-04-07 17:48:33.512	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:48:33.513	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:48:39.861	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:48:39.861	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:48:42.629	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:48:42.629	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:48:42.752	INFO	render/manager.go:26	Render manager started
+2026-04-07 17:49:07.152	INFO	render/drag.go:25	Drag leave signal received	{"x": 695, "y": 648}
+2026-04-07 17:49:07.158	INFO	render/drag.go:25	Drag leave signal received	{"x": 671, "y": 648}
+2026-04-07 17:49:07.167	INFO	render/drag.go:25	Drag leave signal received	{"x": 641, "y": 648}
+2026-04-07 17:49:07.182	INFO	render/drag.go:25	Drag leave signal received	{"x": 610, "y": 648}
+2026-04-07 17:49:07.393	INFO	render/drag.go:32	Drop signal received	{"x": 526, "y": 644, "paths": [""]}
+2026-04-07 17:49:39.276	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.277	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.278	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.278	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.278	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.282	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.282	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.282	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.282	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.283	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.283	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.283	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.285	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:52:04.596	INFO	render/drag.go:25	Drag leave signal received	{"x": 478, "y": 354}
+2026-04-07 17:52:04.612	INFO	render/drag.go:25	Drag leave signal received	{"x": 479, "y": 341}
+2026-04-07 17:52:04.627	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 312}
+2026-04-07 17:52:04.638	INFO	render/drag.go:25	Drag leave signal received	{"x": 483, "y": 300}
+2026-04-07 17:52:04.656	INFO	render/drag.go:25	Drag leave signal received	{"x": 484, "y": 281}
+2026-04-07 17:52:04.668	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 276}
+2026-04-07 17:52:04.703	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 270}
+2026-04-07 17:52:04.714	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 269}
+2026-04-07 17:52:05.376	INFO	render/drag.go:25	Drag leave signal received	{"x": 486, "y": 270}
+2026-04-07 17:52:05.426	INFO	render/drag.go:25	Drag leave signal received	{"x": 486, "y": 271}
+2026-04-07 17:52:05.652	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 279}
+2026-04-07 17:52:05.759	INFO	render/drag.go:25	Drag leave signal received	{"x": 483, "y": 286}
+2026-04-07 17:52:05.778	INFO	render/drag.go:25	Drag leave signal received	{"x": 483, "y": 287}
+2026-04-07 17:52:06.362	INFO	render/drag.go:32	Drop signal received	{"x": 487, "y": 300, "paths": [""]}
+2026-04-07 17:52:35.150	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 17:52:35.150	INFO	file-browser/app.go:82	App is shutting down
