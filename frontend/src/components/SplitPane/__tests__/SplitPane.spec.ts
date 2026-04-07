@@ -1,4 +1,5 @@
 import { defineComponent, h, nextTick } from 'vue'
+import { createI18n } from 'vue-i18n'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -19,6 +20,26 @@ function readFlexBasis(el: Element): number {
   return parseFloat((el as HTMLElement).style.flexBasis || '0')
 }
 
+function mountWithI18n(component: ReturnType<typeof defineComponent>) {
+  const i18n = createI18n({
+    legacy: false,
+    locale: 'en',
+    messages: {
+      en: {
+        splitPane: {
+          dropToPanel: 'Drop to This Panel',
+        },
+      },
+    },
+  })
+
+  return mount(component, {
+    global: {
+      plugins: [i18n],
+    },
+  })
+}
+
 describe('SplitPane', () => {
   it('applies initial minimized state and redistributes space', async () => {
     const Host = defineComponent({
@@ -37,7 +58,7 @@ describe('SplitPane', () => {
       },
     })
 
-    const wrapper = mount(Host)
+    const wrapper = mountWithI18n(Host)
     await nextTick()
     await nextTick()
 
@@ -69,7 +90,7 @@ describe('SplitPane', () => {
       },
     })
 
-    const wrapper = mount(Host)
+    const wrapper = mountWithI18n(Host)
     await nextTick()
     await nextTick()
 
@@ -86,4 +107,3 @@ describe('SplitPane', () => {
     expect(first + second + third).toBeCloseTo(1000, 0)
   })
 })
-

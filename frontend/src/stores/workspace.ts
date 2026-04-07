@@ -13,6 +13,7 @@ const ROOT_GROUP_ID = 'workspace-root'
 interface ConnectionTabState {
   path: string
   items?: folder.FileInfo[]
+  revealPath?: string
 }
 
 function createEmptyGroup(): TabGroupNode {
@@ -153,6 +154,30 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     }
   }
 
+  function setConnectionRevealPath(connectionId: string, path: string) {
+    connectionTabState.value = {
+      ...connectionTabState.value,
+      [connectionId]: {
+        ...connectionTabState.value[connectionId],
+        path: connectionTabState.value[connectionId]?.path ?? '',
+        revealPath: path,
+      },
+    }
+  }
+
+  function consumeConnectionRevealPath(connectionId: string) {
+    const state = connectionTabState.value[connectionId]
+    const revealPath = state?.revealPath
+    if (!state || !revealPath) return null
+
+    const { revealPath: _discarded, ...rest } = state
+    connectionTabState.value = {
+      ...connectionTabState.value,
+      [connectionId]: rest,
+    }
+    return revealPath
+  }
+
   function getConnectionPath(connectionId: string) {
     return connectionTabState.value[connectionId]?.path ?? ''
   }
@@ -161,6 +186,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     connectionTabState.value = {
       ...connectionTabState.value,
       [connectionId]: {
+        ...connectionTabState.value[connectionId],
         path,
         items: items.map((item) => folder.FileInfo.createFrom(JSON.parse(JSON.stringify(item)))),
       },
@@ -301,6 +327,8 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     setActiveGroup,
     isTabActiveInActiveGroup,
     setConnectionPath,
+    setConnectionRevealPath,
+    consumeConnectionRevealPath,
     getConnectionPath,
     setConnectionBrowserState,
     getConnectionBrowserState,

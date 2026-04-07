@@ -1042,6 +1042,20 @@ async function scrollPathIntoView(path: string | null) {
   })
 }
 
+function revealLoadedPath(path: string | null | undefined) {
+  const normalized = normalizeEntryPath(path ?? '')
+  if (!normalized) return
+
+  const item = normalizeFolderItems(items.value).find((entry) => normalizeEntryPath(entry.path) === normalized)
+  if (!item) return
+
+  const itemPath = normalizeEntryPath(item.path)
+  selectedPaths.value = [itemPath]
+  selectionAnchorPath.value = itemPath
+  activePath.value = itemPath
+  void scrollPathIntoView(itemPath)
+}
+
 async function clampViewportScrollToContent() {
   await nextTick()
   const viewport = browserViewportRef.value
@@ -1775,6 +1789,7 @@ async function load(dir = '', options: { history?: NavigationHistoryMode } = {})
     workspace.setConnectionPath(connectionId.value, nextDir)
     workspace.setConnectionBrowserState(connectionId.value, nextDir, items.value)
     recordNavigationPath(nextDir, options.history ?? 'push')
+    revealLoadedPath(workspace.consumeConnectionRevealPath(connectionId.value))
     return true
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : String(error))
@@ -2245,6 +2260,7 @@ onMounted(async () => {
     items.value = normalizeFolderItems(cachedState.items)
     workspace.setConnectionPath(connectionId.value, currentPath.value)
     recordNavigationPath(currentPath.value, 'reset')
+    revealLoadedPath(workspace.consumeConnectionRevealPath(connectionId.value))
     return
   }
   await load(targetPath.value, { history: 'reset' })
