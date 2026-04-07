@@ -4452,3 +4452,23 @@ connections:
 - Shortcut display is platform-aware:
   - macOS: `Cmd + [` / `Cmd + ]`
   - Windows/Linux: `Alt + Left` / `Alt + Right`
+
+## 2026-04-07 - Add Japanese Locale
+
+### Goal
+
+- Add Japanese UI translations and expose Japanese in the settings locale selector.
+
+### Completed Changes
+
+- Added `frontend/src/locales/ja.json` with the same message structure as `zh` and `en`.
+- Added the `ja` option to the settings locale selector.
+- Updated the settings store supported locale whitelist to include `ja`.
+- Added a locale parity unit test to prevent future `zh/en/ja` key drift.
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/__tests__/localeParity.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+- `git diff --check` 通过。

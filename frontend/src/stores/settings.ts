@@ -6,7 +6,7 @@ import { config } from '../../wailsjs/go/models'
 import { i18n } from '@/i18n'
 import { BUILTIN_THEMES, SYSTEM_THEME, useThemeStore, type ThemeMode } from './theme'
 
-const SUPPORTED_LOCALES = new Set(['zh', 'en'])
+const SUPPORTED_LOCALES = new Set(['zh', 'en', 'ja'])
 const DEFAULT_EXPLORER_FONT_SIZE = 13
 const DEFAULT_FILE_LIST_FONT_SIZE = 13
 const MIN_UI_FONT_SIZE = 11

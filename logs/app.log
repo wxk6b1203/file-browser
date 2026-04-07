@@ -3213,3 +3213,4 @@
 2026-04-07 10:17:06.977	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
 2026-04-07 10:17:07.087	INFO	render/manager.go:26	Render manager started
 2026-04-07 10:17:17.091	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 10:25:21.796	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped

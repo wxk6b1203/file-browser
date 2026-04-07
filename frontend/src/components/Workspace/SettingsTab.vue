@@ -31,6 +31,7 @@
             <el-select v-model="form.locale">
               <el-option value="zh" :label="t('workspace.settings.localeZh')" />
               <el-option value="en" :label="t('workspace.settings.localeEn')" />
+              <el-option value="ja" :label="t('workspace.settings.localeJa')" />
             </el-select>
           </el-form-item>
 
