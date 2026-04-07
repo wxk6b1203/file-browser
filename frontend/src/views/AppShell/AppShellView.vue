@@ -128,6 +128,7 @@ const rightSidebar = computed<SidebarConfig>(() => ({
 useShortcutMap({
   'new-connection': () => workspace.openNewConnection(),
   'open-settings': () => workspace.openSettings(),
+  search: () => shell.showSearch(),
 })
 
 function connectionIdFromTabId(tabId: string) {
