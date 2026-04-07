@@ -128,38 +128,97 @@
       {{ t('workspace.fileBrowser.loading') }}
     </div>
 
-    <div
-      v-else-if="viewMode === 'list'"
-      ref="browserViewportRef"
-      class="file-browser__list-shell"
-      :class="{ 'file-browser__drop-root': browserDropActive }"
-      tabindex="0"
-      @keydown="onViewportKeydown"
-      @dragover="onBrowserDragOver"
-      @dragleave="onBrowserDragLeave"
-      @drop="onBrowserDrop"
-    >
-      <div class="file-browser__list-table">
-        <div class="file-browser__list-header" :style="listGridStyle">
-          <button
-            v-for="(column, index) in visibleColumns"
-            :key="column.key"
-            type="button"
-            class="file-browser__list-header-btn"
-            :class="[`file-browser__list-header-btn--${column.align}`]"
-            @click="onHeaderClick(column.key, $event)"
-            @dragstart.prevent
-          >
-            <span>{{ column.label }}</span>
-            <span class="file-browser__sort-indicator">{{ sortIndicator(column.key) }}</span>
-            <span
-              v-if="canResizeColumn(index)"
-              class="file-browser__column-resizer"
-              @mousedown.stop.prevent="startColumnResize(index, $event)"
-              @click.stop
-            />
-          </button>
-        </div>
+    <div v-else class="file-browser__viewport-wrap">
+      <div
+        v-if="localSearchOpen"
+        class="file-browser__local-search"
+        @mousedown.stop
+        @click.stop
+        @keydown.stop
+      >
+        <input
+          ref="localSearchInputRef"
+          v-model="localSearchDraft"
+          class="file-browser__local-search-input"
+          :placeholder="t('workspace.fileBrowser.localSearchPlaceholder')"
+          @keydown.enter.prevent.stop="commitLocalSearch"
+          @keydown.esc.prevent.stop="closeLocalSearch"
+        >
+        <button
+          type="button"
+          class="file-browser__local-search-option"
+          :class="{ 'file-browser__local-search-option--active': localSearchCaseSensitive }"
+          :title="t('workspace.fileBrowser.localSearchCaseSensitive')"
+          @click="localSearchCaseSensitive = !localSearchCaseSensitive"
+        >
+          Aa
+        </button>
+        <button
+          type="button"
+          class="file-browser__local-search-option"
+          :class="{ 'file-browser__local-search-option--active': localSearchWholeText }"
+          :title="t('workspace.fileBrowser.localSearchWholeText')"
+          @click="localSearchWholeText = !localSearchWholeText"
+        >
+          =
+        </button>
+        <button
+          type="button"
+          class="file-browser__local-search-option"
+          :class="{ 'file-browser__local-search-option--active': localSearchRegex }"
+          :title="t('workspace.fileBrowser.localSearchRegex')"
+          @click="localSearchRegex = !localSearchRegex"
+        >
+          .*
+        </button>
+        <span
+          class="file-browser__local-search-count"
+          :class="{ 'file-browser__local-search-count--error': Boolean(localSearchError) }"
+        >
+          {{ localSearchError || localSearchCountLabel }}
+        </span>
+        <button
+          type="button"
+          class="file-browser__local-search-close"
+          :title="t('workspace.fileBrowser.localSearchClose')"
+          @click="closeLocalSearch"
+        >
+          ×
+        </button>
+      </div>
+
+      <div
+        v-if="viewMode === 'list'"
+        ref="browserViewportRef"
+        class="file-browser__list-shell"
+        :class="{ 'file-browser__drop-root': browserDropActive }"
+        tabindex="0"
+        @keydown="onViewportKeydown"
+        @dragover="onBrowserDragOver"
+        @dragleave="onBrowserDragLeave"
+        @drop="onBrowserDrop"
+      >
+        <div class="file-browser__list-table">
+          <div class="file-browser__list-header" :style="listGridStyle">
+            <button
+              v-for="(column, index) in visibleColumns"
+              :key="column.key"
+              type="button"
+              class="file-browser__list-header-btn"
+              :class="[`file-browser__list-header-btn--${column.align}`]"
+              @click="onHeaderClick(column.key, $event)"
+              @dragstart.prevent
+            >
+              <span>{{ column.label }}</span>
+              <span class="file-browser__sort-indicator">{{ sortIndicator(column.key) }}</span>
+              <span
+                v-if="canResizeColumn(index)"
+                class="file-browser__column-resizer"
+                @mousedown.stop.prevent="startColumnResize(index, $event)"
+                @click.stop
+              />
+            </button>
+          </div>
 
         <div class="file-browser__list-body">
           <div
@@ -192,12 +251,12 @@
               :class="[`file-browser__cell--${column.key}`, `file-browser__cell--${column.align}`]"
             />
           </div>
-          <div v-if="sortedItems.length === 0 && !inlineCreateActive" class="file-browser__viewport-empty file-browser__viewport-empty--list">
+          <div v-if="searchedItems.length === 0 && !inlineCreateActive" class="file-browser__viewport-empty file-browser__viewport-empty--list">
             <i-mdi-folder-outline class="file-browser__empty-icon" />
-            <span>{{ t('workspace.fileBrowser.empty') }}</span>
+            <span>{{ localSearchQuery ? t('workspace.fileBrowser.localSearchNoMatches') : t('workspace.fileBrowser.empty') }}</span>
           </div>
           <div
-            v-for="item in sortedItems"
+            v-for="item in searchedItems"
             :key="normalizeEntryPath(item.path)"
             role="button"
             tabindex="-1"
@@ -275,44 +334,44 @@
       </div>
     </div>
 
-    <div
-      v-else
-      ref="browserViewportRef"
-      class="file-browser__grid"
-      :class="{ 'file-browser__drop-root': browserDropActive }"
-      tabindex="0"
-      @keydown="onViewportKeydown"
-      @dragover="onBrowserDragOver"
-      @dragleave="onBrowserDragLeave"
-      @drop="onBrowserDrop"
-    >
       <div
-        v-if="inlineCreateActive"
-        class="file-browser__tile file-browser__tile--inline-create"
-        @click.stop
-        @dblclick.stop
-        @contextmenu.prevent.stop="clearNativeSelection"
+        v-else
+        ref="browserViewportRef"
+        class="file-browser__grid"
+        :class="{ 'file-browser__drop-root': browserDropActive }"
+        tabindex="0"
+        @keydown="onViewportKeydown"
+        @dragover="onBrowserDragOver"
+        @dragleave="onBrowserDragLeave"
+        @drop="onBrowserDrop"
       >
-        <span class="file-browser__tile-icon">
-          <component :is="resolveFileIcon({ name: inlineCreateName || 'folder', type: DIRECTORY_ENTRY_TYPE })" />
-        </span>
-        <input
-          ref="inlineCreateInputRef"
-          v-model="inlineCreateName"
-          class="file-browser__inline-create-input file-browser__inline-create-input--tile"
-          :placeholder="t('workspace.fileBrowser.newFolderPlaceholder')"
-          :disabled="inlineCreateBusy"
-          @keydown.enter.prevent="commitInlineCreate"
-          @keydown.esc.prevent="cancelInlineCreate"
-          @blur="commitInlineCreate"
+        <div
+          v-if="inlineCreateActive"
+          class="file-browser__tile file-browser__tile--inline-create"
+          @click.stop
+          @dblclick.stop
+          @contextmenu.prevent.stop="clearNativeSelection"
         >
-      </div>
-      <div v-if="sortedItems.length === 0 && !inlineCreateActive" class="file-browser__viewport-empty file-browser__viewport-empty--grid">
-        <i-mdi-folder-outline class="file-browser__empty-icon" />
-        <span>{{ t('workspace.fileBrowser.empty') }}</span>
-      </div>
-      <div
-        v-for="item in sortedItems"
+          <span class="file-browser__tile-icon">
+            <component :is="resolveFileIcon({ name: inlineCreateName || 'folder', type: DIRECTORY_ENTRY_TYPE })" />
+          </span>
+          <input
+            ref="inlineCreateInputRef"
+            v-model="inlineCreateName"
+            class="file-browser__inline-create-input file-browser__inline-create-input--tile"
+            :placeholder="t('workspace.fileBrowser.newFolderPlaceholder')"
+            :disabled="inlineCreateBusy"
+            @keydown.enter.prevent="commitInlineCreate"
+            @keydown.esc.prevent="cancelInlineCreate"
+            @blur="commitInlineCreate"
+          >
+        </div>
+        <div v-if="searchedItems.length === 0 && !inlineCreateActive" class="file-browser__viewport-empty file-browser__viewport-empty--grid">
+          <i-mdi-folder-outline class="file-browser__empty-icon" />
+          <span>{{ localSearchQuery ? t('workspace.fileBrowser.localSearchNoMatches') : t('workspace.fileBrowser.empty') }}</span>
+        </div>
+        <div
+          v-for="item in searchedItems"
         :key="normalizeEntryPath(item.path)"
         role="button"
         tabindex="-1"
@@ -367,6 +426,7 @@
           </span>
         </span>
         <span class="file-browser__tile-meta">{{ isDirectory(item) ? t('workspace.fileBrowser.directory') : formatSize(item.size) }}</span>
+        </div>
       </div>
     </div>
 
@@ -524,6 +584,13 @@ const inlineCreateActive = ref(false)
 const inlineCreateName = ref('')
 const inlineCreateBusy = ref(false)
 const inlineCreateInputRef = ref<HTMLInputElement | null>(null)
+const localSearchOpen = ref(false)
+const localSearchDraft = ref('')
+const localSearchQuery = ref('')
+const localSearchCaseSensitive = ref(false)
+const localSearchWholeText = ref(false)
+const localSearchRegex = ref(false)
+const localSearchInputRef = ref<HTMLInputElement | null>(null)
 const inlineDeletePaths = ref<string[]>([])
 const inlineDeleteBusyPath = ref<string | null>(null)
 const navigationHistory = ref<NavigationHistoryState>(createNavigationHistory(''))
@@ -615,8 +682,54 @@ const sortedItems = computed(() => {
     return result * direction
   })
 })
+const localSearchPlan = computed(() => {
+  const query = localSearchQuery.value.trim()
+  if (!query) {
+    return {
+      error: '',
+      matcher: null as ((item: folder.FileInfo) => boolean) | null,
+    }
+  }
+
+  if (localSearchRegex.value) {
+    try {
+      const pattern = localSearchWholeText.value ? `^(?:${query})$` : query
+      const regex = new RegExp(pattern, localSearchCaseSensitive.value ? 'u' : 'iu')
+      return {
+        error: '',
+        matcher: (item: folder.FileInfo) => regex.test(localSearchText(item)),
+      }
+    } catch {
+      return {
+        error: t('workspace.fileBrowser.localSearchInvalidRegex'),
+        matcher: null,
+      }
+    }
+  }
+
+  const needle = normalizeLocalSearchText(query)
+  return {
+    error: '',
+    matcher: (item: folder.FileInfo) => {
+      const haystack = normalizeLocalSearchText(localSearchText(item))
+      return localSearchWholeText.value ? haystack === needle : haystack.includes(needle)
+    },
+  }
+})
+const localSearchError = computed(() => localSearchPlan.value.error)
+const searchedItems = computed(() => {
+  const matcher = localSearchPlan.value.matcher
+  return matcher ? sortedItems.value.filter(matcher) : sortedItems.value
+})
+const localSearchCountLabel = computed(() => {
+  if (!localSearchQuery.value.trim()) return ''
+  return t('workspace.fileBrowser.localSearchCount', {
+    count: searchedItems.value.length,
+    total: sortedItems.value.length,
+  })
+})
 const selectedItems = computed(() =>
-  sortedItems.value.filter((item) => selectedPathSet.value.has(normalizeEntryPath(item.path))),
+  searchedItems.value.filter((item) => selectedPathSet.value.has(normalizeEntryPath(item.path))),
 )
 const contextMenuItem = computed(() => contextMenu.value.item)
 const contextMenuStyle = computed(() => ({
@@ -662,6 +775,14 @@ function timestampOf(value?: any) {
   if (!value) return 0
   const timestamp = new Date(value).getTime()
   return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function localSearchText(item: folder.FileInfo) {
+  return item.name || item.path || ''
+}
+
+function normalizeLocalSearchText(value: string) {
+  return localSearchCaseSensitive.value ? value : value.toLocaleLowerCase(locale.value)
 }
 
 function normalizeEntryPath(value: string) {
@@ -752,13 +873,13 @@ function sortIndicator(key: ListColumnKey) {
 }
 
 function orderedPaths() {
-  return sortedItems.value.map((item) => normalizeEntryPath(item.path))
+  return searchedItems.value.map((item) => normalizeEntryPath(item.path))
 }
 
 function findItemByPath(path: string | null | undefined) {
   if (!path) return null
   const normalized = normalizeEntryPath(path)
-  return sortedItems.value.find((item) => normalizeEntryPath(item.path) === normalized) ?? null
+  return searchedItems.value.find((item) => normalizeEntryPath(item.path) === normalized) ?? null
 }
 
 function focusBrowserViewport() {
@@ -816,6 +937,13 @@ function historyShortcutDelta(event: KeyboardEvent): -1 | 1 | null {
   return null
 }
 
+function isLocalSearchShortcut(event: KeyboardEvent) {
+  return (event.metaKey || event.ctrlKey)
+    && !event.shiftKey
+    && !event.altKey
+    && event.key.toLowerCase() === 'f'
+}
+
 function isFileBrowserShortcutScope(target: EventTarget | null) {
   if (target instanceof Node && fileBrowserRef.value?.contains(target)) {
     return true
@@ -838,8 +966,23 @@ function isFileBrowserShortcutScope(target: EventTarget | null) {
 }
 
 function onFileBrowserShortcutKeydown(event: KeyboardEvent) {
-  if (isEditableShortcutTarget(event.target) || loading.value) return
   if (!isFileBrowserShortcutScope(event.target)) return
+
+  if (isLocalSearchShortcut(event)) {
+    event.preventDefault()
+    event.stopPropagation()
+    void toggleLocalSearch()
+    return
+  }
+
+  if (event.key === 'Escape' && localSearchOpen.value) {
+    event.preventDefault()
+    event.stopPropagation()
+    closeLocalSearch()
+    return
+  }
+
+  if (isEditableShortcutTarget(event.target) || loading.value) return
 
   const delta = historyShortcutDelta(event)
   if (!delta) return
@@ -848,6 +991,33 @@ function onFileBrowserShortcutKeydown(event: KeyboardEvent) {
   event.preventDefault()
   event.stopPropagation()
   void navigateHistory(delta)
+}
+
+async function openLocalSearch() {
+  localSearchOpen.value = true
+  localSearchDraft.value = localSearchQuery.value
+  await nextTick()
+  localSearchInputRef.value?.focus()
+  localSearchInputRef.value?.select()
+}
+
+async function toggleLocalSearch() {
+  if (localSearchOpen.value) {
+    closeLocalSearch()
+    focusBrowserViewport()
+    return
+  }
+  await openLocalSearch()
+}
+
+function commitLocalSearch() {
+  localSearchQuery.value = localSearchDraft.value.trim()
+}
+
+function closeLocalSearch() {
+  localSearchOpen.value = false
+  localSearchDraft.value = ''
+  localSearchQuery.value = ''
 }
 
 async function navigateHistory(delta: -1 | 1) {
@@ -1414,6 +1584,10 @@ function onViewportKeydown(event: KeyboardEvent) {
 
   if (event.key === 'Escape') {
     event.preventDefault()
+    if (localSearchOpen.value) {
+      closeLocalSearch()
+      return
+    }
     clearSelection()
     return
   }
@@ -1591,6 +1765,7 @@ function startColumnResize(index: number, event: MouseEvent) {
 
 async function load(dir = '', options: { history?: NavigationHistoryMode } = {}) {
   resetTransientInteractionState()
+  closeLocalSearch()
   loading.value = true
   try {
     await connections.openConnection(connectionId.value)
@@ -2024,7 +2199,7 @@ watch(targetPath, (path) => {
   void load(path)
 })
 
-watch(sortedItems, (nextItems) => {
+watch(searchedItems, (nextItems) => {
   reconcileSelection(nextItems)
 }, { immediate: true })
 
@@ -2347,6 +2522,88 @@ onBeforeUnmount(() => {
 
 .file-browser__column-option--locked {
   color: var(--theme-color-text-secondary);
+}
+
+.file-browser__viewport-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.file-browser__local-search {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: min(560px, calc(100% - 24px));
+  padding: 4px;
+  border: 1px solid var(--theme-color-border-light);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--theme-color-bg-overlay) 96%, var(--theme-color-bg-surface));
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--theme-color-shadow) 16%, transparent);
+}
+
+.file-browser__local-search-input {
+  width: min(220px, 32vw);
+  min-width: 120px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--theme-color-border-light);
+  border-radius: 7px;
+  background: var(--theme-color-bg-base);
+  color: var(--theme-color-text-base);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+  user-select: text;
+}
+
+.file-browser__local-search-input:focus {
+  border-color: var(--theme-color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--theme-color-primary) 18%, transparent);
+}
+
+.file-browser__local-search-option,
+.file-browser__local-search-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--theme-color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.file-browser__local-search-option:hover,
+.file-browser__local-search-close:hover {
+  background: var(--theme-color-bg-hover);
+  color: var(--theme-color-text-base);
+}
+
+.file-browser__local-search-option--active {
+  background: var(--theme-color-primary-light);
+  color: var(--theme-color-primary);
+}
+
+.file-browser__local-search-count {
+  min-width: 52px;
+  color: var(--theme-color-text-secondary);
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.file-browser__local-search-count--error {
+  color: var(--theme-color-danger);
 }
 
 .file-browser__list-shell {

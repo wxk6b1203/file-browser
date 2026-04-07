@@ -37,7 +37,7 @@ export interface ShortcutDefinition {
 export const DEFAULT_SHORTCUTS: ShortcutDefinition[] = [
   { id: 'new-connection', label: 'New Connection', accelerator: 'CmdOrCtrl+Shift+N' },
   { id: 'open-settings',  label: 'Open Settings',  accelerator: 'CmdOrCtrl+.' },
-  { id: 'search',         label: 'Search',         accelerator: 'CmdOrCtrl+F' },
+  { id: 'search',         label: 'Search',         accelerator: 'CmdOrCtrl+Shift+F' },
   { id: 'close-tab',      label: 'Close Tab',      accelerator: 'CmdOrCtrl+W' },
   { id: 'refresh',        label: 'Refresh',        accelerator: 'CmdOrCtrl+R' },
   { id: 'rename',         label: 'Rename',         accelerator: 'F2' },

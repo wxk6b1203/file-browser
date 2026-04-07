@@ -78,6 +78,8 @@ const isMac = computed(() => {
 const shortcuts = [
   { keys: ['CtrlOrCmd', 'Shift', 'N'], desc: 'shortcuts.newConnection' },
   { keys: ['CtrlOrCmd', '.'], desc: 'shortcuts.settings' },
+  { keys: ['CtrlOrCmd', 'Shift', 'F'], desc: 'shortcuts.globalSearch' },
+  { keys: ['CtrlOrCmd', 'F'], desc: 'shortcuts.filePanelSearch' },
   { keys: ['Back'], desc: 'shortcuts.filePanelBack' },
   { keys: ['Forward'], desc: 'shortcuts.filePanelForward' },
 ]
@@ -167,11 +169,11 @@ function onOpenSettings() {
   display: flex;
   flex-direction: column;
   gap: 0;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
   width: 100%;
   background: var(--el-fill-color-light);
   border-radius: 12px;
-  padding: 8px 0;
+  padding: 6px 0;
   border: 1px solid var(--el-border-color-lighter);
 }
 
@@ -179,9 +181,9 @@ function onOpenSettings() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  font-size: 14px;
-  padding: 10px 20px;
+  gap: 12px;
+  font-size: 12px;
+  padding: 8px 16px;
   transition: background-color 150ms ease;
 
   &:hover {
@@ -200,14 +202,14 @@ function onOpenSettings() {
 }
 
 .shortcut-icon {
-  font-size: 16px;
+  font-size: 14px;
   color: var(--el-text-color-secondary);
   opacity: 0.7;
 }
 
 .shortcut-desc {
   color: var(--el-text-color-regular);
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .shortcut-keys {
@@ -220,16 +222,16 @@ function onOpenSettings() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 26px;
-  height: 26px;
-  padding: 0 7px;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 6px;
   font-family: var(--el-font-family);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--el-text-color-secondary);
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color);
-  border-radius: 6px;
+  border-radius: 5px;
   box-shadow: 0 1px 0 var(--el-border-color-darker);
 }
 

@@ -4551,6 +4551,38 @@ connections:
 - `cd frontend && npm run test:unit -- src/composables/__tests__/connectionEntryDrop.spec.ts` 通过。
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
+
+## 2026-04-07 - Global and File Panel Search Shortcuts
+
+### Goal
+
+- `Ctrl/Cmd + Shift + F` opens the global search panel.
+- `Ctrl/Cmd + F` opens a local search box inside the active file browser tab only.
+- Local search filters the current loaded list without calling the backend and without scrolling with the file list.
+
+### Completed Changes
+
+- Updated the global shortcut preset so `search` uses `CmdOrCtrl+Shift+F` instead of `CmdOrCtrl+F`.
+- Added the global search shortcut handler in `AppShellView`; it switches the left panel to the existing search view.
+- Added file-panel local search in `ConnectionOverviewTab`:
+  - fixed overlay at the top-right of the list/grid body
+  - close button
+  - `Ctrl/Cmd + F` toggles the local search box: open when closed, close and clear filtering when open
+  - Enter commits the search query
+  - Escape closes local search
+  - match case option
+  - whole-text option
+  - regex option with inline invalid-regex feedback
+- Local search filters the sorted in-memory entries and the filtered result is also used for keyboard navigation, select-all, active item lookup, and selected item counting.
+- Search state is cleared on directory load/reload so stale filters do not survive destructive state changes.
+- Updated the welcome page shortcut list and reduced the shortcut row/key font sizes so the additional search shortcuts fit.
+- Added `zh` / `en` / `ja` locale strings for the new shortcut descriptions and local-search UI.
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run test:unit -- src/__tests__/localeParity.spec.ts src/composables/__tests__/connectionEntryDrop.spec.ts` 通过。
+- `cd frontend && npm run build-only` 通过。
 - `git diff --check` 通过。
 
 ## 2026-04-07 - Normalize Scrollbar Appearance Across WebViews
