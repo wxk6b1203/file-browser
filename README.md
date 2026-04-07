@@ -2,6 +2,10 @@
 
 [中文说明](README_cn.md)
 
+<p align="center">
+  <img src="assets/logo.svg" alt="File Browser logo" width="128" height="128">
+</p>
+
 File Browser is a Wails v2 desktop file manager for local and remote storage. It combines a Go backend with a Vue 3 frontend and is designed around a VS Code style workspace: connection explorer, split tabs, task panel, notifications, list/icon file views, and drag-and-drop file operations.
 
 The project currently targets these storage backends:

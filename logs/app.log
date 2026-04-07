@@ -74,3 +74,5 @@
 2026-04-07 21:50:01.284	INFO	render/drag.go:25	Drag leave signal received	{"x": 533, "y": 532}
 2026-04-07 21:50:01.314	INFO	render/drag.go:25	Drag leave signal received	{"x": 509, "y": 528}
 2026-04-07 21:50:01.838	INFO	render/drag.go:32	Drop signal received	{"x": 472, "y": 526, "paths": [""]}
+2026-04-07 21:57:07.928	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 21:57:07.929	INFO	file-browser/app.go:82	App is shutting down
