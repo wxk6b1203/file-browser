@@ -2,6 +2,11 @@
 
 [English README](README.md)
 
+<p align="center">
+  <img src="assets/logo.svg" alt="File Browser logo" width="128" height="128">
+</p>
+
+
 File Browser 是一个基于 Wails v2 的桌面文件管理器，后端使用 Go，前端使用 Vue 3。项目目标是把本地目录、SFTP 服务器、S3/OSS 对象存储等不同接入方式统一到同一个文件工作区里，并采用接近 VS Code 的交互模型：连接目录树、中央 Tab、分割面板、任务面板、通知面板、列表/图标视图和拖拽操作。
 
 当前支持的存储后端：

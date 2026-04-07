@@ -127,6 +127,7 @@ function parentDir(path: string) {
 function openResult(item: SearchResultItem) {
   if (!item.file) return
   const targetPath = item.file.type === DIRECTORY_ENTRY_TYPE ? item.file.path : parentDir(item.file.path)
+  workspace.setConnectionRevealPath(item.connectionId, item.file.path)
   workspace.openConnection(item.connectionId, item.connectionName, targetPath)
 }
 
@@ -225,8 +226,6 @@ onMounted(async () => {
   flex: 1;
   overflow: auto;
   padding: 10px 8px 14px;
-  display: grid;
-  gap: 6px;
 }
 
 .search-result {
@@ -234,6 +233,9 @@ onMounted(async () => {
   grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 6px;
   padding: 10px 12px;
   border: 1px solid var(--theme-color-border-light);
   border-radius: 12px;
@@ -278,6 +280,7 @@ onMounted(async () => {
 
 .search-result__meta {
   display: flex;
+  min-width: 72px;
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;

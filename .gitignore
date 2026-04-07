@@ -5,3 +5,6 @@ frontend/dist
 .DS_Store
 tmp/
 logs/
+
+config.yaml
+connections.yaml
