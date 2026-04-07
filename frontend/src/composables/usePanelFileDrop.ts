@@ -179,6 +179,16 @@ export function usePanelFileDrop(
     dragCounter = 0
   }
 
+  function scheduleOverlayReset() {
+    window.setTimeout(resetOverlayState, 0)
+  }
+
+  function onVisibilityChange() {
+    if (document.visibilityState !== 'visible') {
+      resetOverlayState()
+    }
+  }
+
   watchEffect(() => {
     detach()
     if ((enableFileDrop.value || enablePanelDrag.value) && panelEl.value) {
@@ -188,10 +198,18 @@ export function usePanelFileDrop(
 
   onMounted(() => {
     window.addEventListener(PANEL_OS_FILE_DROP_RESET_EVENT, resetOverlayState)
+    window.addEventListener('drop', scheduleOverlayReset, true)
+    window.addEventListener('dragend', scheduleOverlayReset, true)
+    window.addEventListener('blur', resetOverlayState)
+    document.addEventListener('visibilitychange', onVisibilityChange)
   })
 
   onBeforeUnmount(() => {
     window.removeEventListener(PANEL_OS_FILE_DROP_RESET_EVENT, resetOverlayState)
+    window.removeEventListener('drop', scheduleOverlayReset, true)
+    window.removeEventListener('dragend', scheduleOverlayReset, true)
+    window.removeEventListener('blur', resetOverlayState)
+    document.removeEventListener('visibilitychange', onVisibilityChange)
     detach()
   })
 

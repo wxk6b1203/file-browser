@@ -4614,3 +4614,33 @@ connections:
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-07 - Finalize File Panel Selection and Drag Overlay Cleanup
+
+### Goal
+
+- Prevent WebKit/WebView2 native text selection from reappearing when double-clicking file names.
+- Ensure cross-panel internal drag overlays are always cleared even when WebView2 delivers drop events to a child component that stops bubbling.
+
+### Frontend Review Notes
+
+- Vite / Vue configuration does not need platform-specific branching for this issue.
+- The right place to fix this is the shared browser-event compatibility layer:
+  - file-panel selection suppression in `ConnectionOverviewTab`
+  - split/tab drag overlay lifecycle in `usePanelFileDrop`
+- WebKit and WebView2 differ in drag/drop ordering and propagation, so overlay cleanup must not depend on a single bubbling `drop` path.
+
+### Completed Changes
+
+- `ConnectionOverviewTab` now blocks `selectstart` inside the file browser except editable inputs.
+- The second click in a double-click sequence calls `preventDefault()` and clears native selection before WebView/WebKit can select the file name text.
+- File-browser CSS now explicitly applies `user-select: none` and `-webkit-user-select: none` to non-input descendants.
+- `ConnectionOverviewTab` listens for `dragend` / `drop` in capture phase, so its local drop indicators are cleared even if a child drop handler stops propagation.
+- File-panel global `dragend` / `drop` cleanup is scoped to the active file tab, the event target panel, or the panel that owns the current drag session, so inactive KeepAlive tabs are not reset accidentally.
+- `usePanelFileDrop` now installs capture-phase window-level `drop` / `dragend` reset hooks, plus `blur` / `visibilitychange` fallbacks, so TabGroup/SplitPanePanel masks cannot remain stuck after a child handles the drop.
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/composables/__tests__/connectionEntryDrop.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
