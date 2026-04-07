@@ -138,6 +138,11 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     activeGroupId.value = groupId
   }
 
+  function isTabActiveInActiveGroup(tabId: string) {
+    const group = findGroupById(layout.value, activeGroupId.value)
+    return group?.activeId === tabId
+  }
+
   function setConnectionPath(connectionId: string, path = '') {
     connectionTabState.value = {
       ...connectionTabState.value,
@@ -294,6 +299,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     rootGroup,
     setLayout,
     setActiveGroup,
+    isTabActiveInActiveGroup,
     setConnectionPath,
     getConnectionPath,
     setConnectionBrowserState,

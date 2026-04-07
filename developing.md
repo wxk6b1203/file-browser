@@ -4400,3 +4400,48 @@ connections:
 
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/release-build.yml")'` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-07 - File Panel Back/Forward Navigation History
+
+### Goal
+
+- Add back/forward navigation for the central file browser panel.
+- Keep the feature scoped to file browser tabs only; settings, forms, welcome tabs, and other panels should not react.
+- Keep history independent per file browser panel and avoid adding visible toolbar buttons.
+
+### Design
+
+- Implemented a local per-component navigation history stack in `ConnectionOverviewTab`.
+- Added a pure helper `navigationHistory.ts` so stack behavior is testable without mounting the full Element Plus/Wails component.
+- History records successful directory navigations only:
+  - User path navigation uses `push`.
+  - Initial load, refresh, transfer refresh, directory refresh, and connection config reset use `reset` so invalidated navigation state is cleared.
+  - Back/forward history navigation itself uses `none` so the selected history index can move without creating a duplicate entry.
+- Shortcut handling stays local to the file browser root via capture-phase keydown handling instead of using global `DEFAULT_SHORTCUTS`; this prevents non-file tabs from responding.
+- Supported shortcuts:
+  - macOS: `Cmd + [` and `Cmd + ]`.
+  - Windows/Linux and cross-platform fallback: `Alt + Left` and `Alt + Right`.
+- Editable elements are ignored so path history does not trigger while typing in inline create inputs or other form controls.
+
+### Completed Changes
+
+- Added `frontend/src/components/Workspace/navigationHistory.ts`.
+- Added `frontend/src/components/Workspace/__tests__/navigationHistory.spec.ts`.
+- Updated `ConnectionOverviewTab.vue` to record navigation history on successful loads and perform local back/forward navigation from the history stack.
+- Relaxed the file viewport keydown early return so empty directories can still handle navigation-related keyboard behavior such as Backspace parent navigation.
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/components/Workspace/__tests__/navigationHistory.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+- `git diff --check` 通过。
+
+### Follow-up Adjustment
+
+- Expanded shortcut handling from viewport-only bubbling to a window-level listener guarded by file-browser scope checks.
+- The active file panel now responds when focus is on its tab group/header, not only when a file row/tile or viewport has focus.
+- Scope guards prevent inactive cached panels and non-file tabs from handling the shortcuts:
+  - Events inside the panel root are accepted.
+  - Events inside the central shell are accepted only when the panel's tab is the active tab in the active tab group.
+  - Editable targets remain ignored.

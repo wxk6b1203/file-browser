@@ -1,5 +1,11 @@
 <template>
-  <div class="file-browser" :class="{ 'file-browser--busy': dropBusy }" @contextmenu="clearNativeSelection">
+  <div
+    ref="fileBrowserRef"
+    class="file-browser"
+    :class="{ 'file-browser--busy': dropBusy }"
+    @contextmenu="clearNativeSelection"
+    @keydown.capture="onFileBrowserShortcutKeydown"
+  >
     <div v-if="dropBusy" class="file-browser__busy-mask">
       <div class="file-browser__busy-card">
         <i-ep-loading class="file-browser__busy-icon" />
@@ -422,6 +428,14 @@ import { SPLITPANE_DRAG_TYPE, clearActiveInternalDrag, setActiveInternalDrag } f
 import { useConnectionsStore } from '@/stores/connections'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { buildInlineDeletePaths, removeInlineDeletePath } from './inlineDelete'
+import {
+  applyNavigationHistory,
+  createNavigationHistory,
+  moveNavigationHistoryIndex,
+  navigationTarget,
+  type NavigationHistoryMode,
+  type NavigationHistoryState,
+} from './navigationHistory'
 
 const props = defineProps<{
   connectionId: string
@@ -474,6 +488,7 @@ const viewMode = ref<'list' | 'grid'>('list')
 const visibleColumnKeys = ref<ListColumnKey[]>(['name', 'modified', 'size'])
 const sortKey = ref<ListColumnKey>('name')
 const sortDirection = ref<'asc' | 'desc'>('asc')
+const fileBrowserRef = ref<HTMLElement | null>(null)
 const browserViewportRef = ref<HTMLElement | null>(null)
 const contextMenuRef = ref<HTMLElement | null>(null)
 const selectedPaths = ref<string[]>([])
@@ -509,8 +524,10 @@ const inlineCreateBusy = ref(false)
 const inlineCreateInputRef = ref<HTMLInputElement | null>(null)
 const inlineDeletePaths = ref<string[]>([])
 const inlineDeleteBusyPath = ref<string | null>(null)
+const navigationHistory = ref<NavigationHistoryState>(createNavigationHistory(''))
 
 const connectionId = computed(() => props.connectionId)
+const tabId = computed(() => `connection:${connectionId.value}`)
 const definition = computed(() => connections.definitionMap.get(connectionId.value) ?? null)
 const targetPath = computed(() => workspace.getConnectionPath(connectionId.value))
 const breadcrumbs = computed(() => {
@@ -750,6 +767,94 @@ function parentPath(path: string) {
   const segments = normalizeEntryPath(path).split('/').filter(Boolean)
   if (segments.length === 0) return ''
   return segments.slice(0, -1).join('/')
+}
+
+function recordNavigationPath(path: string, mode: NavigationHistoryMode) {
+  navigationHistory.value = applyNavigationHistory(navigationHistory.value, normalizeEntryPath(path), mode)
+}
+
+function isEditableShortcutTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false
+  const tag = target.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable
+}
+
+function isMacPlatform() {
+  if (typeof navigator === 'undefined') return false
+  return /mac/i.test(navigator.platform)
+}
+
+function historyShortcutDelta(event: KeyboardEvent): -1 | 1 | null {
+  const key = event.key.toLowerCase()
+  const macBracketBack = isMacPlatform()
+    && event.metaKey
+    && !event.ctrlKey
+    && !event.altKey
+    && !event.shiftKey
+    && key === '['
+  const macBracketForward = isMacPlatform()
+    && event.metaKey
+    && !event.ctrlKey
+    && !event.altKey
+    && !event.shiftKey
+    && key === ']'
+  const altBack = event.altKey
+    && !event.ctrlKey
+    && !event.metaKey
+    && !event.shiftKey
+    && event.key === 'ArrowLeft'
+  const altForward = event.altKey
+    && !event.ctrlKey
+    && !event.metaKey
+    && !event.shiftKey
+    && event.key === 'ArrowRight'
+
+  if (macBracketBack || altBack) return -1
+  if (macBracketForward || altForward) return 1
+  return null
+}
+
+function isFileBrowserShortcutScope(target: EventTarget | null) {
+  if (target instanceof Node && fileBrowserRef.value?.contains(target)) {
+    return true
+  }
+
+  const activeInWorkspace = workspace.isTabActiveInActiveGroup(tabId.value)
+  if (!activeInWorkspace) {
+    return false
+  }
+
+  if (target === document || target === document.body || target === document.documentElement) {
+    return true
+  }
+
+  if (target instanceof HTMLElement) {
+    return Boolean(target.closest('.shell-center'))
+  }
+
+  return false
+}
+
+function onFileBrowserShortcutKeydown(event: KeyboardEvent) {
+  if (isEditableShortcutTarget(event.target) || loading.value) return
+  if (!isFileBrowserShortcutScope(event.target)) return
+
+  const delta = historyShortcutDelta(event)
+  if (!delta) return
+  if (navigationTarget(navigationHistory.value, delta) === null) return
+
+  event.preventDefault()
+  event.stopPropagation()
+  void navigateHistory(delta)
+}
+
+async function navigateHistory(delta: -1 | 1) {
+  const target = navigationTarget(navigationHistory.value, delta)
+  if (target === null) return
+
+  const loaded = await load(target, { history: 'none' })
+  if (!loaded) return
+  navigationHistory.value = moveNavigationHistoryIndex(navigationHistory.value, delta)
 }
 
 async function scrollPathIntoView(path: string | null) {
@@ -1279,7 +1384,7 @@ async function deleteSelected() {
 
 function onViewportKeydown(event: KeyboardEvent) {
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
-  if (loading.value || items.value.length === 0) return
+  if (loading.value) return
 
   const isMetaSelectAll = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a'
   if (isMetaSelectAll) {
@@ -1467,7 +1572,7 @@ function startColumnResize(index: number, event: MouseEvent) {
   document.addEventListener('visibilitychange', stopColumnResize)
 }
 
-async function load(dir = '') {
+async function load(dir = '', options: { history?: NavigationHistoryMode } = {}) {
   resetTransientInteractionState()
   loading.value = true
   try {
@@ -1477,15 +1582,18 @@ async function load(dir = '') {
     currentPath.value = nextDir
     workspace.setConnectionPath(connectionId.value, nextDir)
     workspace.setConnectionBrowserState(connectionId.value, nextDir, items.value)
+    recordNavigationPath(nextDir, options.history ?? 'push')
+    return true
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : String(error))
+    return false
   } finally {
     loading.value = false
   }
 }
 
 function reload() {
-  return load(currentPath.value)
+  return load(currentPath.value, { history: 'reset' })
 }
 
 function goRoot() {
@@ -1875,11 +1983,11 @@ function onConnectionConfigRefresh(event: Event) {
   workspace.resetConnectionBrowserState(connectionId.value, detail.resetToRoot ? '' : currentPath.value)
 
   if (detail.resetToRoot) {
-    void load('')
+    void load('', { history: 'reset' })
     return
   }
 
-  void reload()
+  void load(currentPath.value, { history: 'reset' })
 }
 
 watch(targetPath, (path) => {
@@ -1922,6 +2030,7 @@ onMounted(async () => {
   window.addEventListener(CONNECTION_ENTRY_DROP_LIFECYCLE_EVENT, onEntryDropLifecycle as EventListener)
   window.addEventListener('pointerdown', onWindowPointerDown)
   window.addEventListener('keydown', onWindowKeydown)
+  window.addEventListener('keydown', onFileBrowserShortcutKeydown)
   window.addEventListener('dragend', onWindowDragComplete)
   window.addEventListener('drop', onWindowDragComplete)
   window.addEventListener('resize', closeContextMenu)
@@ -1931,9 +2040,10 @@ onMounted(async () => {
     currentPath.value = normalizeEntryPath(cachedState.path)
     items.value = normalizeFolderItems(cachedState.items)
     workspace.setConnectionPath(connectionId.value, currentPath.value)
+    recordNavigationPath(currentPath.value, 'reset')
     return
   }
-  await load(targetPath.value)
+  await load(targetPath.value, { history: 'reset' })
 })
 
 onBeforeUnmount(() => {
@@ -1946,6 +2056,7 @@ onBeforeUnmount(() => {
   window.removeEventListener(CONNECTION_ENTRY_DROP_LIFECYCLE_EVENT, onEntryDropLifecycle as EventListener)
   window.removeEventListener('pointerdown', onWindowPointerDown)
   window.removeEventListener('keydown', onWindowKeydown)
+  window.removeEventListener('keydown', onFileBrowserShortcutKeydown)
   window.removeEventListener('dragend', onWindowDragComplete)
   window.removeEventListener('drop', onWindowDragComplete)
   window.removeEventListener('resize', closeContextMenu)
