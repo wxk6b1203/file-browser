@@ -3,8 +3,9 @@ export const CONNECTION_DIRECTORY_REFRESH_EVENT = 'workspace:connection-director
 export interface ConnectionDirectoryRefreshDetail {
   connectionId: string
   path: string
-  source: 'transfer'
+  source: 'transfer' | 'mutation'
   taskId: string
+  origin?: string
 }
 
 export function emitConnectionDirectoryRefresh(detail: ConnectionDirectoryRefreshDetail) {

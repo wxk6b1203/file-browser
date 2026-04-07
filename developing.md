@@ -4472,3 +4472,30 @@ connections:
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-07 - Refresh Explorer Parent After Inline Directory Creation
+
+### Goal
+
+- After creating a directory from the central file panel, update the corresponding Explorer tree parent without globally refreshing the tree.
+
+### Design
+
+- Reused the existing `workspace:connection-directory-refresh` event because Explorer already handles it as a loaded-node local refresh.
+- Extended the event payload with:
+  - `source: 'mutation'` for direct file operations such as inline directory creation.
+  - optional `origin` so the source file panel can ignore its own event after it has already reloaded.
+- The Explorer tree keeps its existing behavior: refresh only the target parent node when that node is already loaded in `childrenByKey`; otherwise no eager load occurs.
+
+### Completed Changes
+
+- `ConnectionOverviewTab` now emits a directory refresh event after successful inline directory creation and local reload.
+- `ConnectionOverviewTab` ignores refresh events from its own origin to avoid duplicate reloads.
+- `useConnectionDirectoryRefresh` now supports mutation-originated refreshes and optional origin metadata.
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run test:unit -- src/__tests__/localeParity.spec.ts src/components/Workspace/__tests__/navigationHistory.spec.ts` 通过。
+- `cd frontend && npm run build-only` 通过。
+- `git diff --check` 通过。

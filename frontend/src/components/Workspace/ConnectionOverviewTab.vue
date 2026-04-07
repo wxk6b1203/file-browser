@@ -421,7 +421,7 @@ import { splitPanePanelKey } from '@/components/SplitPane/types'
 import { buildConnectionEntryDragPayload, buildConnectionEntryDropFeedback, canDropConnectionEntries, executeConnectionEntryDrop, labelForDropTarget, resolveConnectionEntryDragPayload } from '@/composables/connectionEntryDrop'
 import { CONNECTION_CONFIG_REFRESH_EVENT, type ConnectionConfigRefreshDetail } from '@/composables/useConnectionConfigRefresh'
 import { normalizeRemotePath } from '@/composables/remotePath'
-import { CONNECTION_DIRECTORY_REFRESH_EVENT, type ConnectionDirectoryRefreshDetail } from '@/composables/useConnectionDirectoryRefresh'
+import { CONNECTION_DIRECTORY_REFRESH_EVENT, emitConnectionDirectoryRefresh, type ConnectionDirectoryRefreshDetail } from '@/composables/useConnectionDirectoryRefresh'
 import { CONNECTION_ENTRY_DROP_LIFECYCLE_EVENT, consumeLatestSuccessfulConnectionEntryDrop, type ConnectionEntryDropLifecycleDetail } from '@/composables/useConnectionEntryDropLifecycle'
 import { DIRECTORY_ENTRY_TYPE, resolveFileIcon } from '@/composables/useFileIcons'
 import { SPLITPANE_DRAG_TYPE, clearActiveInternalDrag, setActiveInternalDrag } from '@/composables/splitPaneDragState'
@@ -475,6 +475,7 @@ const LIST_COLUMN_MIN_WIDTHS: Record<ListColumnKey, number> = {
 }
 const DOUBLE_CLICK_DRAG_SUPPRESS_MS = 420
 const SINGLE_CLICK_SELECT_DELAY_MS = 180
+const directoryRefreshOrigin = `file-browser:${Math.random().toString(36).slice(2)}`
 
 const { t, locale } = useI18n()
 const connections = useConnectionsStore()
@@ -1792,6 +1793,13 @@ async function commitInlineCreate() {
     inlineCreateActive.value = false
     inlineCreateName.value = ''
     await reload()
+    emitConnectionDirectoryRefresh({
+      connectionId: connectionId.value,
+      path: currentPath.value,
+      source: 'mutation',
+      taskId: 'create-directory',
+      origin: directoryRefreshOrigin,
+    })
     ElMessage.success(t('workspace.fileBrowser.newFolderSuccess'))
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : String(error))
@@ -1971,6 +1979,7 @@ function onItemCommand(command: string | number | object, item: folder.FileInfo)
 function onDirectoryRefresh(event: Event) {
   const detail = (event as CustomEvent<ConnectionDirectoryRefreshDetail>).detail
   if (!detail) return
+  if (detail.origin === directoryRefreshOrigin) return
   if (detail.connectionId !== connectionId.value) return
   if (normalizeEntryPath(detail.path) !== normalizeEntryPath(currentPath.value)) return
   void reload()

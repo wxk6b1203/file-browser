@@ -3214,3 +3214,4 @@
 2026-04-07 10:17:07.087	INFO	render/manager.go:26	Render manager started
 2026-04-07 10:17:17.091	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
 2026-04-07 10:25:21.796	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 11:43:56.818	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
