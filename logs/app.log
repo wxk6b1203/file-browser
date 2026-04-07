@@ -3203,3 +3203,13 @@
 2026-04-07 10:12:20.271	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
 2026-04-07 10:13:34.711	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
 2026-04-07 10:13:34.712	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-07 10:15:35.911	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 10:15:35.911	INFO	file-browser/app.go:82	App is shutting down
+2026-04-07 10:16:57.731	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 10:16:57.731	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 10:17:03.840	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 10:17:03.840	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 10:17:06.977	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 10:17:06.977	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 10:17:07.087	INFO	render/manager.go:26	Render manager started
+2026-04-07 10:17:17.091	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped

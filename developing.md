@@ -4445,3 +4445,10 @@ connections:
   - Events inside the panel root are accepted.
   - Events inside the central shell are accepted only when the panel's tab is the active tab in the active tab group.
   - Editable targets remain ignored.
+
+### Welcome Page Shortcut Hint
+
+- Added file-panel back/forward shortcut descriptions to the welcome page shortcut list.
+- Shortcut display is platform-aware:
+  - macOS: `Cmd + [` / `Cmd + ]`
+  - Windows/Linux: `Alt + Left` / `Alt + Right`

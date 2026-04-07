@@ -9,7 +9,9 @@
     "newConnection": "New Connection",
     "openConnection": "Open Connection",
     "settings": "Settings",
-    "commandPalette": "Command Palette"
+    "commandPalette": "Command Palette",
+    "filePanelBack": "File Panel Back",
+    "filePanelForward": "File Panel Forward"
   },
   "actions": {
     "newConnection": "New Connection",

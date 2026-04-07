@@ -78,11 +78,15 @@ const isMac = computed(() => {
 const shortcuts = [
   { keys: ['CtrlOrCmd', 'Shift', 'N'], desc: 'shortcuts.newConnection' },
   { keys: ['CtrlOrCmd', '.'], desc: 'shortcuts.settings' },
+  { keys: ['Back'], desc: 'shortcuts.filePanelBack' },
+  { keys: ['Forward'], desc: 'shortcuts.filePanelForward' },
 ]
 
 // 格式化按键显示
 function formatKey(key: string): string {
   if (key === 'CtrlOrCmd') return isMac.value ? '⌘' : 'Ctrl'
+  if (key === 'Back') return isMac.value ? '⌘ [' : 'Alt ←'
+  if (key === 'Forward') return isMac.value ? '⌘ ]' : 'Alt →'
   return key
 }
 
