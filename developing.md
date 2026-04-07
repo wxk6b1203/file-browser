@@ -4499,3 +4499,26 @@ connections:
 - `cd frontend && npm run test:unit -- src/__tests__/localeParity.spec.ts src/components/Workspace/__tests__/navigationHistory.spec.ts` 通过。
 - `cd frontend && npm run build-only` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-07 - Add Master Branch Auto Build Workflow
+
+### Goal
+
+- Add an automated GitHub Actions build for every push to `master`.
+- Reuse the existing release build matrix and packaging shape, but do not create or update GitHub Releases.
+
+### Completed Changes
+
+- Added `.github/workflows/master-build.yml`.
+- The workflow builds the same six targets as `Release Build`:
+  - Linux amd64 / arm64
+  - Windows amd64 / arm64
+  - macOS amd64 / arm64
+- Windows binaries keep the `.exe` suffix inside the tarball.
+- Artifacts are uploaded as GitHub Actions artifacts with a 14-day retention period.
+- Concurrency cancels in-progress master builds when a newer master push arrives.
+
+### Verification
+
+- `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/master-build.yml")'` 通过。
+- `git diff --check` 通过。
