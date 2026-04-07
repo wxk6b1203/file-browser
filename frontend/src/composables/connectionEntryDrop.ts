@@ -2,7 +2,7 @@ import { MoveConnectionEntry, TransferConnectionEntry } from '../../wailsjs/go/m
 import type { folder } from '../../wailsjs/go/models'
 import { emitConnectionDirectoryRefresh } from './useConnectionDirectoryRefresh'
 import { emitConnectionEntryDropLifecycle } from './useConnectionEntryDropLifecycle'
-import { getActiveInternalDrag, SPLITPANE_DRAG_TYPE, type PanelDragPayload } from './splitPaneDragState'
+import { getActiveInternalDrag, isInternalDragEvent, type PanelDragPayload } from './splitPaneDragState'
 import {
   baseRemotePath,
   isRemotePathWithin,
@@ -115,8 +115,7 @@ export function buildConnectionEntryDragPayload(
 }
 
 export function resolveConnectionEntryDragPayload(event: DragEvent): ConnectionEntryPanelDragPayload | null {
-  const isInternal = event.dataTransfer?.types.includes(SPLITPANE_DRAG_TYPE) ?? false
-  if (!isInternal) return null
+  if (!isInternalDragEvent(event)) return null
   const payload = getActiveInternalDrag()?.payload
   return isConnectionEntryDragPayload(payload) ? payload : null
 }

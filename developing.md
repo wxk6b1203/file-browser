@@ -4522,3 +4522,33 @@ connections:
 
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/master-build.yml")'` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-07 - Fix WebView2 Internal Cross-Panel Drop Detection
+
+### Problem
+
+- On Unix/WebKit, dragging entries between split file panels triggered cross-connection transfer correctly.
+- On Windows/WebView2, releasing after the same drag produced no upload action and no console error.
+
+### Root Cause
+
+- Internal file-panel drag detection required `dataTransfer.types` to contain the custom MIME marker `application/x-splitpane-drag`.
+- WebView2 can omit or hide that custom type during `dragenter/drop`.
+- The application already stores the active internal drag payload in module-level state for security-restricted drag phases, but the drop resolver and panel drop layer still rejected the event before reading that state.
+
+### Completed Changes
+
+- Added `isInternalDragEvent()` to `splitPaneDragState`.
+- `connectionEntryDrop.resolveConnectionEntryDragPayload()` now accepts either:
+  - the custom `DataTransfer` marker, or
+  - an active internal drag payload in shared state.
+- `usePanelFileDrop` now uses the same internal-drag detector for split-panel drop routing.
+- External OS file drags still win when `dataTransfer.types` contains `Files`, so stale internal drag state cannot hijack Finder / Explorer uploads.
+- Added a WebView2-style regression test where `dataTransfer.types` does not include the custom marker, but the active internal drag payload is still resolved.
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/composables/__tests__/connectionEntryDrop.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+- `git diff --check` 通过。

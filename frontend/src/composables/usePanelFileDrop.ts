@@ -1,7 +1,7 @@
 import { ref, watchEffect, onBeforeUnmount, onMounted, type Ref } from 'vue'
 import {
   getActiveInternalDrag,
-  SPLITPANE_DRAG_TYPE,
+  isInternalDragEvent,
   type PanelDropEvent,
 } from './splitPaneDragState'
 import { PANEL_OS_FILE_DROP_RESET_EVENT } from './useFileDrop'
@@ -66,7 +66,7 @@ export function usePanelFileDrop(
   let currentEl: HTMLElement | null = null
 
   function onDragEnter(e: DragEvent) {
-    const isInternal = e.dataTransfer?.types.includes(SPLITPANE_DRAG_TYPE) ?? false
+    const isInternal = isInternalDragEvent(e)
     if (isInternal) {
       if (!enablePanelDrag.value) return
       // Don't show overlay on the panel that is the drag source
@@ -103,7 +103,7 @@ export function usePanelFileDrop(
     if (!panelEl.value) return
 
     // ── Internal panel-to-panel drop ──────────────────────────────────────────
-    const isInternal = e.dataTransfer?.types.includes(SPLITPANE_DRAG_TYPE) ?? false
+    const isInternal = isInternalDragEvent(e)
     if (isInternal) {
       if (enablePanelDrag.value) {
         const active = getActiveInternalDrag()

@@ -1,7 +1,12 @@
-import { describe, expect, it } from 'vitest'
-import { __test__, compactConnectionDragEntries, type ConnectionEntryPanelDragPayload } from '../connectionEntryDrop'
+import { afterEach, describe, expect, it } from 'vitest'
+import { __test__, compactConnectionDragEntries, resolveConnectionEntryDragPayload, type ConnectionEntryPanelDragPayload } from '../connectionEntryDrop'
+import { clearActiveInternalDrag, setActiveInternalDrag } from '../splitPaneDragState'
 
 describe('connectionEntryDrop', () => {
+  afterEach(() => {
+    clearActiveInternalDrag()
+  })
+
   it('compacts nested selections under an already-selected directory', () => {
     const entries = compactConnectionDragEntries([
       { path: 'docs', name: 'docs', isDirectory: true },
@@ -74,5 +79,59 @@ describe('connectionEntryDrop', () => {
       { sourcePath: 'photos', isDirectory: true },
       { sourcePath: 'notes.txt', isDirectory: false },
     ])
+  })
+
+  it('resolves active internal drag payload when WebView2 omits the custom dataTransfer type', () => {
+    const payload: ConnectionEntryPanelDragPayload = {
+      type: 'connection-entry',
+      data: {
+        sourceConnectionId: 'conn-1',
+        sourceViewDir: '',
+        entries: [
+          { path: 'docs/readme.md', name: 'readme.md', isDirectory: false },
+        ],
+      },
+    }
+
+    setActiveInternalDrag({
+      sourcePanelUid: 10,
+      sourcePanelIndex: 0,
+      payload,
+    })
+
+    const event = {
+      dataTransfer: {
+        types: [],
+      },
+    } as unknown as DragEvent
+
+    expect(resolveConnectionEntryDragPayload(event)).toBe(payload)
+  })
+
+  it('does not treat external file drags as internal payloads even if stale state exists', () => {
+    const payload: ConnectionEntryPanelDragPayload = {
+      type: 'connection-entry',
+      data: {
+        sourceConnectionId: 'conn-1',
+        sourceViewDir: '',
+        entries: [
+          { path: 'docs/readme.md', name: 'readme.md', isDirectory: false },
+        ],
+      },
+    }
+
+    setActiveInternalDrag({
+      sourcePanelUid: 10,
+      sourcePanelIndex: 0,
+      payload,
+    })
+
+    const event = {
+      dataTransfer: {
+        types: ['Files'],
+      },
+    } as unknown as DragEvent
+
+    expect(resolveConnectionEntryDragPayload(event)).toBeNull()
   })
 })

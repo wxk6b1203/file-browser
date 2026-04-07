@@ -56,3 +56,10 @@ export function clearActiveInternalDrag(): void {
 export function getActiveInternalDrag(): ActiveInternalDrag | null {
   return activeInternalDrag
 }
+
+export function isInternalDragEvent(event: DragEvent): boolean {
+  const types = event.dataTransfer?.types
+  const hasTransferMarker = types?.includes(SPLITPANE_DRAG_TYPE) ?? false
+  const hasOSFiles = types?.includes('Files') ?? false
+  return hasTransferMarker || (!hasOSFiles && activeInternalDrag !== null)
+}
