@@ -42,8 +42,16 @@ export interface ActiveInternalDrag {
 
 /** DataTransfer MIME type used to flag a SplitPane-internal drag. */
 export const SPLITPANE_DRAG_TYPE = 'application/x-splitpane-drag'
+export const SPLITPANE_DRAG_TEXT_MARKER = 'file-browser:split-pane-internal-drag'
 
 let activeInternalDrag: ActiveInternalDrag | null = null
+const INTERNAL_DRAG_CLEAR_DELAY_MS = 120
+
+export function markInternalDragDataTransfer(dataTransfer: DataTransfer): void {
+  dataTransfer.setData(SPLITPANE_DRAG_TYPE, '')
+  dataTransfer.setData('text/plain', SPLITPANE_DRAG_TEXT_MARKER)
+  dataTransfer.effectAllowed = 'move'
+}
 
 export function setActiveInternalDrag(drag: ActiveInternalDrag): void {
   activeInternalDrag = drag
@@ -53,6 +61,22 @@ export function clearActiveInternalDrag(): void {
   activeInternalDrag = null
 }
 
+export function clearActiveInternalDragSoon(): void {
+  const dragToClear = activeInternalDrag
+  globalThis.setTimeout(() => {
+    if (activeInternalDrag === dragToClear) {
+      activeInternalDrag = null
+    }
+  }, INTERNAL_DRAG_CLEAR_DELAY_MS)
+}
+
 export function getActiveInternalDrag(): ActiveInternalDrag | null {
   return activeInternalDrag
+}
+
+export function isInternalDragEvent(event: DragEvent): boolean {
+  const types = event.dataTransfer?.types
+  const hasTransferMarker = types?.includes(SPLITPANE_DRAG_TYPE) ?? false
+  const hasOSFiles = types?.includes('Files') ?? false
+  return hasTransferMarker || (!hasOSFiles && activeInternalDrag !== null)
 }

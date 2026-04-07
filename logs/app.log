@@ -3215,3 +3215,833 @@
 2026-04-07 10:17:17.091	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
 2026-04-07 10:25:21.796	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
 2026-04-07 11:43:56.818	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-07 12:45:59.384	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 12:45:59.385	INFO	file-browser/app.go:82	App is shutting down
+2026-04-07 12:51:34.065	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 12:51:34.065	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 12:51:40.424	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 12:51:40.424	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 12:51:43.817	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 12:51:43.818	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 12:51:43.936	INFO	render/manager.go:26	Render manager started
+2026-04-07 12:52:03.083	INFO	render/drag.go:25	Drag leave signal received	{"x": 637, "y": 430}
+2026-04-07 12:52:03.087	INFO	render/drag.go:25	Drag leave signal received	{"x": 685, "y": 440}
+2026-04-07 12:52:03.089	INFO	render/drag.go:25	Drag leave signal received	{"x": 744, "y": 454}
+2026-04-07 12:52:03.100	INFO	render/drag.go:25	Drag leave signal received	{"x": 816, "y": 472}
+2026-04-07 12:52:03.109	INFO	render/drag.go:25	Drag leave signal received	{"x": 860, "y": 483}
+2026-04-07 12:52:03.112	INFO	render/drag.go:25	Drag leave signal received	{"x": 890, "y": 491}
+2026-04-07 12:52:03.121	INFO	render/drag.go:25	Drag leave signal received	{"x": 916, "y": 500}
+2026-04-07 12:52:03.423	INFO	render/drag.go:32	Drop signal received	{"x": 1070, "y": 565, "paths": [""]}
+2026-04-07 12:52:09.568	INFO	render/drag.go:25	Drag leave signal received	{"x": 922, "y": 452}
+2026-04-07 12:52:09.578	INFO	render/drag.go:25	Drag leave signal received	{"x": 904, "y": 452}
+2026-04-07 12:52:09.582	INFO	render/drag.go:25	Drag leave signal received	{"x": 887, "y": 452}
+2026-04-07 12:52:09.588	INFO	render/drag.go:25	Drag leave signal received	{"x": 874, "y": 452}
+2026-04-07 12:52:09.862	INFO	render/drag.go:32	Drop signal received	{"x": 666, "y": 450, "paths": [""]}
+2026-04-07 12:52:12.818	INFO	render/drag.go:25	Drag leave signal received	{"x": 923, "y": 464}
+2026-04-07 12:52:12.822	INFO	render/drag.go:25	Drag leave signal received	{"x": 911, "y": 464}
+2026-04-07 12:52:12.826	INFO	render/drag.go:25	Drag leave signal received	{"x": 900, "y": 464}
+2026-04-07 12:52:12.839	INFO	render/drag.go:25	Drag leave signal received	{"x": 885, "y": 464}
+2026-04-07 12:52:12.857	INFO	render/drag.go:25	Drag leave signal received	{"x": 871, "y": 464}
+2026-04-07 12:52:13.115	INFO	render/drag.go:32	Drop signal received	{"x": 815, "y": 466, "paths": [""]}
+2026-04-07 12:52:14.535	INFO	render/drag.go:25	Drag leave signal received	{"x": 939, "y": 433}
+2026-04-07 12:52:14.546	INFO	render/drag.go:25	Drag leave signal received	{"x": 915, "y": 436}
+2026-04-07 12:52:14.553	INFO	render/drag.go:25	Drag leave signal received	{"x": 901, "y": 437}
+2026-04-07 12:52:14.562	INFO	render/drag.go:25	Drag leave signal received	{"x": 888, "y": 438}
+2026-04-07 12:52:14.577	INFO	render/drag.go:25	Drag leave signal received	{"x": 873, "y": 441}
+2026-04-07 12:52:14.584	INFO	render/drag.go:25	Drag leave signal received	{"x": 866, "y": 442}
+2026-04-07 12:52:14.642	INFO	render/drag.go:25	Drag leave signal received	{"x": 840, "y": 451}
+2026-04-07 12:52:14.709	INFO	render/drag.go:32	Drop signal received	{"x": 838, "y": 452, "paths": [""]}
+2026-04-07 12:53:13.166	INFO	render/drag.go:25	Drag leave signal received	{"x": 610, "y": 368}
+2026-04-07 12:53:13.174	INFO	render/drag.go:25	Drag leave signal received	{"x": 654, "y": 381}
+2026-04-07 12:53:13.213	INFO	render/drag.go:25	Drag leave signal received	{"x": 889, "y": 458}
+2026-04-07 12:53:13.223	INFO	render/drag.go:25	Drag leave signal received	{"x": 918, "y": 469}
+2026-04-07 12:53:13.227	INFO	render/drag.go:25	Drag leave signal received	{"x": 942, "y": 477}
+2026-04-07 12:53:13.233	INFO	render/drag.go:25	Drag leave signal received	{"x": 950, "y": 480}
+2026-04-07 12:53:13.499	INFO	render/drag.go:32	Drop signal received	{"x": 994, "y": 499, "paths": [""]}
+2026-04-07 12:53:16.138	INFO	render/drag.go:25	Drag leave signal received	{"x": 958, "y": 424}
+2026-04-07 12:53:16.146	INFO	render/drag.go:25	Drag leave signal received	{"x": 946, "y": 426}
+2026-04-07 12:53:16.154	INFO	render/drag.go:25	Drag leave signal received	{"x": 932, "y": 430}
+2026-04-07 12:53:16.162	INFO	render/drag.go:25	Drag leave signal received	{"x": 916, "y": 433}
+2026-04-07 12:53:16.171	INFO	render/drag.go:25	Drag leave signal received	{"x": 900, "y": 437}
+2026-04-07 12:53:16.180	INFO	render/drag.go:25	Drag leave signal received	{"x": 883, "y": 441}
+2026-04-07 12:53:16.189	INFO	render/drag.go:25	Drag leave signal received	{"x": 867, "y": 445}
+2026-04-07 12:53:16.951	INFO	render/drag.go:25	Drag leave signal received	{"x": 887, "y": 438}
+2026-04-07 12:53:16.959	INFO	render/drag.go:25	Drag leave signal received	{"x": 919, "y": 429}
+2026-04-07 12:53:16.969	INFO	render/drag.go:25	Drag leave signal received	{"x": 937, "y": 424}
+2026-04-07 12:53:16.975	INFO	render/drag.go:25	Drag leave signal received	{"x": 954, "y": 419}
+2026-04-07 12:53:16.983	INFO	render/drag.go:25	Drag leave signal received	{"x": 974, "y": 414}
+2026-04-07 12:53:16.992	INFO	render/drag.go:25	Drag leave signal received	{"x": 994, "y": 409}
+2026-04-07 12:53:17.000	INFO	render/drag.go:25	Drag leave signal received	{"x": 1012, "y": 404}
+2026-04-07 12:53:17.020	INFO	render/drag.go:25	Drag leave signal received	{"x": 1033, "y": 400}
+2026-04-07 12:53:17.263	INFO	render/drag.go:32	Drop signal received	{"x": 1064, "y": 394, "paths": [""]}
+2026-04-07 12:53:20.543	INFO	render/drag.go:25	Drag leave signal received	{"x": 946, "y": 437}
+2026-04-07 12:53:20.559	INFO	render/drag.go:25	Drag leave signal received	{"x": 922, "y": 442}
+2026-04-07 12:53:20.567	INFO	render/drag.go:25	Drag leave signal received	{"x": 901, "y": 447}
+2026-04-07 12:53:20.578	INFO	render/drag.go:25	Drag leave signal received	{"x": 881, "y": 452}
+2026-04-07 12:53:20.585	INFO	render/drag.go:25	Drag leave signal received	{"x": 866, "y": 455}
+2026-04-07 12:53:20.895	INFO	render/drag.go:32	Drop signal received	{"x": 757, "y": 473, "paths": [""]}
+2026-04-07 12:55:45.727	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 12:55:45.727	INFO	file-browser/app.go:82	App is shutting down
+2026-04-07 17:33:50.545	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:33:50.545	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:33:57.013	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:33:57.014	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:34:26.751	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:34:26.751	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:34:26.885	INFO	render/manager.go:26	Render manager started
+2026-04-07 17:34:58.758	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 17:34:58.758	INFO	file-browser/app.go:82	App is shutting down
+2026-04-07 17:41:44.093	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:41:44.093	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:41:50.202	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:41:50.202	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:42:13.843	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:42:13.843	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:42:13.965	INFO	render/manager.go:26	Render manager started
+2026-04-07 17:42:34.136	INFO	render/drag.go:32	Drop signal received	{"x": 752, "y": 501, "paths": [""]}
+2026-04-07 17:42:35.368	INFO	render/drag.go:25	Drag leave signal received	{"x": 715, "y": 639}
+2026-04-07 17:42:35.405	INFO	render/drag.go:25	Drag leave signal received	{"x": 706, "y": 636}
+2026-04-07 17:42:35.464	INFO	render/drag.go:25	Drag leave signal received	{"x": 680, "y": 635}
+2026-04-07 17:42:35.482	INFO	render/drag.go:25	Drag leave signal received	{"x": 668, "y": 635}
+2026-04-07 17:42:35.499	INFO	render/drag.go:25	Drag leave signal received	{"x": 656, "y": 636}
+2026-04-07 17:42:35.521	INFO	render/drag.go:25	Drag leave signal received	{"x": 644, "y": 636}
+2026-04-07 17:42:35.559	INFO	render/drag.go:25	Drag leave signal received	{"x": 632, "y": 635}
+2026-04-07 17:42:35.638	INFO	render/drag.go:25	Drag leave signal received	{"x": 630, "y": 634}
+2026-04-07 17:42:35.699	INFO	render/drag.go:25	Drag leave signal received	{"x": 621, "y": 631}
+2026-04-07 17:42:35.819	INFO	render/drag.go:25	Drag leave signal received	{"x": 611, "y": 629}
+2026-04-07 17:42:35.915	INFO	render/drag.go:25	Drag leave signal received	{"x": 599, "y": 627}
+2026-04-07 17:42:36.478	INFO	render/drag.go:25	Drag leave signal received	{"x": 587, "y": 609}
+2026-04-07 17:42:36.561	INFO	render/drag.go:25	Drag leave signal received	{"x": 597, "y": 596}
+2026-04-07 17:42:36.604	INFO	render/drag.go:25	Drag leave signal received	{"x": 604, "y": 587}
+2026-04-07 17:42:36.704	INFO	render/drag.go:25	Drag leave signal received	{"x": 615, "y": 572}
+2026-04-07 17:42:36.798	INFO	render/drag.go:25	Drag leave signal received	{"x": 622, "y": 564}
+2026-04-07 17:42:36.915	INFO	render/drag.go:25	Drag leave signal received	{"x": 622, "y": 555}
+2026-04-07 17:42:37.016	INFO	render/drag.go:25	Drag leave signal received	{"x": 612, "y": 533}
+2026-04-07 17:42:37.095	INFO	render/drag.go:25	Drag leave signal received	{"x": 607, "y": 519}
+2026-04-07 17:42:37.139	INFO	render/drag.go:25	Drag leave signal received	{"x": 603, "y": 505}
+2026-04-07 17:42:37.222	INFO	render/drag.go:25	Drag leave signal received	{"x": 600, "y": 497}
+2026-04-07 17:42:37.303	INFO	render/drag.go:25	Drag leave signal received	{"x": 598, "y": 492}
+2026-04-07 17:42:37.386	INFO	render/drag.go:25	Drag leave signal received	{"x": 597, "y": 486}
+2026-04-07 17:42:37.434	INFO	render/drag.go:25	Drag leave signal received	{"x": 593, "y": 478}
+2026-04-07 17:42:37.535	INFO	render/drag.go:25	Drag leave signal received	{"x": 577, "y": 449}
+2026-04-07 17:42:37.575	INFO	render/drag.go:25	Drag leave signal received	{"x": 568, "y": 436}
+2026-04-07 17:42:37.652	INFO	render/drag.go:25	Drag leave signal received	{"x": 552, "y": 413}
+2026-04-07 17:42:37.734	INFO	render/drag.go:25	Drag leave signal received	{"x": 537, "y": 388}
+2026-04-07 17:42:37.779	INFO	render/drag.go:25	Drag leave signal received	{"x": 524, "y": 365}
+2026-04-07 17:42:37.822	INFO	render/drag.go:25	Drag leave signal received	{"x": 508, "y": 335}
+2026-04-07 17:42:37.865	INFO	render/drag.go:25	Drag leave signal received	{"x": 496, "y": 312}
+2026-04-07 17:42:37.947	INFO	render/drag.go:25	Drag leave signal received	{"x": 488, "y": 294}
+2026-04-07 17:42:37.990	INFO	render/drag.go:25	Drag leave signal received	{"x": 477, "y": 271}
+2026-04-07 17:42:38.064	INFO	render/drag.go:25	Drag leave signal received	{"x": 471, "y": 257}
+2026-04-07 17:42:38.108	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 249}
+2026-04-07 17:42:38.195	INFO	render/drag.go:25	Drag leave signal received	{"x": 461, "y": 230}
+2026-04-07 17:42:38.272	INFO	render/drag.go:25	Drag leave signal received	{"x": 458, "y": 224}
+2026-04-07 17:42:38.348	INFO	render/drag.go:25	Drag leave signal received	{"x": 456, "y": 219}
+2026-04-07 17:42:38.508	INFO	render/drag.go:25	Drag leave signal received	{"x": 450, "y": 223}
+2026-04-07 17:42:38.560	INFO	render/drag.go:25	Drag leave signal received	{"x": 452, "y": 231}
+2026-04-07 17:42:38.879	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 229}
+2026-04-07 17:42:38.968	INFO	render/drag.go:25	Drag leave signal received	{"x": 488, "y": 219}
+2026-04-07 17:42:39.047	INFO	render/drag.go:25	Drag leave signal received	{"x": 491, "y": 185}
+2026-04-07 17:42:39.227	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 186}
+2026-04-07 17:42:39.330	INFO	render/drag.go:25	Drag leave signal received	{"x": 484, "y": 187}
+2026-04-07 17:42:39.499	INFO	render/drag.go:25	Drag leave signal received	{"x": 483, "y": 228}
+2026-04-07 17:42:39.541	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 238}
+2026-04-07 17:42:39.624	INFO	render/drag.go:25	Drag leave signal received	{"x": 493, "y": 267}
+2026-04-07 17:42:39.670	INFO	render/drag.go:25	Drag leave signal received	{"x": 501, "y": 289}
+2026-04-07 17:42:39.743	INFO	render/drag.go:25	Drag leave signal received	{"x": 509, "y": 308}
+2026-04-07 17:42:39.791	INFO	render/drag.go:25	Drag leave signal received	{"x": 535, "y": 349}
+2026-04-07 17:42:39.836	INFO	render/drag.go:25	Drag leave signal received	{"x": 553, "y": 373}
+2026-04-07 17:42:39.917	INFO	render/drag.go:25	Drag leave signal received	{"x": 573, "y": 396}
+2026-04-07 17:42:39.960	INFO	render/drag.go:25	Drag leave signal received	{"x": 589, "y": 411}
+2026-04-07 17:42:40.036	INFO	render/drag.go:25	Drag leave signal received	{"x": 599, "y": 419}
+2026-04-07 17:42:40.081	INFO	render/drag.go:25	Drag leave signal received	{"x": 609, "y": 428}
+2026-04-07 17:42:40.154	INFO	render/drag.go:25	Drag leave signal received	{"x": 620, "y": 437}
+2026-04-07 17:42:40.229	INFO	render/drag.go:25	Drag leave signal received	{"x": 632, "y": 447}
+2026-04-07 17:42:40.307	INFO	render/drag.go:25	Drag leave signal received	{"x": 642, "y": 455}
+2026-04-07 17:42:40.315	INFO	render/drag.go:25	Drag leave signal received	{"x": 651, "y": 462}
+2026-04-07 17:42:40.320	INFO	render/drag.go:25	Drag leave signal received	{"x": 661, "y": 471}
+2026-04-07 17:42:40.336	INFO	render/drag.go:25	Drag leave signal received	{"x": 678, "y": 487}
+2026-04-07 17:42:40.345	INFO	render/drag.go:25	Drag leave signal received	{"x": 686, "y": 496}
+2026-04-07 17:42:40.353	INFO	render/drag.go:25	Drag leave signal received	{"x": 696, "y": 506}
+2026-04-07 17:42:40.362	INFO	render/drag.go:25	Drag leave signal received	{"x": 706, "y": 516}
+2026-04-07 17:42:40.371	INFO	render/drag.go:25	Drag leave signal received	{"x": 713, "y": 523}
+2026-04-07 17:42:40.378	INFO	render/drag.go:25	Drag leave signal received	{"x": 717, "y": 528}
+2026-04-07 17:42:40.389	INFO	render/drag.go:25	Drag leave signal received	{"x": 732, "y": 543}
+2026-04-07 17:42:40.398	INFO	render/drag.go:25	Drag leave signal received	{"x": 733, "y": 544}
+2026-04-07 17:42:40.496	INFO	render/drag.go:25	Drag leave signal received	{"x": 736, "y": 543}
+2026-04-07 17:42:40.512	INFO	render/drag.go:25	Drag leave signal received	{"x": 737, "y": 542}
+2026-04-07 17:42:40.573	INFO	render/drag.go:32	Drop signal received	{"x": 778, "y": 530, "paths": [""]}
+2026-04-07 17:42:51.573	INFO	render/drag.go:25	Drag leave signal received	{"x": 702, "y": 496}
+2026-04-07 17:42:51.578	INFO	render/drag.go:25	Drag leave signal received	{"x": 683, "y": 499}
+2026-04-07 17:42:51.586	INFO	render/drag.go:25	Drag leave signal received	{"x": 670, "y": 501}
+2026-04-07 17:42:51.594	INFO	render/drag.go:25	Drag leave signal received	{"x": 656, "y": 504}
+2026-04-07 17:42:51.603	INFO	render/drag.go:25	Drag leave signal received	{"x": 642, "y": 508}
+2026-04-07 17:42:51.611	INFO	render/drag.go:25	Drag leave signal received	{"x": 628, "y": 511}
+2026-04-07 17:42:51.868	INFO	render/drag.go:32	Drop signal received	{"x": 565, "y": 534, "paths": [""]}
+2026-04-07 17:44:21.729	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 17:44:21.730	INFO	file-browser/app.go:82	App is shutting down
+2026-04-07 17:48:33.512	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:48:33.513	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:48:39.861	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:48:39.861	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:48:42.629	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:48:42.629	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:48:42.752	INFO	render/manager.go:26	Render manager started
+2026-04-07 17:49:07.152	INFO	render/drag.go:25	Drag leave signal received	{"x": 695, "y": 648}
+2026-04-07 17:49:07.158	INFO	render/drag.go:25	Drag leave signal received	{"x": 671, "y": 648}
+2026-04-07 17:49:07.167	INFO	render/drag.go:25	Drag leave signal received	{"x": 641, "y": 648}
+2026-04-07 17:49:07.182	INFO	render/drag.go:25	Drag leave signal received	{"x": 610, "y": 648}
+2026-04-07 17:49:07.393	INFO	render/drag.go:32	Drop signal received	{"x": 526, "y": 644, "paths": [""]}
+2026-04-07 17:49:39.276	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.277	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.278	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.278	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.278	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.279	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.280	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.281	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.282	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.282	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.282	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.282	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.283	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.283	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.283	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.285	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:49:39.287	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 17:52:04.596	INFO	render/drag.go:25	Drag leave signal received	{"x": 478, "y": 354}
+2026-04-07 17:52:04.612	INFO	render/drag.go:25	Drag leave signal received	{"x": 479, "y": 341}
+2026-04-07 17:52:04.627	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 312}
+2026-04-07 17:52:04.638	INFO	render/drag.go:25	Drag leave signal received	{"x": 483, "y": 300}
+2026-04-07 17:52:04.656	INFO	render/drag.go:25	Drag leave signal received	{"x": 484, "y": 281}
+2026-04-07 17:52:04.668	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 276}
+2026-04-07 17:52:04.703	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 270}
+2026-04-07 17:52:04.714	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 269}
+2026-04-07 17:52:05.376	INFO	render/drag.go:25	Drag leave signal received	{"x": 486, "y": 270}
+2026-04-07 17:52:05.426	INFO	render/drag.go:25	Drag leave signal received	{"x": 486, "y": 271}
+2026-04-07 17:52:05.652	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 279}
+2026-04-07 17:52:05.759	INFO	render/drag.go:25	Drag leave signal received	{"x": 483, "y": 286}
+2026-04-07 17:52:05.778	INFO	render/drag.go:25	Drag leave signal received	{"x": 483, "y": 287}
+2026-04-07 17:52:06.362	INFO	render/drag.go:32	Drop signal received	{"x": 487, "y": 300, "paths": [""]}
+2026-04-07 17:52:35.150	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 17:52:35.150	INFO	file-browser/app.go:82	App is shutting down
+2026-04-07 17:58:09.687	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:58:09.687	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:58:16.086	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:58:16.086	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:58:18.873	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:58:18.874	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:58:18.986	INFO	render/manager.go:26	Render manager started
+2026-04-07 17:58:35.994	INFO	render/drag.go:18	Drag enter signal received	{"x": 958, "y": 519}
+2026-04-07 17:58:36.218	INFO	render/drag.go:32	Drop signal received	{"x": 693, "y": 621, "paths": ["/Users/wxk/Downloads/logo.png"]}
+2026-04-07 17:58:36.219	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:1fdf1897-d961-44e2-b681-a88d5d57abe9", "x": 693, "y": 621, "paths": ["/Users/wxk/Downloads/logo.png"]}
+2026-04-07 17:58:47.576	INFO	render/drag.go:25	Drag leave signal received	{"x": 730, "y": 442}
+2026-04-07 17:58:47.592	INFO	render/drag.go:25	Drag leave signal received	{"x": 707, "y": 444}
+2026-04-07 17:58:47.623	INFO	render/drag.go:25	Drag leave signal received	{"x": 668, "y": 447}
+2026-04-07 17:58:47.630	INFO	render/drag.go:25	Drag leave signal received	{"x": 657, "y": 448}
+2026-04-07 17:58:47.641	INFO	render/drag.go:25	Drag leave signal received	{"x": 644, "y": 449}
+2026-04-07 17:58:47.657	INFO	render/drag.go:25	Drag leave signal received	{"x": 625, "y": 451}
+2026-04-07 17:58:47.668	INFO	render/drag.go:25	Drag leave signal received	{"x": 613, "y": 453}
+2026-04-07 17:58:47.698	INFO	render/drag.go:25	Drag leave signal received	{"x": 581, "y": 458}
+2026-04-07 17:58:47.715	INFO	render/drag.go:25	Drag leave signal received	{"x": 573, "y": 459}
+2026-04-07 17:58:47.992	INFO	render/drag.go:32	Drop signal received	{"x": 568, "y": 460, "paths": [""]}
+2026-04-07 18:00:59.507	INFO	render/drag.go:18	Drag enter signal received	{"x": 846, "y": 608}
+2026-04-07 18:00:59.778	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:1fdf1897-d961-44e2-b681-a88d5d57abe9", "x": 632, "y": 641, "paths": ["/Users/wxk/Downloads/logo.svg"]}
+2026-04-07 18:00:59.778	INFO	render/drag.go:32	Drop signal received	{"x": 632, "y": 641, "paths": ["/Users/wxk/Downloads/logo.svg"]}
+2026-04-07 18:01:10.802	INFO	render/drag.go:18	Drag enter signal received	{"x": 982, "y": 642}
+2026-04-07 18:01:10.968	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 725, "y": 550, "paths": ["/Users/wxk/Downloads/file-browser-0.1.0.1-alpha-darwin-arm64"]}
+2026-04-07 18:01:10.968	INFO	render/drag.go:32	Drop signal received	{"x": 725, "y": 550, "paths": ["/Users/wxk/Downloads/file-browser-0.1.0.1-alpha-darwin-arm64"]}
+2026-04-07 18:01:25.087	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 18:01:52.968	INFO	render/drag.go:25	Drag leave signal received	{"x": 430, "y": 366}
+2026-04-07 18:01:52.976	INFO	render/drag.go:25	Drag leave signal received	{"x": 431, "y": 392}
+2026-04-07 18:01:52.991	INFO	render/drag.go:25	Drag leave signal received	{"x": 434, "y": 436}
+2026-04-07 18:01:52.995	INFO	render/drag.go:25	Drag leave signal received	{"x": 435, "y": 455}
+2026-04-07 18:01:53.015	INFO	render/drag.go:25	Drag leave signal received	{"x": 442, "y": 517}
+2026-04-07 18:01:53.032	INFO	render/drag.go:25	Drag leave signal received	{"x": 450, "y": 562}
+2026-04-07 18:01:53.049	INFO	render/drag.go:25	Drag leave signal received	{"x": 458, "y": 606}
+2026-04-07 18:01:53.067	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 643}
+2026-04-07 18:01:53.560	INFO	render/drag.go:25	Drag leave signal received	{"x": 488, "y": 635}
+2026-04-07 18:01:53.977	INFO	render/drag.go:25	Drag leave signal received	{"x": 487, "y": 636}
+2026-04-07 18:01:54.418	INFO	render/drag.go:32	Drop signal received	{"x": 482, "y": 673, "paths": [""]}
+2026-04-07 18:02:34.987	INFO	render/drag.go:25	Drag leave signal received	{"x": 616, "y": 328}
+2026-04-07 18:02:34.996	INFO	render/drag.go:25	Drag leave signal received	{"x": 638, "y": 328}
+2026-04-07 18:02:35.002	INFO	render/drag.go:25	Drag leave signal received	{"x": 669, "y": 328}
+2026-04-07 18:02:35.007	INFO	render/drag.go:25	Drag leave signal received	{"x": 692, "y": 328}
+2026-04-07 18:02:35.278	INFO	render/drag.go:32	Drop signal received	{"x": 800, "y": 328, "paths": [""]}
+2026-04-07 18:02:39.357	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 18:02:39.357	INFO	file-browser/app.go:82	App is shutting down
+2026-04-07 18:06:26.497	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 18:06:26.497	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 18:06:32.609	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 18:06:32.609	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 18:06:35.272	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 18:06:35.272	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 18:06:35.387	INFO	render/manager.go:26	Render manager started
+2026-04-07 18:07:20.865	INFO	render/drag.go:25	Drag leave signal received	{"x": 683, "y": 620}
+2026-04-07 18:07:20.867	INFO	render/drag.go:25	Drag leave signal received	{"x": 664, "y": 625}
+2026-04-07 18:07:20.871	INFO	render/drag.go:25	Drag leave signal received	{"x": 645, "y": 632}
+2026-04-07 18:07:20.880	INFO	render/drag.go:25	Drag leave signal received	{"x": 626, "y": 640}
+2026-04-07 18:07:20.883	INFO	render/drag.go:25	Drag leave signal received	{"x": 612, "y": 645}
+2026-04-07 18:07:21.200	INFO	render/drag.go:32	Drop signal received	{"x": 515, "y": 687, "paths": [""]}
+2026-04-07 18:13:33.370	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 348}
+2026-04-07 18:13:33.391	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 377}
+2026-04-07 18:13:33.405	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 407}
+2026-04-07 18:13:33.417	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 437}
+2026-04-07 18:13:33.426	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 466}
+2026-04-07 18:13:33.436	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 493}
+2026-04-07 18:13:33.448	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 519}
+2026-04-07 18:13:33.457	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 544}
+2026-04-07 18:13:33.467	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 562}
+2026-04-07 18:13:33.475	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 574}
+2026-04-07 18:13:33.490	INFO	render/drag.go:25	Drag leave signal received	{"x": 448, "y": 621}
+2026-04-07 18:13:33.501	INFO	render/drag.go:25	Drag leave signal received	{"x": 449, "y": 629}
+2026-04-07 18:13:33.515	INFO	render/drag.go:25	Drag leave signal received	{"x": 451, "y": 636}
+2026-04-07 18:13:33.526	INFO	render/drag.go:25	Drag leave signal received	{"x": 454, "y": 657}
+2026-04-07 18:13:33.975	INFO	render/drag.go:32	Drop signal received	{"x": 453, "y": 661, "paths": [""]}
+2026-04-07 18:13:38.386	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 470}
+2026-04-07 18:13:38.420	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 522}
+2026-04-07 18:13:38.433	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 553}
+2026-04-07 18:13:38.442	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 589}
+2026-04-07 18:13:38.449	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 613}
+2026-04-07 18:13:38.453	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 636}
+2026-04-07 18:13:38.460	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 661}
+2026-04-07 18:13:38.469	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 678}
+2026-04-07 18:13:38.474	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 701}
+2026-04-07 18:13:38.491	INFO	render/drag.go:25	Drag leave signal received	{"x": 473, "y": 710}
+2026-04-07 18:13:38.500	INFO	render/drag.go:25	Drag leave signal received	{"x": 474, "y": 716}
+2026-04-07 18:13:38.512	INFO	render/drag.go:25	Drag leave signal received	{"x": 477, "y": 732}
+2026-04-07 18:13:38.521	INFO	render/drag.go:25	Drag leave signal received	{"x": 477, "y": 733}
+2026-04-07 18:13:38.625	INFO	render/drag.go:25	Drag leave signal received	{"x": 476, "y": 732}
+2026-04-07 18:13:38.656	INFO	render/drag.go:25	Drag leave signal received	{"x": 476, "y": 731}
+2026-04-07 18:13:38.951	INFO	render/drag.go:25	Drag leave signal received	{"x": 473, "y": 710}
+2026-04-07 18:13:38.960	INFO	render/drag.go:25	Drag leave signal received	{"x": 471, "y": 705}
+2026-04-07 18:13:38.970	INFO	render/drag.go:25	Drag leave signal received	{"x": 470, "y": 699}
+2026-04-07 18:13:38.980	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 694}
+2026-04-07 18:13:38.989	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 690}
+2026-04-07 18:13:39.074	INFO	render/drag.go:25	Drag leave signal received	{"x": 462, "y": 672}
+2026-04-07 18:13:39.085	INFO	render/drag.go:25	Drag leave signal received	{"x": 461, "y": 670}
+2026-04-07 18:13:39.116	INFO	render/drag.go:25	Drag leave signal received	{"x": 458, "y": 663}
+2026-04-07 18:13:39.142	INFO	render/drag.go:25	Drag leave signal received	{"x": 455, "y": 656}
+2026-04-07 18:13:39.150	INFO	render/drag.go:25	Drag leave signal received	{"x": 454, "y": 653}
+2026-04-07 18:13:39.283	INFO	render/drag.go:25	Drag leave signal received	{"x": 455, "y": 634}
+2026-04-07 18:13:39.294	INFO	render/drag.go:25	Drag leave signal received	{"x": 461, "y": 632}
+2026-04-07 18:13:39.326	INFO	render/drag.go:25	Drag leave signal received	{"x": 496, "y": 626}
+2026-04-07 18:13:39.399	INFO	render/drag.go:25	Drag leave signal received	{"x": 602, "y": 618}
+2026-04-07 18:13:39.408	INFO	render/drag.go:25	Drag leave signal received	{"x": 614, "y": 617}
+2026-04-07 18:13:39.418	INFO	render/drag.go:25	Drag leave signal received	{"x": 626, "y": 616}
+2026-04-07 18:13:39.433	INFO	render/drag.go:25	Drag leave signal received	{"x": 638, "y": 615}
+2026-04-07 18:13:39.442	INFO	render/drag.go:25	Drag leave signal received	{"x": 646, "y": 615}
+2026-04-07 18:13:39.456	INFO	render/drag.go:25	Drag leave signal received	{"x": 661, "y": 615}
+2026-04-07 18:13:39.493	INFO	render/drag.go:25	Drag leave signal received	{"x": 694, "y": 614}
+2026-04-07 18:13:39.949	INFO	render/drag.go:25	Drag leave signal received	{"x": 676, "y": 604}
+2026-04-07 18:13:39.968	INFO	render/drag.go:25	Drag leave signal received	{"x": 644, "y": 604}
+2026-04-07 18:13:39.980	INFO	render/drag.go:25	Drag leave signal received	{"x": 626, "y": 604}
+2026-04-07 18:13:39.999	INFO	render/drag.go:25	Drag leave signal received	{"x": 608, "y": 604}
+2026-04-07 18:13:40.013	INFO	render/drag.go:25	Drag leave signal received	{"x": 552, "y": 609}
+2026-04-07 18:13:40.049	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 619}
+2026-04-07 18:13:40.113	INFO	render/drag.go:25	Drag leave signal received	{"x": 442, "y": 627}
+2026-04-07 18:13:40.382	INFO	render/drag.go:32	Drop signal received	{"x": 420, "y": 628, "paths": [""]}
+2026-04-07 18:13:44.097	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 586}
+2026-04-07 18:13:44.106	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 553}
+2026-04-07 18:13:44.121	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 514}
+2026-04-07 18:13:44.140	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 471}
+2026-04-07 18:13:44.153	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 436}
+2026-04-07 18:13:44.165	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 418}
+2026-04-07 18:13:44.192	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 386}
+2026-04-07 18:13:44.198	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 373}
+2026-04-07 18:13:44.207	INFO	render/drag.go:25	Drag leave signal received	{"x": 486, "y": 363}
+2026-04-07 18:13:44.291	INFO	render/drag.go:25	Drag leave signal received	{"x": 487, "y": 351}
+2026-04-07 18:13:44.372	INFO	render/drag.go:25	Drag leave signal received	{"x": 487, "y": 331}
+2026-04-07 18:13:44.381	INFO	render/drag.go:25	Drag leave signal received	{"x": 487, "y": 330}
+2026-04-07 18:13:44.460	INFO	render/drag.go:25	Drag leave signal received	{"x": 487, "y": 322}
+2026-04-07 18:13:44.503	INFO	render/drag.go:25	Drag leave signal received	{"x": 486, "y": 315}
+2026-04-07 18:13:44.513	INFO	render/drag.go:25	Drag leave signal received	{"x": 486, "y": 314}
+2026-04-07 18:13:44.590	INFO	render/drag.go:25	Drag leave signal received	{"x": 483, "y": 293}
+2026-04-07 18:13:44.600	INFO	render/drag.go:25	Drag leave signal received	{"x": 483, "y": 292}
+2026-04-07 18:13:44.675	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 293}
+2026-04-07 18:13:44.685	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 294}
+2026-04-07 18:13:44.778	INFO	render/drag.go:25	Drag leave signal received	{"x": 481, "y": 315}
+2026-04-07 18:13:44.790	INFO	render/drag.go:25	Drag leave signal received	{"x": 481, "y": 320}
+2026-04-07 18:13:44.801	INFO	render/drag.go:25	Drag leave signal received	{"x": 480, "y": 326}
+2026-04-07 18:13:44.810	INFO	render/drag.go:25	Drag leave signal received	{"x": 480, "y": 338}
+2026-04-07 18:13:44.819	INFO	render/drag.go:25	Drag leave signal received	{"x": 479, "y": 355}
+2026-04-07 18:13:44.904	INFO	render/drag.go:25	Drag leave signal received	{"x": 477, "y": 375}
+2026-04-07 18:13:44.919	INFO	render/drag.go:25	Drag leave signal received	{"x": 476, "y": 402}
+2026-04-07 18:13:44.932	INFO	render/drag.go:25	Drag leave signal received	{"x": 474, "y": 435}
+2026-04-07 18:13:44.945	INFO	render/drag.go:25	Drag leave signal received	{"x": 473, "y": 464}
+2026-04-07 18:13:44.955	INFO	render/drag.go:25	Drag leave signal received	{"x": 472, "y": 492}
+2026-04-07 18:13:44.966	INFO	render/drag.go:25	Drag leave signal received	{"x": 471, "y": 526}
+2026-04-07 18:13:44.985	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 593}
+2026-04-07 18:13:44.990	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 623}
+2026-04-07 18:13:45.000	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 652}
+2026-04-07 18:13:45.018	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 701}
+2026-04-07 18:13:45.024	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 721}
+2026-04-07 18:13:45.038	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 738}
+2026-04-07 18:13:45.049	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 751}
+2026-04-07 18:13:45.070	INFO	render/drag.go:25	Drag leave signal received	{"x": 470, "y": 768}
+2026-04-07 18:13:45.166	INFO	render/drag.go:25	Drag leave signal received	{"x": 496, "y": 747}
+2026-04-07 18:13:45.178	INFO	render/drag.go:25	Drag leave signal received	{"x": 504, "y": 738}
+2026-04-07 18:13:45.191	INFO	render/drag.go:25	Drag leave signal received	{"x": 513, "y": 729}
+2026-04-07 18:13:45.205	INFO	render/drag.go:25	Drag leave signal received	{"x": 522, "y": 718}
+2026-04-07 18:13:45.213	INFO	render/drag.go:25	Drag leave signal received	{"x": 531, "y": 708}
+2026-04-07 18:13:45.223	INFO	render/drag.go:25	Drag leave signal received	{"x": 542, "y": 692}
+2026-04-07 18:13:45.235	INFO	render/drag.go:25	Drag leave signal received	{"x": 548, "y": 684}
+2026-04-07 18:13:45.251	INFO	render/drag.go:25	Drag leave signal received	{"x": 556, "y": 672}
+2026-04-07 18:13:45.296	INFO	render/drag.go:25	Drag leave signal received	{"x": 561, "y": 654}
+2026-04-07 18:13:45.307	INFO	render/drag.go:25	Drag leave signal received	{"x": 561, "y": 652}
+2026-04-07 18:13:45.332	INFO	render/drag.go:25	Drag leave signal received	{"x": 556, "y": 646}
+2026-04-07 18:13:45.357	INFO	render/drag.go:25	Drag leave signal received	{"x": 549, "y": 636}
+2026-04-07 18:13:46.012	INFO	render/drag.go:32	Drop signal received	{"x": 529, "y": 635, "paths": [""]}
+2026-04-07 18:13:48.219	INFO	render/drag.go:25	Drag leave signal received	{"x": 458, "y": 626}
+2026-04-07 18:13:48.224	INFO	render/drag.go:25	Drag leave signal received	{"x": 460, "y": 617}
+2026-04-07 18:13:48.228	INFO	render/drag.go:25	Drag leave signal received	{"x": 463, "y": 603}
+2026-04-07 18:13:48.493	INFO	render/drag.go:25	Drag leave signal received	{"x": 458, "y": 611}
+2026-04-07 18:13:48.519	INFO	render/drag.go:25	Drag leave signal received	{"x": 455, "y": 619}
+2026-04-07 18:13:48.600	INFO	render/drag.go:25	Drag leave signal received	{"x": 451, "y": 627}
+2026-04-07 18:13:48.626	INFO	render/drag.go:25	Drag leave signal received	{"x": 446, "y": 634}
+2026-04-07 18:13:48.638	INFO	render/drag.go:25	Drag leave signal received	{"x": 445, "y": 637}
+2026-04-07 18:13:48.886	INFO	render/drag.go:25	Drag leave signal received	{"x": 536, "y": 633}
+2026-04-07 18:13:48.906	INFO	render/drag.go:25	Drag leave signal received	{"x": 569, "y": 626}
+2026-04-07 18:13:48.935	INFO	render/drag.go:25	Drag leave signal received	{"x": 613, "y": 618}
+2026-04-07 18:13:48.948	INFO	render/drag.go:25	Drag leave signal received	{"x": 624, "y": 617}
+2026-04-07 18:13:48.969	INFO	render/drag.go:25	Drag leave signal received	{"x": 638, "y": 615}
+2026-04-07 18:13:48.987	INFO	render/drag.go:25	Drag leave signal received	{"x": 649, "y": 612}
+2026-04-07 18:13:49.226	INFO	render/drag.go:25	Drag leave signal received	{"x": 651, "y": 568}
+2026-04-07 18:13:49.234	INFO	render/drag.go:25	Drag leave signal received	{"x": 651, "y": 541}
+2026-04-07 18:13:49.261	INFO	render/drag.go:25	Drag leave signal received	{"x": 644, "y": 469}
+2026-04-07 18:13:49.294	INFO	render/drag.go:25	Drag leave signal received	{"x": 632, "y": 403}
+2026-04-07 18:13:49.305	INFO	render/drag.go:25	Drag leave signal received	{"x": 626, "y": 385}
+2026-04-07 18:13:49.316	INFO	render/drag.go:25	Drag leave signal received	{"x": 621, "y": 370}
+2026-04-07 18:13:49.328	INFO	render/drag.go:25	Drag leave signal received	{"x": 613, "y": 348}
+2026-04-07 18:13:49.339	INFO	render/drag.go:25	Drag leave signal received	{"x": 605, "y": 309}
+2026-04-07 18:13:49.348	INFO	render/drag.go:25	Drag leave signal received	{"x": 600, "y": 277}
+2026-04-07 18:13:49.359	INFO	render/drag.go:25	Drag leave signal received	{"x": 597, "y": 264}
+2026-04-07 18:13:49.373	INFO	render/drag.go:25	Drag leave signal received	{"x": 595, "y": 253}
+2026-04-07 18:13:49.385	INFO	render/drag.go:25	Drag leave signal received	{"x": 593, "y": 246}
+2026-04-07 18:13:49.403	INFO	render/drag.go:25	Drag leave signal received	{"x": 590, "y": 236}
+2026-04-07 18:13:49.748	INFO	render/drag.go:25	Drag leave signal received	{"x": 584, "y": 239}
+2026-04-07 18:13:49.767	INFO	render/drag.go:25	Drag leave signal received	{"x": 584, "y": 240}
+2026-04-07 18:13:49.847	INFO	render/drag.go:25	Drag leave signal received	{"x": 583, "y": 248}
+2026-04-07 18:13:49.864	INFO	render/drag.go:25	Drag leave signal received	{"x": 581, "y": 256}
+2026-04-07 18:13:49.902	INFO	render/drag.go:25	Drag leave signal received	{"x": 573, "y": 278}
+2026-04-07 18:13:49.944	INFO	render/drag.go:25	Drag leave signal received	{"x": 571, "y": 286}
+2026-04-07 18:13:49.977	INFO	render/drag.go:25	Drag leave signal received	{"x": 566, "y": 297}
+2026-04-07 18:13:49.994	INFO	render/drag.go:25	Drag leave signal received	{"x": 556, "y": 322}
+2026-04-07 18:13:50.003	INFO	render/drag.go:25	Drag leave signal received	{"x": 550, "y": 339}
+2026-04-07 18:13:50.021	INFO	render/drag.go:25	Drag leave signal received	{"x": 540, "y": 363}
+2026-04-07 18:13:50.097	INFO	render/drag.go:25	Drag leave signal received	{"x": 535, "y": 375}
+2026-04-07 18:13:50.106	INFO	render/drag.go:25	Drag leave signal received	{"x": 530, "y": 386}
+2026-04-07 18:13:50.112	INFO	render/drag.go:25	Drag leave signal received	{"x": 526, "y": 396}
+2026-04-07 18:13:50.166	INFO	render/drag.go:25	Drag leave signal received	{"x": 516, "y": 421}
+2026-04-07 18:13:50.210	INFO	render/drag.go:25	Drag leave signal received	{"x": 507, "y": 439}
+2026-04-07 18:13:50.222	INFO	render/drag.go:25	Drag leave signal received	{"x": 503, "y": 447}
+2026-04-07 18:13:50.242	INFO	render/drag.go:25	Drag leave signal received	{"x": 490, "y": 476}
+2026-04-07 18:13:50.265	INFO	render/drag.go:25	Drag leave signal received	{"x": 471, "y": 521}
+2026-04-07 18:13:50.275	INFO	render/drag.go:25	Drag leave signal received	{"x": 466, "y": 534}
+2026-04-07 18:13:50.301	INFO	render/drag.go:25	Drag leave signal received	{"x": 453, "y": 564}
+2026-04-07 18:13:50.322	INFO	render/drag.go:25	Drag leave signal received	{"x": 448, "y": 576}
+2026-04-07 18:13:50.585	INFO	render/drag.go:25	Drag leave signal received	{"x": 439, "y": 571}
+2026-04-07 18:13:50.631	INFO	render/drag.go:25	Drag leave signal received	{"x": 437, "y": 554}
+2026-04-07 18:13:50.657	INFO	render/drag.go:25	Drag leave signal received	{"x": 437, "y": 494}
+2026-04-07 18:13:50.672	INFO	render/drag.go:25	Drag leave signal received	{"x": 439, "y": 448}
+2026-04-07 18:13:50.682	INFO	render/drag.go:25	Drag leave signal received	{"x": 443, "y": 420}
+2026-04-07 18:13:50.694	INFO	render/drag.go:25	Drag leave signal received	{"x": 445, "y": 404}
+2026-04-07 18:13:50.698	INFO	render/drag.go:25	Drag leave signal received	{"x": 448, "y": 388}
+2026-04-07 18:13:50.710	INFO	render/drag.go:25	Drag leave signal received	{"x": 450, "y": 375}
+2026-04-07 18:13:50.720	INFO	render/drag.go:25	Drag leave signal received	{"x": 453, "y": 361}
+2026-04-07 18:13:50.797	INFO	render/drag.go:25	Drag leave signal received	{"x": 455, "y": 347}
+2026-04-07 18:13:50.813	INFO	render/drag.go:25	Drag leave signal received	{"x": 458, "y": 328}
+2026-04-07 18:13:50.823	INFO	render/drag.go:25	Drag leave signal received	{"x": 459, "y": 323}
+2026-04-07 18:13:50.861	INFO	render/drag.go:25	Drag leave signal received	{"x": 461, "y": 312}
+2026-04-07 18:13:51.467	INFO	render/drag.go:32	Drop signal received	{"x": 465, "y": 302, "paths": [""]}
+2026-04-07 18:13:54.927	INFO	render/drag.go:18	Drag enter signal received	{"x": 1008, "y": 760}
+2026-04-07 18:13:54.928	INFO	render/drag.go:25	Drag leave signal received	{"x": 998, "y": 755}
+2026-04-07 18:13:54.956	INFO	render/drag.go:18	Drag enter signal received	{"x": 977, "y": 745}
+2026-04-07 18:13:55.731	INFO	render/drag.go:32	Drop signal received	{"x": 774, "y": 594, "paths": ["/Users/wxk/Downloads/app.go"]}
+2026-04-07 18:13:55.731	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-5-mnogoduz", "tabId": "welcome", "x": 774, "y": 594, "paths": ["/Users/wxk/Downloads/app.go"]}
+2026-04-07 18:13:58.156	INFO	render/drag.go:18	Drag enter signal received	{"x": 961, "y": 755}
+2026-04-07 18:14:01.055	INFO	render/drag.go:52	Panel file drop received	{"groupId": "group-4-mnogoduz", "tabId": "connection:1fdf1897-d961-44e2-b681-a88d5d57abe9", "x": 512, "y": 552, "paths": ["/Users/wxk/Downloads/app.go"]}
+2026-04-07 18:14:01.055	INFO	render/drag.go:32	Drop signal received	{"x": 512, "y": 552, "paths": ["/Users/wxk/Downloads/app.go"]}
+2026-04-07 18:14:06.928	INFO	render/drag.go:25	Drag leave signal received	{"x": 440, "y": 405}
+2026-04-07 18:14:06.945	INFO	render/drag.go:25	Drag leave signal received	{"x": 440, "y": 427}
+2026-04-07 18:14:06.955	INFO	render/drag.go:25	Drag leave signal received	{"x": 440, "y": 451}
+2026-04-07 18:14:06.966	INFO	render/drag.go:25	Drag leave signal received	{"x": 440, "y": 475}
+2026-04-07 18:14:06.991	INFO	render/drag.go:25	Drag leave signal received	{"x": 443, "y": 521}
+2026-04-07 18:14:07.000	INFO	render/drag.go:25	Drag leave signal received	{"x": 445, "y": 539}
+2026-04-07 18:14:07.018	INFO	render/drag.go:25	Drag leave signal received	{"x": 448, "y": 563}
+2026-04-07 18:14:07.025	INFO	render/drag.go:25	Drag leave signal received	{"x": 449, "y": 574}
+2026-04-07 18:14:07.534	INFO	render/drag.go:25	Drag leave signal received	{"x": 619, "y": 608}
+2026-04-07 18:14:07.552	INFO	render/drag.go:25	Drag leave signal received	{"x": 637, "y": 610}
+2026-04-07 18:14:07.562	INFO	render/drag.go:25	Drag leave signal received	{"x": 658, "y": 613}
+2026-04-07 18:14:07.567	INFO	render/drag.go:25	Drag leave signal received	{"x": 677, "y": 615}
+2026-04-07 18:14:07.575	INFO	render/drag.go:25	Drag leave signal received	{"x": 694, "y": 616}
+2026-04-07 18:14:07.987	INFO	render/drag.go:25	Drag leave signal received	{"x": 681, "y": 615}
+2026-04-07 18:14:08.008	INFO	render/drag.go:25	Drag leave signal received	{"x": 649, "y": 616}
+2026-04-07 18:14:08.014	INFO	render/drag.go:25	Drag leave signal received	{"x": 636, "y": 617}
+2026-04-07 18:14:08.025	INFO	render/drag.go:25	Drag leave signal received	{"x": 621, "y": 617}
+2026-04-07 18:14:08.042	INFO	render/drag.go:25	Drag leave signal received	{"x": 607, "y": 618}
+2026-04-07 18:14:08.053	INFO	render/drag.go:25	Drag leave signal received	{"x": 595, "y": 619}
+2026-04-07 18:14:08.494	INFO	render/drag.go:25	Drag leave signal received	{"x": 609, "y": 621}
+2026-04-07 18:14:08.513	INFO	render/drag.go:25	Drag leave signal received	{"x": 619, "y": 621}
+2026-04-07 18:14:08.527	INFO	render/drag.go:25	Drag leave signal received	{"x": 630, "y": 622}
+2026-04-07 18:14:08.543	INFO	render/drag.go:25	Drag leave signal received	{"x": 641, "y": 622}
+2026-04-07 18:14:08.553	INFO	render/drag.go:25	Drag leave signal received	{"x": 652, "y": 623}
+2026-04-07 18:14:08.559	INFO	render/drag.go:25	Drag leave signal received	{"x": 661, "y": 624}
+2026-04-07 18:14:08.605	INFO	render/drag.go:25	Drag leave signal received	{"x": 690, "y": 627}
+2026-04-07 18:14:08.832	INFO	render/drag.go:25	Drag leave signal received	{"x": 717, "y": 614}
+2026-04-07 18:14:08.953	INFO	render/drag.go:25	Drag leave signal received	{"x": 685, "y": 614}
+2026-04-07 18:14:08.990	INFO	render/drag.go:25	Drag leave signal received	{"x": 652, "y": 620}
+2026-04-07 18:14:09.001	INFO	render/drag.go:25	Drag leave signal received	{"x": 643, "y": 621}
+2026-04-07 18:14:09.014	INFO	render/drag.go:25	Drag leave signal received	{"x": 629, "y": 623}
+2026-04-07 18:14:09.037	INFO	render/drag.go:25	Drag leave signal received	{"x": 619, "y": 623}
+2026-04-07 18:14:09.051	INFO	render/drag.go:25	Drag leave signal received	{"x": 611, "y": 623}
+2026-04-07 18:14:09.088	INFO	render/drag.go:25	Drag leave signal received	{"x": 600, "y": 620}
+2026-04-07 18:14:09.098	INFO	render/drag.go:25	Drag leave signal received	{"x": 594, "y": 616}
+2026-04-07 18:14:09.111	INFO	render/drag.go:25	Drag leave signal received	{"x": 592, "y": 613}
+2026-04-07 18:14:09.134	INFO	render/drag.go:25	Drag leave signal received	{"x": 588, "y": 608}
+2026-04-07 18:14:09.217	INFO	render/drag.go:25	Drag leave signal received	{"x": 555, "y": 572}
+2026-04-07 18:14:09.237	INFO	render/drag.go:25	Drag leave signal received	{"x": 550, "y": 568}
+2026-04-07 18:14:09.274	INFO	render/drag.go:25	Drag leave signal received	{"x": 526, "y": 557}
+2026-04-07 18:14:09.292	INFO	render/drag.go:25	Drag leave signal received	{"x": 513, "y": 553}
+2026-04-07 18:14:09.301	INFO	render/drag.go:25	Drag leave signal received	{"x": 506, "y": 551}
+2026-04-07 18:14:09.311	INFO	render/drag.go:25	Drag leave signal received	{"x": 502, "y": 550}
+2026-04-07 18:14:09.617	INFO	render/drag.go:25	Drag leave signal received	{"x": 495, "y": 545}
+2026-04-07 18:14:09.660	INFO	render/drag.go:25	Drag leave signal received	{"x": 491, "y": 540}
+2026-04-07 18:14:09.693	INFO	render/drag.go:25	Drag leave signal received	{"x": 485, "y": 529}
+2026-04-07 18:14:09.705	INFO	render/drag.go:25	Drag leave signal received	{"x": 484, "y": 526}
+2026-04-07 18:14:09.715	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 523}
+2026-04-07 18:14:09.793	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 510}
+2026-04-07 18:14:10.430	INFO	render/drag.go:25	Drag leave signal received	{"x": 456, "y": 458}
+2026-04-07 18:14:10.440	INFO	render/drag.go:25	Drag leave signal received	{"x": 456, "y": 443}
+2026-04-07 18:14:10.450	INFO	render/drag.go:25	Drag leave signal received	{"x": 456, "y": 425}
+2026-04-07 18:14:10.462	INFO	render/drag.go:25	Drag leave signal received	{"x": 456, "y": 408}
+2026-04-07 18:14:10.477	INFO	render/drag.go:25	Drag leave signal received	{"x": 456, "y": 385}
+2026-04-07 18:14:10.483	INFO	render/drag.go:25	Drag leave signal received	{"x": 456, "y": 376}
+2026-04-07 18:14:10.508	INFO	render/drag.go:25	Drag leave signal received	{"x": 455, "y": 362}
+2026-04-07 18:14:10.535	INFO	render/drag.go:25	Drag leave signal received	{"x": 453, "y": 353}
+2026-04-07 18:14:10.561	INFO	render/drag.go:25	Drag leave signal received	{"x": 452, "y": 348}
+2026-04-07 18:14:10.701	INFO	render/drag.go:25	Drag leave signal received	{"x": 447, "y": 341}
+2026-04-07 18:14:10.714	INFO	render/drag.go:25	Drag leave signal received	{"x": 445, "y": 339}
+2026-04-07 18:14:10.814	INFO	render/drag.go:25	Drag leave signal received	{"x": 435, "y": 319}
+2026-04-07 18:14:10.828	INFO	render/drag.go:25	Drag leave signal received	{"x": 434, "y": 318}
+2026-04-07 18:14:10.975	INFO	render/drag.go:25	Drag leave signal received	{"x": 432, "y": 316}
+2026-04-07 18:14:12.029	INFO	render/drag.go:25	Drag leave signal received	{"x": 428, "y": 427}
+2026-04-07 18:14:12.045	INFO	render/drag.go:25	Drag leave signal received	{"x": 432, "y": 453}
+2026-04-07 18:14:12.056	INFO	render/drag.go:25	Drag leave signal received	{"x": 436, "y": 474}
+2026-04-07 18:14:12.073	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 516}
+2026-04-07 18:14:12.082	INFO	render/drag.go:25	Drag leave signal received	{"x": 448, "y": 535}
+2026-04-07 18:14:12.100	INFO	render/drag.go:25	Drag leave signal received	{"x": 455, "y": 564}
+2026-04-07 18:14:12.108	INFO	render/drag.go:25	Drag leave signal received	{"x": 458, "y": 577}
+2026-04-07 18:14:12.121	INFO	render/drag.go:25	Drag leave signal received	{"x": 467, "y": 611}
+2026-04-07 18:14:12.141	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 618}
+2026-04-07 18:14:12.157	INFO	render/drag.go:25	Drag leave signal received	{"x": 475, "y": 640}
+2026-04-07 18:14:12.186	INFO	render/drag.go:25	Drag leave signal received	{"x": 477, "y": 647}
+2026-04-07 18:14:12.453	INFO	render/drag.go:25	Drag leave signal received	{"x": 477, "y": 644}
+2026-04-07 18:14:12.489	INFO	render/drag.go:25	Drag leave signal received	{"x": 474, "y": 636}
+2026-04-07 18:14:12.591	INFO	render/drag.go:25	Drag leave signal received	{"x": 469, "y": 614}
+2026-04-07 18:14:12.615	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 603}
+2026-04-07 18:14:12.712	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 570}
+2026-04-07 18:14:12.734	INFO	render/drag.go:25	Drag leave signal received	{"x": 463, "y": 559}
+2026-04-07 18:14:12.783	INFO	render/drag.go:25	Drag leave signal received	{"x": 460, "y": 523}
+2026-04-07 18:14:12.813	INFO	render/drag.go:25	Drag leave signal received	{"x": 458, "y": 511}
+2026-04-07 18:14:13.721	INFO	render/drag.go:25	Drag leave signal received	{"x": 441, "y": 457}
+2026-04-07 18:14:13.731	INFO	render/drag.go:25	Drag leave signal received	{"x": 440, "y": 442}
+2026-04-07 18:14:13.742	INFO	render/drag.go:25	Drag leave signal received	{"x": 438, "y": 425}
+2026-04-07 18:14:13.752	INFO	render/drag.go:25	Drag leave signal received	{"x": 437, "y": 406}
+2026-04-07 18:14:13.760	INFO	render/drag.go:25	Drag leave signal received	{"x": 435, "y": 388}
+2026-04-07 18:14:13.765	INFO	render/drag.go:25	Drag leave signal received	{"x": 434, "y": 376}
+2026-04-07 18:14:13.791	INFO	render/drag.go:25	Drag leave signal received	{"x": 431, "y": 353}
+2026-04-07 18:14:13.804	INFO	render/drag.go:25	Drag leave signal received	{"x": 430, "y": 347}
+2026-04-07 18:14:13.830	INFO	render/drag.go:25	Drag leave signal received	{"x": 428, "y": 338}
+2026-04-07 18:14:14.175	INFO	render/drag.go:25	Drag leave signal received	{"x": 426, "y": 317}
+2026-04-07 18:14:14.202	INFO	render/drag.go:25	Drag leave signal received	{"x": 426, "y": 311}
+2026-04-07 18:14:14.234	INFO	render/drag.go:25	Drag leave signal received	{"x": 426, "y": 302}
+2026-04-07 18:14:14.433	INFO	render/drag.go:25	Drag leave signal received	{"x": 423, "y": 284}
+2026-04-07 18:14:15.718	INFO	render/drag.go:25	Drag leave signal received	{"x": 433, "y": 426}
+2026-04-07 18:14:15.729	INFO	render/drag.go:25	Drag leave signal received	{"x": 438, "y": 445}
+2026-04-07 18:14:15.738	INFO	render/drag.go:25	Drag leave signal received	{"x": 444, "y": 463}
+2026-04-07 18:14:15.758	INFO	render/drag.go:25	Drag leave signal received	{"x": 450, "y": 484}
+2026-04-07 18:14:15.776	INFO	render/drag.go:25	Drag leave signal received	{"x": 461, "y": 521}
+2026-04-07 18:14:15.787	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 534}
+2026-04-07 18:14:15.818	INFO	render/drag.go:25	Drag leave signal received	{"x": 473, "y": 564}
+2026-04-07 18:14:15.843	INFO	render/drag.go:25	Drag leave signal received	{"x": 475, "y": 572}
+2026-04-07 18:14:15.863	INFO	render/drag.go:25	Drag leave signal received	{"x": 475, "y": 573}
+2026-04-07 18:14:15.884	INFO	render/drag.go:25	Drag leave signal received	{"x": 475, "y": 572}
+2026-04-07 18:14:15.914	INFO	render/drag.go:25	Drag leave signal received	{"x": 474, "y": 571}
+2026-04-07 18:14:16.394	INFO	render/drag.go:25	Drag leave signal received	{"x": 466, "y": 559}
+2026-04-07 18:14:17.502	INFO	render/drag.go:25	Drag leave signal received	{"x": 482, "y": 534}
+2026-04-07 18:14:17.519	INFO	render/drag.go:25	Drag leave signal received	{"x": 484, "y": 534}
+2026-04-07 18:14:17.597	INFO	render/drag.go:25	Drag leave signal received	{"x": 509, "y": 535}
+2026-04-07 18:14:17.655	INFO	render/drag.go:25	Drag leave signal received	{"x": 569, "y": 532}
+2026-04-07 18:14:17.664	INFO	render/drag.go:25	Drag leave signal received	{"x": 577, "y": 532}
+2026-04-07 18:14:17.677	INFO	render/drag.go:25	Drag leave signal received	{"x": 593, "y": 531}
+2026-04-07 18:14:17.694	INFO	render/drag.go:25	Drag leave signal received	{"x": 617, "y": 528}
+2026-04-07 18:14:17.713	INFO	render/drag.go:25	Drag leave signal received	{"x": 643, "y": 526}
+2026-04-07 18:14:17.720	INFO	render/drag.go:25	Drag leave signal received	{"x": 658, "y": 525}
+2026-04-07 18:14:17.730	INFO	render/drag.go:25	Drag leave signal received	{"x": 672, "y": 524}
+2026-04-07 18:14:17.751	INFO	render/drag.go:25	Drag leave signal received	{"x": 693, "y": 524}
+2026-04-07 18:14:18.243	INFO	render/drag.go:25	Drag leave signal received	{"x": 676, "y": 525}
+2026-04-07 18:14:18.258	INFO	render/drag.go:25	Drag leave signal received	{"x": 648, "y": 525}
+2026-04-07 18:14:18.271	INFO	render/drag.go:25	Drag leave signal received	{"x": 632, "y": 525}
+2026-04-07 18:14:18.322	INFO	render/drag.go:25	Drag leave signal received	{"x": 548, "y": 529}
+2026-04-07 18:14:18.344	INFO	render/drag.go:25	Drag leave signal received	{"x": 525, "y": 532}
+2026-04-07 18:14:18.386	INFO	render/drag.go:25	Drag leave signal received	{"x": 502, "y": 534}
+2026-04-07 18:14:19.419	INFO	render/drag.go:25	Drag leave signal received	{"x": 506, "y": 534}
+2026-04-07 18:14:19.511	INFO	render/drag.go:25	Drag leave signal received	{"x": 568, "y": 533}
+2026-04-07 18:14:19.520	INFO	render/drag.go:25	Drag leave signal received	{"x": 578, "y": 533}
+2026-04-07 18:14:19.529	INFO	render/drag.go:25	Drag leave signal received	{"x": 587, "y": 533}
+2026-04-07 18:14:19.566	INFO	render/drag.go:25	Drag leave signal received	{"x": 631, "y": 533}
+2026-04-07 18:14:19.574	INFO	render/drag.go:25	Drag leave signal received	{"x": 642, "y": 533}
+2026-04-07 18:14:19.582	INFO	render/drag.go:25	Drag leave signal received	{"x": 651, "y": 533}
+2026-04-07 18:14:19.592	INFO	render/drag.go:25	Drag leave signal received	{"x": 659, "y": 533}
+2026-04-07 18:14:19.629	INFO	render/drag.go:25	Drag leave signal received	{"x": 693, "y": 530}
+2026-04-07 18:14:20.124	INFO	render/drag.go:25	Drag leave signal received	{"x": 684, "y": 525}
+2026-04-07 18:14:20.154	INFO	render/drag.go:25	Drag leave signal received	{"x": 655, "y": 521}
+2026-04-07 18:14:20.164	INFO	render/drag.go:25	Drag leave signal received	{"x": 645, "y": 520}
+2026-04-07 18:14:20.379	INFO	render/drag.go:25	Drag leave signal received	{"x": 491, "y": 524}
+2026-04-07 18:14:21.863	INFO	render/drag.go:25	Drag leave signal received	{"x": 542, "y": 529}
+2026-04-07 18:14:21.887	INFO	render/drag.go:25	Drag leave signal received	{"x": 575, "y": 531}
+2026-04-07 18:14:21.903	INFO	render/drag.go:25	Drag leave signal received	{"x": 599, "y": 533}
+2026-04-07 18:14:21.927	INFO	render/drag.go:25	Drag leave signal received	{"x": 635, "y": 535}
+2026-04-07 18:14:21.935	INFO	render/drag.go:25	Drag leave signal received	{"x": 647, "y": 536}
+2026-04-07 18:14:21.951	INFO	render/drag.go:25	Drag leave signal received	{"x": 665, "y": 538}
+2026-04-07 18:14:21.968	INFO	render/drag.go:25	Drag leave signal received	{"x": 690, "y": 540}
+2026-04-07 18:14:22.437	INFO	render/drag.go:25	Drag leave signal received	{"x": 683, "y": 540}
+2026-04-07 18:14:22.467	INFO	render/drag.go:25	Drag leave signal received	{"x": 655, "y": 537}
+2026-04-07 18:14:22.479	INFO	render/drag.go:25	Drag leave signal received	{"x": 642, "y": 536}
+2026-04-07 18:14:22.489	INFO	render/drag.go:25	Drag leave signal received	{"x": 629, "y": 535}
+2026-04-07 18:14:22.529	INFO	render/drag.go:25	Drag leave signal received	{"x": 580, "y": 530}
+2026-04-07 18:14:22.548	INFO	render/drag.go:25	Drag leave signal received	{"x": 565, "y": 530}
+2026-04-07 18:14:22.565	INFO	render/drag.go:25	Drag leave signal received	{"x": 542, "y": 528}
+2026-04-07 18:14:23.295	INFO	render/drag.go:32	Drop signal received	{"x": 487, "y": 524, "paths": [""]}
+2026-04-07 18:14:30.918	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-07 18:14:30.919	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-07 18:16:10.953	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 359}
+2026-04-07 18:16:10.960	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 380}
+2026-04-07 18:16:10.966	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 402}
+2026-04-07 18:16:10.978	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 425}
+2026-04-07 18:16:10.987	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 443}
+2026-04-07 18:16:11.003	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 459}
+2026-04-07 18:16:11.024	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 479}
+2026-04-07 18:16:11.051	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 516}
+2026-04-07 18:16:11.063	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 527}
+2026-04-07 18:16:11.112	INFO	render/drag.go:25	Drag leave signal received	{"x": 464, "y": 563}
+2026-04-07 18:16:11.328	INFO	render/drag.go:25	Drag leave signal received	{"x": 451, "y": 670}
+2026-04-07 18:16:11.400	INFO	render/drag.go:25	Drag leave signal received	{"x": 450, "y": 669}
+2026-04-07 18:16:11.482	INFO	render/drag.go:25	Drag leave signal received	{"x": 446, "y": 662}
+2026-04-07 18:16:12.445	INFO	render/drag.go:25	Drag leave signal received	{"x": 416, "y": 248}
+2026-04-07 18:16:31.445	INFO	render/drag.go:25	Drag leave signal received	{"x": 500, "y": 647}
+2026-04-07 18:16:31.453	INFO	render/drag.go:25	Drag leave signal received	{"x": 511, "y": 639}
+2026-04-07 18:16:31.458	INFO	render/drag.go:25	Drag leave signal received	{"x": 527, "y": 625}
+2026-04-07 18:16:31.464	INFO	render/drag.go:25	Drag leave signal received	{"x": 551, "y": 604}
+2026-04-07 18:16:31.472	INFO	render/drag.go:25	Drag leave signal received	{"x": 591, "y": 564}
+2026-04-07 18:16:31.481	INFO	render/drag.go:25	Drag leave signal received	{"x": 639, "y": 510}
+2026-04-07 18:16:31.489	INFO	render/drag.go:25	Drag leave signal received	{"x": 685, "y": 449}
+2026-04-07 18:16:31.497	INFO	render/drag.go:25	Drag leave signal received	{"x": 732, "y": 380}
+2026-04-07 18:16:31.507	INFO	render/drag.go:25	Drag leave signal received	{"x": 764, "y": 329}
+2026-04-07 18:16:31.515	INFO	render/drag.go:25	Drag leave signal received	{"x": 780, "y": 299}
+2026-04-07 18:16:31.522	INFO	render/drag.go:25	Drag leave signal received	{"x": 801, "y": 261}
+2026-04-07 18:16:31.539	INFO	render/drag.go:25	Drag leave signal received	{"x": 829, "y": 201}
+2026-04-07 18:16:31.553	INFO	render/drag.go:25	Drag leave signal received	{"x": 843, "y": 170}
+2026-04-07 18:16:31.557	INFO	render/drag.go:25	Drag leave signal received	{"x": 849, "y": 154}
+2026-04-07 18:16:31.570	INFO	render/drag.go:25	Drag leave signal received	{"x": 854, "y": 142}
+2026-04-07 18:16:31.578	INFO	render/drag.go:25	Drag leave signal received	{"x": 856, "y": 134}
+2026-04-07 18:16:31.594	INFO	render/drag.go:25	Drag leave signal received	{"x": 859, "y": 124}
+2026-04-07 18:16:31.847	INFO	render/drag.go:25	Drag leave signal received	{"x": 850, "y": 126}
+2026-04-07 18:16:31.936	INFO	render/drag.go:25	Drag leave signal received	{"x": 808, "y": 140}
+2026-04-07 18:16:31.978	INFO	render/drag.go:25	Drag leave signal received	{"x": 733, "y": 177}
+2026-04-07 18:16:31.996	INFO	render/drag.go:25	Drag leave signal received	{"x": 703, "y": 192}
+2026-04-07 18:16:32.005	INFO	render/drag.go:25	Drag leave signal received	{"x": 686, "y": 200}
+2026-04-07 18:16:32.014	INFO	render/drag.go:25	Drag leave signal received	{"x": 669, "y": 206}
+2026-04-07 18:16:32.020	INFO	render/drag.go:25	Drag leave signal received	{"x": 654, "y": 211}
+2026-04-07 18:16:32.030	INFO	render/drag.go:25	Drag leave signal received	{"x": 644, "y": 213}
+2026-04-07 18:16:32.038	INFO	render/drag.go:25	Drag leave signal received	{"x": 636, "y": 214}
+2026-04-07 18:16:32.064	INFO	render/drag.go:25	Drag leave signal received	{"x": 605, "y": 218}
+2026-04-07 18:16:32.089	INFO	render/drag.go:25	Drag leave signal received	{"x": 586, "y": 218}
+2026-04-07 18:16:32.097	INFO	render/drag.go:25	Drag leave signal received	{"x": 581, "y": 218}
+2026-04-07 18:16:32.139	INFO	render/drag.go:25	Drag leave signal received	{"x": 562, "y": 218}
+2026-04-07 18:16:32.164	INFO	render/drag.go:25	Drag leave signal received	{"x": 555, "y": 216}
+2026-04-07 18:16:32.415	INFO	render/drag.go:25	Drag leave signal received	{"x": 559, "y": 213}
+2026-04-07 18:16:32.423	INFO	render/drag.go:25	Drag leave signal received	{"x": 563, "y": 213}
+2026-04-07 18:16:32.459	INFO	render/drag.go:25	Drag leave signal received	{"x": 594, "y": 218}
+2026-04-07 18:16:32.473	INFO	render/drag.go:25	Drag leave signal received	{"x": 619, "y": 222}
+2026-04-07 18:16:32.492	INFO	render/drag.go:25	Drag leave signal received	{"x": 647, "y": 227}
+2026-04-07 18:16:32.501	INFO	render/drag.go:25	Drag leave signal received	{"x": 663, "y": 229}
+2026-04-07 18:16:32.508	INFO	render/drag.go:25	Drag leave signal received	{"x": 679, "y": 231}
+2026-04-07 18:16:32.516	INFO	render/drag.go:25	Drag leave signal received	{"x": 695, "y": 234}
+2026-04-07 18:16:32.525	INFO	render/drag.go:25	Drag leave signal received	{"x": 708, "y": 236}
+2026-04-07 18:16:32.533	INFO	render/drag.go:25	Drag leave signal received	{"x": 720, "y": 238}
+2026-04-07 18:16:33.004	INFO	render/drag.go:32	Drop signal received	{"x": 776, "y": 253, "paths": [""]}
+2026-04-07 18:16:36.782	INFO	render/drag.go:25	Drag leave signal received	{"x": 597, "y": 436}
+2026-04-07 18:16:36.786	INFO	render/drag.go:25	Drag leave signal received	{"x": 620, "y": 389}
+2026-04-07 18:16:36.791	INFO	render/drag.go:25	Drag leave signal received	{"x": 638, "y": 355}
+2026-04-07 18:16:36.796	INFO	render/drag.go:25	Drag leave signal received	{"x": 651, "y": 331}
+2026-04-07 18:16:36.803	INFO	render/drag.go:25	Drag leave signal received	{"x": 667, "y": 305}
+2026-04-07 18:16:36.808	INFO	render/drag.go:25	Drag leave signal received	{"x": 685, "y": 276}
+2026-04-07 18:16:36.815	INFO	render/drag.go:25	Drag leave signal received	{"x": 699, "y": 253}
+2026-04-07 18:16:36.824	INFO	render/drag.go:25	Drag leave signal received	{"x": 713, "y": 233}
+2026-04-07 18:16:36.832	INFO	render/drag.go:25	Drag leave signal received	{"x": 723, "y": 214}
+2026-04-07 18:16:36.858	INFO	render/drag.go:25	Drag leave signal received	{"x": 740, "y": 183}
+2026-04-07 18:16:36.874	INFO	render/drag.go:25	Drag leave signal received	{"x": 747, "y": 172}
+2026-04-07 18:16:37.052	INFO	render/drag.go:25	Drag leave signal received	{"x": 753, "y": 174}
+2026-04-07 18:16:37.252	INFO	render/drag.go:32	Drop signal received	{"x": 757, "y": 181, "paths": [""]}
+2026-04-07 18:16:47.854	INFO	render/drag.go:25	Drag leave signal received	{"x": 518, "y": 534}
+2026-04-07 18:16:47.865	INFO	render/drag.go:25	Drag leave signal received	{"x": 546, "y": 502}
+2026-04-07 18:16:47.871	INFO	render/drag.go:25	Drag leave signal received	{"x": 578, "y": 463}
+2026-04-07 18:16:47.876	INFO	render/drag.go:25	Drag leave signal received	{"x": 604, "y": 429}
+2026-04-07 18:16:47.880	INFO	render/drag.go:25	Drag leave signal received	{"x": 624, "y": 403}
+2026-04-07 18:16:47.886	INFO	render/drag.go:25	Drag leave signal received	{"x": 646, "y": 372}
+2026-04-07 18:16:47.896	INFO	render/drag.go:25	Drag leave signal received	{"x": 666, "y": 346}
+2026-04-07 18:16:47.905	INFO	render/drag.go:25	Drag leave signal received	{"x": 677, "y": 329}
+2026-04-07 18:16:47.912	INFO	render/drag.go:25	Drag leave signal received	{"x": 685, "y": 318}
+2026-04-07 18:16:47.927	INFO	render/drag.go:25	Drag leave signal received	{"x": 702, "y": 296}
+2026-04-07 18:16:47.936	INFO	render/drag.go:25	Drag leave signal received	{"x": 708, "y": 288}
+2026-04-07 18:16:48.123	INFO	render/drag.go:25	Drag leave signal received	{"x": 718, "y": 274}
+2026-04-07 18:16:48.148	INFO	render/drag.go:25	Drag leave signal received	{"x": 722, "y": 268}
+2026-04-07 18:16:48.156	INFO	render/drag.go:25	Drag leave signal received	{"x": 724, "y": 267}
+2026-04-07 18:16:48.367	INFO	render/drag.go:25	Drag leave signal received	{"x": 729, "y": 268}
+2026-04-07 18:16:48.545	INFO	render/drag.go:25	Drag leave signal received	{"x": 745, "y": 269}
+2026-04-07 18:16:48.655	INFO	render/drag.go:32	Drop signal received	{"x": 742, "y": 273, "paths": [""]}
+2026-04-07 18:16:57.798	INFO	render/drag.go:25	Drag leave signal received	{"x": 731, "y": 469}
+2026-04-07 18:16:57.808	INFO	render/drag.go:25	Drag leave signal received	{"x": 760, "y": 418}
+2026-04-07 18:16:57.815	INFO	render/drag.go:25	Drag leave signal received	{"x": 792, "y": 362}
+2026-04-07 18:16:57.826	INFO	render/drag.go:25	Drag leave signal received	{"x": 824, "y": 307}
+2026-04-07 18:16:57.829	INFO	render/drag.go:25	Drag leave signal received	{"x": 857, "y": 249}
+2026-04-07 18:16:57.834	INFO	render/drag.go:25	Drag leave signal received	{"x": 889, "y": 188}
+2026-04-07 18:16:57.842	INFO	render/drag.go:25	Drag leave signal received	{"x": 909, "y": 151}
+2026-04-07 18:16:57.850	INFO	render/drag.go:25	Drag leave signal received	{"x": 919, "y": 138}
+2026-04-07 18:16:57.858	INFO	render/drag.go:25	Drag leave signal received	{"x": 925, "y": 130}
+2026-04-07 18:16:57.865	INFO	render/drag.go:25	Drag leave signal received	{"x": 928, "y": 124}
+2026-04-07 18:16:57.869	INFO	render/drag.go:25	Drag leave signal received	{"x": 931, "y": 119}
+2026-04-07 18:16:57.876	INFO	render/drag.go:25	Drag leave signal received	{"x": 935, "y": 113}
+2026-04-07 18:16:57.893	INFO	render/drag.go:25	Drag leave signal received	{"x": 939, "y": 104}
+2026-04-07 18:16:57.993	INFO	render/drag.go:25	Drag leave signal received	{"x": 938, "y": 104}
+2026-04-07 18:16:58.165	INFO	render/drag.go:25	Drag leave signal received	{"x": 932, "y": 113}
+2026-04-07 18:16:58.243	INFO	render/drag.go:25	Drag leave signal received	{"x": 919, "y": 124}
+2026-04-07 18:16:58.252	INFO	render/drag.go:25	Drag leave signal received	{"x": 916, "y": 128}
+2026-04-07 18:16:58.277	INFO	render/drag.go:25	Drag leave signal received	{"x": 907, "y": 140}
+2026-04-07 18:16:58.285	INFO	render/drag.go:25	Drag leave signal received	{"x": 905, "y": 143}
+2026-04-07 18:16:58.293	INFO	render/drag.go:25	Drag leave signal received	{"x": 903, "y": 146}
+2026-04-07 18:16:58.301	INFO	render/drag.go:25	Drag leave signal received	{"x": 900, "y": 149}
+2026-04-07 18:16:58.570	INFO	render/drag.go:32	Drop signal received	{"x": 896, "y": 154, "paths": [""]}
+2026-04-07 18:17:19.550	INFO	render/drag.go:25	Drag leave signal received	{"x": 819, "y": 327}
+2026-04-07 18:17:19.560	INFO	render/drag.go:25	Drag leave signal received	{"x": 792, "y": 366}
+2026-04-07 18:17:19.564	INFO	render/drag.go:25	Drag leave signal received	{"x": 780, "y": 384}
+2026-04-07 18:17:19.570	INFO	render/drag.go:25	Drag leave signal received	{"x": 765, "y": 406}
+2026-04-07 18:17:19.575	INFO	render/drag.go:25	Drag leave signal received	{"x": 754, "y": 424}
+2026-04-07 18:17:19.585	INFO	render/drag.go:25	Drag leave signal received	{"x": 738, "y": 452}
+2026-04-07 18:17:19.593	INFO	render/drag.go:25	Drag leave signal received	{"x": 729, "y": 468}
+2026-04-07 18:17:19.601	INFO	render/drag.go:25	Drag leave signal received	{"x": 720, "y": 483}
+2026-04-07 18:17:19.618	INFO	render/drag.go:25	Drag leave signal received	{"x": 707, "y": 508}
+2026-04-07 18:17:19.626	INFO	render/drag.go:25	Drag leave signal received	{"x": 703, "y": 516}
+2026-04-07 18:17:19.668	INFO	render/drag.go:25	Drag leave signal received	{"x": 684, "y": 555}
+2026-04-07 18:17:19.676	INFO	render/drag.go:25	Drag leave signal received	{"x": 680, "y": 561}
+2026-04-07 18:17:19.688	INFO	render/drag.go:25	Drag leave signal received	{"x": 677, "y": 568}
+2026-04-07 18:17:20.049	INFO	render/drag.go:32	Drop signal received	{"x": 662, "y": 588, "paths": [""]}
+2026-04-07 18:17:26.800	INFO	render/drag.go:25	Drag leave signal received	{"x": 786, "y": 400}
+2026-04-07 18:17:26.806	INFO	render/drag.go:25	Drag leave signal received	{"x": 753, "y": 457}
+2026-04-07 18:17:26.814	INFO	render/drag.go:25	Drag leave signal received	{"x": 724, "y": 507}
+2026-04-07 18:17:26.816	INFO	render/drag.go:25	Drag leave signal received	{"x": 707, "y": 534}
+2026-04-07 18:17:26.822	INFO	render/drag.go:25	Drag leave signal received	{"x": 692, "y": 561}
+2026-04-07 18:17:26.832	INFO	render/drag.go:25	Drag leave signal received	{"x": 679, "y": 581}
+2026-04-07 18:17:26.842	INFO	render/drag.go:25	Drag leave signal received	{"x": 668, "y": 599}
+2026-04-07 18:17:26.858	INFO	render/drag.go:25	Drag leave signal received	{"x": 653, "y": 621}
+2026-04-07 18:17:26.866	INFO	render/drag.go:25	Drag leave signal received	{"x": 649, "y": 627}
+2026-04-07 18:17:26.874	INFO	render/drag.go:25	Drag leave signal received	{"x": 645, "y": 634}
+2026-04-07 18:17:26.883	INFO	render/drag.go:25	Drag leave signal received	{"x": 643, "y": 638}
+2026-04-07 18:17:27.433	INFO	render/drag.go:25	Drag leave signal received	{"x": 628, "y": 634}
+2026-04-07 18:17:27.445	INFO	render/drag.go:25	Drag leave signal received	{"x": 627, "y": 632}
+2026-04-07 18:17:27.466	INFO	render/drag.go:25	Drag leave signal received	{"x": 626, "y": 626}
+2026-04-07 18:17:27.566	INFO	render/drag.go:25	Drag leave signal received	{"x": 624, "y": 618}
+2026-04-07 18:17:27.577	INFO	render/drag.go:25	Drag leave signal received	{"x": 623, "y": 617}
+2026-04-07 18:17:27.648	INFO	render/drag.go:25	Drag leave signal received	{"x": 615, "y": 595}
+2026-04-07 18:17:28.264	INFO	render/drag.go:25	Drag leave signal received	{"x": 604, "y": 598}
+2026-04-07 18:17:28.312	INFO	render/drag.go:25	Drag leave signal received	{"x": 599, "y": 618}
+2026-04-07 18:17:28.324	INFO	render/drag.go:25	Drag leave signal received	{"x": 598, "y": 621}
+2026-04-07 18:17:28.337	INFO	render/drag.go:25	Drag leave signal received	{"x": 597, "y": 627}
+2026-04-07 18:17:28.386	INFO	render/drag.go:25	Drag leave signal received	{"x": 595, "y": 634}
+2026-04-07 18:17:28.397	INFO	render/drag.go:25	Drag leave signal received	{"x": 595, "y": 637}
+2026-04-07 18:17:28.425	INFO	render/drag.go:25	Drag leave signal received	{"x": 591, "y": 656}
+2026-04-07 18:17:28.434	INFO	render/drag.go:25	Drag leave signal received	{"x": 590, "y": 661}
+2026-04-07 18:17:28.442	INFO	render/drag.go:25	Drag leave signal received	{"x": 589, "y": 666}
+2026-04-07 18:17:28.459	INFO	render/drag.go:25	Drag leave signal received	{"x": 587, "y": 674}
+2026-04-07 18:17:28.739	INFO	render/drag.go:25	Drag leave signal received	{"x": 583, "y": 672}
+2026-04-07 18:17:28.749	INFO	render/drag.go:25	Drag leave signal received	{"x": 583, "y": 669}
+2026-04-07 18:17:28.764	INFO	render/drag.go:25	Drag leave signal received	{"x": 582, "y": 659}
+2026-04-07 18:17:28.780	INFO	render/drag.go:25	Drag leave signal received	{"x": 582, "y": 653}
+2026-04-07 18:17:28.795	INFO	render/drag.go:25	Drag leave signal received	{"x": 582, "y": 625}
+2026-04-07 18:17:28.803	INFO	render/drag.go:25	Drag leave signal received	{"x": 582, "y": 612}
+2026-04-07 18:17:28.819	INFO	render/drag.go:25	Drag leave signal received	{"x": 583, "y": 588}
+2026-04-07 18:17:28.859	INFO	render/drag.go:25	Drag leave signal received	{"x": 588, "y": 561}
+2026-04-07 18:17:28.872	INFO	render/drag.go:25	Drag leave signal received	{"x": 588, "y": 559}
+2026-04-07 18:17:29.019	INFO	render/drag.go:25	Drag leave signal received	{"x": 589, "y": 548}
+2026-04-07 18:17:29.069	INFO	render/drag.go:25	Drag leave signal received	{"x": 593, "y": 507}
+2026-04-07 18:17:29.082	INFO	render/drag.go:25	Drag leave signal received	{"x": 594, "y": 499}
+2026-04-07 18:17:29.556	INFO	render/drag.go:32	Drop signal received	{"x": 596, "y": 491, "paths": [""]}
+2026-04-07 18:17:30.980	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-07 18:17:30.981	INFO	stdlog	http/transport.go:2430	Unsolicited response received on idle HTTP channel starting with "HTTP/1.1 400 Bad Request\r\n\r\n"; err=<nil>
+2026-04-07 18:17:34.042	INFO	render/drag.go:25	Drag leave signal received	{"x": 767, "y": 386}
+2026-04-07 18:17:34.049	INFO	render/drag.go:25	Drag leave signal received	{"x": 745, "y": 430}
+2026-04-07 18:17:34.052	INFO	render/drag.go:25	Drag leave signal received	{"x": 722, "y": 479}
+2026-04-07 18:17:34.059	INFO	render/drag.go:25	Drag leave signal received	{"x": 707, "y": 512}
+2026-04-07 18:17:34.064	INFO	render/drag.go:25	Drag leave signal received	{"x": 701, "y": 528}
+2026-04-07 18:17:34.076	INFO	render/drag.go:25	Drag leave signal received	{"x": 684, "y": 565}
+2026-04-07 18:17:34.101	INFO	render/drag.go:25	Drag leave signal received	{"x": 669, "y": 599}
+2026-04-07 18:17:34.116	INFO	render/drag.go:25	Drag leave signal received	{"x": 660, "y": 618}
+2026-04-07 18:17:34.123	INFO	render/drag.go:25	Drag leave signal received	{"x": 657, "y": 624}
+2026-04-07 18:17:34.132	INFO	render/drag.go:25	Drag leave signal received	{"x": 655, "y": 628}
+2026-04-07 18:17:34.148	INFO	render/drag.go:25	Drag leave signal received	{"x": 652, "y": 635}
+2026-04-07 18:17:34.479	INFO	render/drag.go:32	Drop signal received	{"x": 649, "y": 637, "paths": [""]}
+2026-04-07 18:17:46.967	INFO	render/drag.go:25	Drag leave signal received	{"x": 776, "y": 387}
+2026-04-07 18:17:46.972	INFO	render/drag.go:25	Drag leave signal received	{"x": 765, "y": 415}
+2026-04-07 18:17:46.978	INFO	render/drag.go:25	Drag leave signal received	{"x": 757, "y": 438}
+2026-04-07 18:17:46.981	INFO	render/drag.go:25	Drag leave signal received	{"x": 752, "y": 452}
+2026-04-07 18:17:46.983	INFO	render/drag.go:25	Drag leave signal received	{"x": 748, "y": 466}
+2026-04-07 18:17:46.985	INFO	render/drag.go:25	Drag leave signal received	{"x": 744, "y": 478}
+2026-04-07 18:17:47.010	INFO	render/drag.go:25	Drag leave signal received	{"x": 736, "y": 501}
+2026-04-07 18:17:47.034	INFO	render/drag.go:25	Drag leave signal received	{"x": 733, "y": 513}
+2026-04-07 18:17:47.166	INFO	render/drag.go:25	Drag leave signal received	{"x": 702, "y": 549}
+2026-04-07 18:17:47.182	INFO	render/drag.go:25	Drag leave signal received	{"x": 691, "y": 561}
+2026-04-07 18:17:47.195	INFO	render/drag.go:25	Drag leave signal received	{"x": 688, "y": 564}
+2026-04-07 18:17:47.426	INFO	render/drag.go:32	Drop signal received	{"x": 666, "y": 582, "paths": [""]}
+2026-04-07 18:18:04.539	INFO	render/drag.go:25	Drag leave signal received	{"x": 802, "y": 359}
+2026-04-07 18:18:04.553	INFO	render/drag.go:25	Drag leave signal received	{"x": 770, "y": 436}
+2026-04-07 18:18:04.558	INFO	render/drag.go:25	Drag leave signal received	{"x": 749, "y": 482}
+2026-04-07 18:18:04.561	INFO	render/drag.go:25	Drag leave signal received	{"x": 724, "y": 538}
+2026-04-07 18:18:04.567	INFO	render/drag.go:25	Drag leave signal received	{"x": 706, "y": 582}
+2026-04-07 18:18:04.575	INFO	render/drag.go:25	Drag leave signal received	{"x": 692, "y": 616}
+2026-04-07 18:18:04.582	INFO	render/drag.go:25	Drag leave signal received	{"x": 681, "y": 644}
+2026-04-07 18:18:04.594	INFO	render/drag.go:25	Drag leave signal received	{"x": 677, "y": 656}
+2026-04-07 18:18:04.609	INFO	render/drag.go:25	Drag leave signal received	{"x": 668, "y": 676}
+2026-04-07 18:18:04.613	INFO	render/drag.go:25	Drag leave signal received	{"x": 664, "y": 687}
+2026-04-07 18:18:04.644	INFO	render/drag.go:25	Drag leave signal received	{"x": 657, "y": 706}
+2026-04-07 18:18:04.791	INFO	render/drag.go:25	Drag leave signal received	{"x": 654, "y": 713}
+2026-04-07 18:18:05.005	INFO	render/drag.go:25	Drag leave signal received	{"x": 648, "y": 712}
+2026-04-07 18:18:05.114	INFO	render/drag.go:25	Drag leave signal received	{"x": 648, "y": 704}
+2026-04-07 18:18:05.324	INFO	render/drag.go:25	Drag leave signal received	{"x": 648, "y": 705}
+2026-04-07 18:18:05.348	INFO	render/drag.go:32	Drop signal received	{"x": 648, "y": 705, "paths": [""]}
+2026-04-07 18:18:16.377	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 18:18:16.377	INFO	file-browser/app.go:82	App is shutting down

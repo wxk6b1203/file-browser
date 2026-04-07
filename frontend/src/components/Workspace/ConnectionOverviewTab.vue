@@ -4,6 +4,7 @@
     class="file-browser"
     :class="{ 'file-browser--busy': dropBusy }"
     @contextmenu="clearNativeSelection"
+    @selectstart="onFileBrowserSelectStart"
     @keydown.capture="onFileBrowserShortcutKeydown"
   >
     <div v-if="dropBusy" class="file-browser__busy-mask">
@@ -424,7 +425,7 @@ import { normalizeRemotePath } from '@/composables/remotePath'
 import { CONNECTION_DIRECTORY_REFRESH_EVENT, emitConnectionDirectoryRefresh, type ConnectionDirectoryRefreshDetail } from '@/composables/useConnectionDirectoryRefresh'
 import { CONNECTION_ENTRY_DROP_LIFECYCLE_EVENT, consumeLatestSuccessfulConnectionEntryDrop, type ConnectionEntryDropLifecycleDetail } from '@/composables/useConnectionEntryDropLifecycle'
 import { DIRECTORY_ENTRY_TYPE, resolveFileIcon } from '@/composables/useFileIcons'
-import { SPLITPANE_DRAG_TYPE, clearActiveInternalDrag, setActiveInternalDrag } from '@/composables/splitPaneDragState'
+import { clearActiveInternalDrag, clearActiveInternalDragSoon, markInternalDragDataTransfer, setActiveInternalDrag } from '@/composables/splitPaneDragState'
 import { useConnectionsStore } from '@/stores/connections'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { buildInlineDeletePaths, removeInlineDeletePath } from './inlineDelete'
@@ -905,6 +906,19 @@ function clearNativeSelection() {
   window.getSelection()?.removeAllRanges()
 }
 
+function onFileBrowserSelectStart(event: Event) {
+  const target = event.target
+  if (
+    target instanceof HTMLInputElement
+    || target instanceof HTMLTextAreaElement
+    || (target instanceof HTMLElement && target.isContentEditable)
+  ) {
+    return
+  }
+  event.preventDefault()
+  clearNativeSelection()
+}
+
 function selectSingle(item: folder.FileInfo) {
   cancelInlineDelete()
   const path = normalizeEntryPath(item.path)
@@ -1012,6 +1026,8 @@ function onItemMouseDown(item: folder.FileInfo, event: MouseEvent) {
   }
 
   if (event.detail >= 2) {
+    event.preventDefault()
+    clearNativeSelection()
     suppressedDrag.value = {
       path: normalizeEntryPath(item.path),
       expiresAt: Date.now() + DOUBLE_CLICK_DRAG_SUPPRESS_MS,
@@ -1626,8 +1642,7 @@ function onItemDragStart(item: folder.FileInfo, event: DragEvent) {
     }
   }
   if (!event.dataTransfer) return
-  event.dataTransfer.setData(SPLITPANE_DRAG_TYPE, '')
-  event.dataTransfer.effectAllowed = 'move'
+  markInternalDragDataTransfer(event.dataTransfer)
   const dragItems = isSelected(item) ? selectedItems.value : [item]
   removeDragPreview()
   const preview = buildDragPreviewNodes(dragItems)
@@ -1662,7 +1677,7 @@ function onItemDragEnd() {
   removeDragPreview()
   suppressedDrag.value = null
   clearDropIndicators()
-  clearActiveInternalDrag()
+  clearActiveInternalDragSoon()
 }
 
 function resetTransientInteractionState() {
@@ -1739,10 +1754,15 @@ function onWindowKeydown(event: KeyboardEvent) {
   }
 }
 
-function onWindowDragComplete() {
+function onWindowDragComplete(event: DragEvent) {
+  const target = event.target
+  const eventInsidePanel = target instanceof Node && Boolean(fileBrowserRef.value?.contains(target))
+  const activeInWorkspace = workspace.isTabActiveInActiveGroup(tabId.value)
+  if (!eventInsidePanel && !activeInWorkspace && !dragSession.value) return
+
   window.setTimeout(() => {
     resetTransientInteractionState()
-  }, 0)
+  }, 120)
 }
 
 async function createDirectory() {
@@ -2040,8 +2060,8 @@ onMounted(async () => {
   window.addEventListener('pointerdown', onWindowPointerDown)
   window.addEventListener('keydown', onWindowKeydown)
   window.addEventListener('keydown', onFileBrowserShortcutKeydown)
-  window.addEventListener('dragend', onWindowDragComplete)
-  window.addEventListener('drop', onWindowDragComplete)
+  window.addEventListener('dragend', onWindowDragComplete, true)
+  window.addEventListener('drop', onWindowDragComplete, true)
   window.addEventListener('resize', closeContextMenu)
   window.addEventListener('scroll', closeContextMenu, true)
   const cachedState = workspace.getConnectionBrowserState(connectionId.value)
@@ -2066,8 +2086,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('pointerdown', onWindowPointerDown)
   window.removeEventListener('keydown', onWindowKeydown)
   window.removeEventListener('keydown', onFileBrowserShortcutKeydown)
-  window.removeEventListener('dragend', onWindowDragComplete)
-  window.removeEventListener('drop', onWindowDragComplete)
+  window.removeEventListener('dragend', onWindowDragComplete, true)
+  window.removeEventListener('drop', onWindowDragComplete, true)
   window.removeEventListener('resize', closeContextMenu)
   window.removeEventListener('scroll', closeContextMenu, true)
 })
@@ -2085,6 +2105,19 @@ onBeforeUnmount(() => {
     linear-gradient(180deg, color-mix(in srgb, var(--theme-color-bg-overlay) 35%, transparent), transparent 18%),
     var(--theme-color-bg-base);
   user-select: none;
+  -webkit-user-select: none;
+}
+
+.file-browser :not(input):not(textarea):not([contenteditable]) {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.file-browser input,
+.file-browser textarea,
+.file-browser [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .file-browser--busy {

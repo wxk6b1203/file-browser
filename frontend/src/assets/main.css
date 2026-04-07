@@ -4,6 +4,8 @@
 :root {
     --ui-explorer-font-size: 13px;
     --ui-file-list-font-size: 13px;
+    --ui-scrollbar-size: 8px;
+    --ui-scrollbar-thumb-size: 6px;
 }
 
 /* 基础样式 - 所有屏幕尺寸生效 */
@@ -55,4 +57,53 @@ body {
     height: 100%;
     min-width: 0;
     min-height: 0;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--theme-color-scrollbar) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: var(--ui-scrollbar-size);
+    height: var(--ui-scrollbar-size);
+    background: transparent;
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    min-width: var(--ui-scrollbar-thumb-size);
+    min-height: var(--ui-scrollbar-thumb-size);
+    border: calc((var(--ui-scrollbar-size) - var(--ui-scrollbar-thumb-size)) / 2) solid transparent;
+    border-radius: 999px;
+    background-color: var(--theme-color-scrollbar);
+    background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--theme-color-scrollbar-hover);
+}
+
+html[data-theme] .el-scrollbar__bar.is-vertical {
+    width: var(--ui-scrollbar-size);
+    right: 2px;
+}
+
+html[data-theme] .el-scrollbar__bar.is-horizontal {
+    height: var(--ui-scrollbar-size);
+    bottom: 2px;
+}
+
+html[data-theme] .el-scrollbar__bar .el-scrollbar__thumb {
+    border-radius: 999px;
+    background-color: var(--theme-color-scrollbar);
+    opacity: 1;
+}
+
+html[data-theme] .el-scrollbar__bar .el-scrollbar__thumb:hover {
+    background-color: var(--theme-color-scrollbar-hover);
 }

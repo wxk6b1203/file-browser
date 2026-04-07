@@ -194,11 +194,13 @@ defineExpose({ barEl })
 }
 
 .tab-bar::-webkit-scrollbar {
-  height: 2px;
+  height: var(--ui-scrollbar-size);
 }
 
 .tab-bar::-webkit-scrollbar-thumb {
+  border: calc((var(--ui-scrollbar-size) - var(--ui-scrollbar-thumb-size)) / 2) solid transparent;
+  border-radius: 999px;
   background-color: var(--theme-color-scrollbar);
-  border-radius: 1px;
+  background-clip: content-box;
 }
 </style>

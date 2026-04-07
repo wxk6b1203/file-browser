@@ -37,10 +37,16 @@ import { tabsContextKey } from './types'
 import { calcDropZone } from './composables/useDropZone'
 import { usePanelFileDrop } from '@/composables/usePanelFileDrop'
 import { useI18n } from 'vue-i18n'
+import { splitPanePanelKey, type PanelDropEvent } from '../SplitPane/types'
 
 const props = defineProps<{
   node: TabGroupNode
   enableFileDrop?: boolean
+  enablePanelDrag?: boolean
+}>()
+
+const emit = defineEmits<{
+  panelDrop: [event: PanelDropEvent]
 }>()
 
 const ctx = inject(tabsContextKey)!
@@ -49,15 +55,18 @@ const groupEl = ref<HTMLElement>()
 const contentEl = ref<HTMLElement>()
 const currentZone = ref<DropZone>(null)
 const noopPanelIndex = computed(() => -1)
-const enablePanelDrag = computed(() => false)
+const splitPanePanel = inject(splitPanePanelKey, null)
+const panelUid = splitPanePanel?.uid ?? -1
+const panelIndex = splitPanePanel?.index ?? noopPanelIndex
+const enablePanelDrag = computed(() => Boolean(splitPanePanel && props.enablePanelDrag))
 
 const { isDragOver: isFileDragOver } = usePanelFileDrop(
   groupEl,
-  Date.now() + Math.random(),
-  noopPanelIndex,
+  panelUid,
+  panelIndex,
   computed(() => props.enableFileDrop ?? ctx.enableFileDrop.value),
   enablePanelDrag,
-  () => {},
+  (event) => emit('panelDrop', event),
 )
 
 const activeTab = computed(() => {

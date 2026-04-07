@@ -4522,3 +4522,125 @@ connections:
 
 - `ruby -e 'require "yaml"; YAML.load_file(".github/workflows/master-build.yml")'` 通过。
 - `git diff --check` 通过。
+
+## 2026-04-07 - Fix WebView2 Internal Cross-Panel Drop Detection
+
+### Problem
+
+- On Unix/WebKit, dragging entries between split file panels triggered cross-connection transfer correctly.
+- On Windows/WebView2, releasing after the same drag produced no upload action and no console error.
+
+### Root Cause
+
+- Internal file-panel drag detection required `dataTransfer.types` to contain the custom MIME marker `application/x-splitpane-drag`.
+- WebView2 can omit or hide that custom type during `dragenter/drop`.
+- The application already stores the active internal drag payload in module-level state for security-restricted drag phases, but the drop resolver and panel drop layer still rejected the event before reading that state.
+
+### Completed Changes
+
+- Added `isInternalDragEvent()` to `splitPaneDragState`.
+- `connectionEntryDrop.resolveConnectionEntryDragPayload()` now accepts either:
+  - the custom `DataTransfer` marker, or
+  - an active internal drag payload in shared state.
+- `usePanelFileDrop` now uses the same internal-drag detector for split-panel drop routing.
+- External OS file drags still win when `dataTransfer.types` contains `Files`, so stale internal drag state cannot hijack Finder / Explorer uploads.
+- Added a WebView2-style regression test where `dataTransfer.types` does not include the custom marker, but the active internal drag payload is still resolved.
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/composables/__tests__/connectionEntryDrop.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+- `git diff --check` 通过。
+
+## 2026-04-07 - Normalize Scrollbar Appearance Across WebViews
+
+### Goal
+
+- WebKit and WebView2 render native scrollbars differently.
+- Normalize the app scrollbar appearance so Explorer, file lists, task panels, notification panels, tabs, and Element Plus internal scroll containers use a thin theme-colored style.
+
+### Completed Changes
+
+- Added global scrollbar variables:
+  - `--ui-scrollbar-size: 8px`
+  - `--ui-scrollbar-thumb-size: 5px`
+- Added global native scrollbar rules in `frontend/src/assets/main.css`:
+  - Firefox `scrollbar-width: thin`
+  - WebKit/WebView2 `::-webkit-scrollbar` and thumb styling
+  - transparent track/corner
+  - theme-driven thumb and hover colors
+- Added Element Plus scrollbar bridge for `.el-scrollbar__bar` / `.el-scrollbar__thumb`.
+- Updated `TabBar` to use the same scrollbar variables instead of its previous local `2px` WebKit override.
+
+### Verification
+
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+## 2026-04-07 - Harden Cross-Panel File Drag Drop for WebView2
+
+### Problem
+
+- Cross-panel file entry drag/drop worked on Unix WebKit, but Windows WebView2 could release the drag without triggering the cross-connection upload path.
+- The previous MIME fallback was not sufficient because the actual drop target in WebView2 can be the leaf `TabGroup`, and WebView2 can also clear or reorder drag lifecycle events differently from WebKit.
+
+### Root Cause
+
+- The leaf `TabGroup` installed file-drop handling for OS file drops, but `enablePanelDrag` was hard-coded to `false`.
+- On WebView2, a drop that lands on the leaf `TabGroup` can be consumed before the parent `SplitPanePanel` receives the internal panel-drop event.
+- File item `dragend` and window-level drag cleanup were also clearing `activeInternalDrag` immediately; if WebView2 delivers `dragend` before `drop`, the payload is gone before the target can consume it.
+
+### Completed Changes
+
+- `TabGroup` now receives `enablePanelDrag`, injects its owning `SplitPanePanel` identity, and can emit `panelDrop` directly from the leaf group.
+- `TabNodeRenderer` forwards `panel-drop` from leaf `TabGroup` nodes, not only from nested `SplitPane` nodes.
+- `usePanelFileDrop` no longer calls `preventDefault()` for internal drags it is not allowed to handle, so parent handlers can still receive them.
+- Internal drop handling now calls `stopPropagation()` only after the current target has accepted and emitted the drop event, avoiding duplicate parent handling.
+- Internal drag `DataTransfer` now writes both:
+  - custom MIME marker: `application/x-splitpane-drag`
+  - standard `text/plain` marker for stricter WebView2 drag/drop activation
+- Internal drag state cleanup is delayed briefly and identity-guarded so a WebView2 `dragend` cannot clear payload state before the target `drop` consumes it.
+
+### Compatibility Notes
+
+- WebKit still uses the custom MIME path when it is available.
+- WebView2 can fall back to shared in-memory drag state and the `text/plain` marker.
+- External OS file drops remain excluded by `Files` detection and continue through the Wails file-drop path.
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/composables/__tests__/connectionEntryDrop.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+- `git diff --check` 通过。
+
+## 2026-04-07 - Finalize File Panel Selection and Drag Overlay Cleanup
+
+### Goal
+
+- Prevent WebKit/WebView2 native text selection from reappearing when double-clicking file names.
+- Ensure cross-panel internal drag overlays are always cleared even when WebView2 delivers drop events to a child component that stops bubbling.
+
+### Frontend Review Notes
+
+- Vite / Vue configuration does not need platform-specific branching for this issue.
+- The right place to fix this is the shared browser-event compatibility layer:
+  - file-panel selection suppression in `ConnectionOverviewTab`
+  - split/tab drag overlay lifecycle in `usePanelFileDrop`
+- WebKit and WebView2 differ in drag/drop ordering and propagation, so overlay cleanup must not depend on a single bubbling `drop` path.
+
+### Completed Changes
+
+- `ConnectionOverviewTab` now blocks `selectstart` inside the file browser except editable inputs.
+- The second click in a double-click sequence calls `preventDefault()` and clears native selection before WebView/WebKit can select the file name text.
+- File-browser CSS now explicitly applies `user-select: none` and `-webkit-user-select: none` to non-input descendants.
+- `ConnectionOverviewTab` listens for `dragend` / `drop` in capture phase, so its local drop indicators are cleared even if a child drop handler stops propagation.
+- File-panel global `dragend` / `drop` cleanup is scoped to the active file tab, the event target panel, or the panel that owns the current drag session, so inactive KeepAlive tabs are not reset accidentally.
+- `usePanelFileDrop` now installs capture-phase window-level `drop` / `dragend` reset hooks, plus `blur` / `visibilitychange` fallbacks, so TabGroup/SplitPanePanel masks cannot remain stuck after a child handles the drop.
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/composables/__tests__/connectionEntryDrop.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。

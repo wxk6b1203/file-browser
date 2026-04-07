@@ -3,8 +3,10 @@
     v-if="node.type === 'tabs'"
     :node="node"
     :enable-file-drop="enableFileDrop"
+    :enable-panel-drag="enablePanelDrag"
     :key="node.id"
     :data-node-id="node.id"
+    @panel-drop="onPanelDrop"
   />
   <SplitPane
     v-else
