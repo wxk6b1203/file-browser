@@ -4577,3 +4577,40 @@ connections:
 
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
+
+## 2026-04-07 - Harden Cross-Panel File Drag Drop for WebView2
+
+### Problem
+
+- Cross-panel file entry drag/drop worked on Unix WebKit, but Windows WebView2 could release the drag without triggering the cross-connection upload path.
+- The previous MIME fallback was not sufficient because the actual drop target in WebView2 can be the leaf `TabGroup`, and WebView2 can also clear or reorder drag lifecycle events differently from WebKit.
+
+### Root Cause
+
+- The leaf `TabGroup` installed file-drop handling for OS file drops, but `enablePanelDrag` was hard-coded to `false`.
+- On WebView2, a drop that lands on the leaf `TabGroup` can be consumed before the parent `SplitPanePanel` receives the internal panel-drop event.
+- File item `dragend` and window-level drag cleanup were also clearing `activeInternalDrag` immediately; if WebView2 delivers `dragend` before `drop`, the payload is gone before the target can consume it.
+
+### Completed Changes
+
+- `TabGroup` now receives `enablePanelDrag`, injects its owning `SplitPanePanel` identity, and can emit `panelDrop` directly from the leaf group.
+- `TabNodeRenderer` forwards `panel-drop` from leaf `TabGroup` nodes, not only from nested `SplitPane` nodes.
+- `usePanelFileDrop` no longer calls `preventDefault()` for internal drags it is not allowed to handle, so parent handlers can still receive them.
+- Internal drop handling now calls `stopPropagation()` only after the current target has accepted and emitted the drop event, avoiding duplicate parent handling.
+- Internal drag `DataTransfer` now writes both:
+  - custom MIME marker: `application/x-splitpane-drag`
+  - standard `text/plain` marker for stricter WebView2 drag/drop activation
+- Internal drag state cleanup is delayed briefly and identity-guarded so a WebView2 `dragend` cannot clear payload state before the target `drop` consumes it.
+
+### Compatibility Notes
+
+- WebKit still uses the custom MIME path when it is available.
+- WebView2 can fall back to shared in-memory drag state and the `text/plain` marker.
+- External OS file drops remain excluded by `Files` detection and continue through the Wails file-drop path.
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/composables/__tests__/connectionEntryDrop.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+- `git diff --check` 通过。

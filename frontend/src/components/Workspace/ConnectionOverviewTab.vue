@@ -424,7 +424,7 @@ import { normalizeRemotePath } from '@/composables/remotePath'
 import { CONNECTION_DIRECTORY_REFRESH_EVENT, emitConnectionDirectoryRefresh, type ConnectionDirectoryRefreshDetail } from '@/composables/useConnectionDirectoryRefresh'
 import { CONNECTION_ENTRY_DROP_LIFECYCLE_EVENT, consumeLatestSuccessfulConnectionEntryDrop, type ConnectionEntryDropLifecycleDetail } from '@/composables/useConnectionEntryDropLifecycle'
 import { DIRECTORY_ENTRY_TYPE, resolveFileIcon } from '@/composables/useFileIcons'
-import { SPLITPANE_DRAG_TYPE, clearActiveInternalDrag, setActiveInternalDrag } from '@/composables/splitPaneDragState'
+import { clearActiveInternalDrag, clearActiveInternalDragSoon, markInternalDragDataTransfer, setActiveInternalDrag } from '@/composables/splitPaneDragState'
 import { useConnectionsStore } from '@/stores/connections'
 import { useWorkspaceStore } from '@/stores/workspace'
 import { buildInlineDeletePaths, removeInlineDeletePath } from './inlineDelete'
@@ -1626,8 +1626,7 @@ function onItemDragStart(item: folder.FileInfo, event: DragEvent) {
     }
   }
   if (!event.dataTransfer) return
-  event.dataTransfer.setData(SPLITPANE_DRAG_TYPE, '')
-  event.dataTransfer.effectAllowed = 'move'
+  markInternalDragDataTransfer(event.dataTransfer)
   const dragItems = isSelected(item) ? selectedItems.value : [item]
   removeDragPreview()
   const preview = buildDragPreviewNodes(dragItems)
@@ -1662,7 +1661,7 @@ function onItemDragEnd() {
   removeDragPreview()
   suppressedDrag.value = null
   clearDropIndicators()
-  clearActiveInternalDrag()
+  clearActiveInternalDragSoon()
 }
 
 function resetTransientInteractionState() {
@@ -1742,7 +1741,7 @@ function onWindowKeydown(event: KeyboardEvent) {
 function onWindowDragComplete() {
   window.setTimeout(() => {
     resetTransientInteractionState()
-  }, 0)
+  }, 120)
 }
 
 async function createDirectory() {

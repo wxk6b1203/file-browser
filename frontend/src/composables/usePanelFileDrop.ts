@@ -65,13 +65,16 @@ export function usePanelFileDrop(
   let dragCounter = 0
   let currentEl: HTMLElement | null = null
 
+  function canHandleInternalDrop(): boolean {
+    if (!enablePanelDrag.value) return false
+    const active = getActiveInternalDrag()
+    return Boolean(active && active.sourcePanelUid !== panelUid)
+  }
+
   function onDragEnter(e: DragEvent) {
     const isInternal = isInternalDragEvent(e)
     if (isInternal) {
-      if (!enablePanelDrag.value) return
-      // Don't show overlay on the panel that is the drag source
-      const active = getActiveInternalDrag()
-      if (active?.sourcePanelUid === panelUid) return
+      if (!canHandleInternalDrop()) return
     } else {
       if (!enableFileDrop.value) return
     }
@@ -82,8 +85,15 @@ export function usePanelFileDrop(
   }
 
   function onDragOver(e: DragEvent) {
+    const isInternal = isInternalDragEvent(e)
+    if (isInternal) {
+      if (!canHandleInternalDrop()) return
+      e.stopPropagation()
+    } else if (!enableFileDrop.value) {
+      return
+    }
+
     // preventDefault is required for the browser to allow a drop here.
-    // Must be unconditional to support files, dirs, and internal panel drags.
     e.preventDefault()
   }
 
@@ -95,6 +105,36 @@ export function usePanelFileDrop(
   }
 
   function onDrop(e: DragEvent) {
+    // ── Internal panel-to-panel drop ──────────────────────────────────────────
+    const isInternal = isInternalDragEvent(e)
+    if (isInternal) {
+      if (!canHandleInternalDrop()) return
+      e.preventDefault()
+      e.stopPropagation()
+      dragCounter = 0
+      isDragOver.value = false
+
+      if (import.meta.env.VITE_APP_ENV === 'internal') return
+      if (!panelEl.value) return
+
+      const active = getActiveInternalDrag()
+      if (active) {
+        const groupEl = resolveGroupHost(panelEl.value)
+        onInternalDrop({
+          sourcePanelIndex: active.sourcePanelIndex,
+          targetPanelIndex: panelIndex.value,
+          targetGroupId: groupEl?.getAttribute('data-group-id') ?? '',
+          targetTabId: groupEl?.getAttribute('data-active-tab-id') ?? '',
+          payload: active.payload,
+          x: e.clientX,
+          y: e.clientY,
+        })
+      }
+      return
+    }
+
+    // ── OS file / directory drop ──────────────────────────────────────────────
+    if (!enableFileDrop.value) return
     e.preventDefault()
     dragCounter = 0
     isDragOver.value = false
@@ -102,29 +142,6 @@ export function usePanelFileDrop(
     if (import.meta.env.VITE_APP_ENV === 'internal') return
     if (!panelEl.value) return
 
-    // ── Internal panel-to-panel drop ──────────────────────────────────────────
-    const isInternal = isInternalDragEvent(e)
-    if (isInternal) {
-      if (enablePanelDrag.value) {
-        const active = getActiveInternalDrag()
-        if (active && active.sourcePanelUid !== panelUid) {
-          const groupEl = resolveGroupHost(panelEl.value)
-          onInternalDrop({
-            sourcePanelIndex: active.sourcePanelIndex,
-            targetPanelIndex: panelIndex.value,
-            targetGroupId: groupEl?.getAttribute('data-group-id') ?? '',
-            targetTabId: groupEl?.getAttribute('data-active-tab-id') ?? '',
-            payload: active.payload,
-            x: e.clientX,
-            y: e.clientY,
-          })
-        }
-      }
-      return
-    }
-
-    // ── OS file / directory drop ──────────────────────────────────────────────
-    if (!enableFileDrop.value) return
     // Innermost panel wins (drop bubbles inner → outer). Skip if already set.
     // Stale entries from non-Wails drops are cleared by useFileDrop on next dragenter.
     if (pendingPanelDropInfo !== null) return

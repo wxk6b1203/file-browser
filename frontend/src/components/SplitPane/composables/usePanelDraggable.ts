@@ -2,8 +2,8 @@ import { inject } from 'vue'
 import { splitPanePanelKey } from '../types'
 import {
   setActiveInternalDrag,
-  clearActiveInternalDrag,
-  SPLITPANE_DRAG_TYPE,
+  clearActiveInternalDragSoon,
+  markInternalDragDataTransfer,
   type PanelDragPayload,
 } from '@/composables/splitPaneDragState'
 
@@ -34,9 +34,7 @@ export function usePanelDraggable(getPayload: () => PanelDragPayload) {
 
   function onDragStart(e: DragEvent) {
     if (!e.dataTransfer) return
-    // Mark this as a SplitPane-internal drag so panels can detect it in dragenter.types
-    e.dataTransfer.setData(SPLITPANE_DRAG_TYPE, '')
-    e.dataTransfer.effectAllowed = 'move'
+    markInternalDragDataTransfer(e.dataTransfer)
     // Store source info in shared module state — readable synchronously in dragenter
     setActiveInternalDrag({
       sourcePanelUid: panel?.uid ?? -1,
@@ -46,7 +44,7 @@ export function usePanelDraggable(getPayload: () => PanelDragPayload) {
   }
 
   function onDragEnd() {
-    clearActiveInternalDrag()
+    clearActiveInternalDragSoon()
   }
 
   return {

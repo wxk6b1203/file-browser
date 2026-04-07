@@ -3448,3 +3448,48 @@
 2026-04-07 17:52:06.362	INFO	render/drag.go:32	Drop signal received	{"x": 487, "y": 300, "paths": [""]}
 2026-04-07 17:52:35.150	INFO	render/manager.go:32	Render manager stopped
 2026-04-07 17:52:35.150	INFO	file-browser/app.go:82	App is shutting down
+2026-04-07 17:58:09.687	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:58:09.687	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:58:16.086	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:58:16.086	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:58:18.873	INFO	file-browser/app.go:38	Creating new app
+2026-04-07 17:58:18.874	INFO	file-browser/app.go:40	Runtime configuration loaded	{"path": "/Users/wxk/Documents/Project/file-browser/config.yaml", "exists": true}
+2026-04-07 17:58:18.986	INFO	render/manager.go:26	Render manager started
+2026-04-07 17:58:35.994	INFO	render/drag.go:18	Drag enter signal received	{"x": 958, "y": 519}
+2026-04-07 17:58:36.218	INFO	render/drag.go:32	Drop signal received	{"x": 693, "y": 621, "paths": ["/Users/wxk/Downloads/logo.png"]}
+2026-04-07 17:58:36.219	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:1fdf1897-d961-44e2-b681-a88d5d57abe9", "x": 693, "y": 621, "paths": ["/Users/wxk/Downloads/logo.png"]}
+2026-04-07 17:58:47.576	INFO	render/drag.go:25	Drag leave signal received	{"x": 730, "y": 442}
+2026-04-07 17:58:47.592	INFO	render/drag.go:25	Drag leave signal received	{"x": 707, "y": 444}
+2026-04-07 17:58:47.623	INFO	render/drag.go:25	Drag leave signal received	{"x": 668, "y": 447}
+2026-04-07 17:58:47.630	INFO	render/drag.go:25	Drag leave signal received	{"x": 657, "y": 448}
+2026-04-07 17:58:47.641	INFO	render/drag.go:25	Drag leave signal received	{"x": 644, "y": 449}
+2026-04-07 17:58:47.657	INFO	render/drag.go:25	Drag leave signal received	{"x": 625, "y": 451}
+2026-04-07 17:58:47.668	INFO	render/drag.go:25	Drag leave signal received	{"x": 613, "y": 453}
+2026-04-07 17:58:47.698	INFO	render/drag.go:25	Drag leave signal received	{"x": 581, "y": 458}
+2026-04-07 17:58:47.715	INFO	render/drag.go:25	Drag leave signal received	{"x": 573, "y": 459}
+2026-04-07 17:58:47.992	INFO	render/drag.go:32	Drop signal received	{"x": 568, "y": 460, "paths": [""]}
+2026-04-07 18:00:59.507	INFO	render/drag.go:18	Drag enter signal received	{"x": 846, "y": 608}
+2026-04-07 18:00:59.778	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:1fdf1897-d961-44e2-b681-a88d5d57abe9", "x": 632, "y": 641, "paths": ["/Users/wxk/Downloads/logo.svg"]}
+2026-04-07 18:00:59.778	INFO	render/drag.go:32	Drop signal received	{"x": 632, "y": 641, "paths": ["/Users/wxk/Downloads/logo.svg"]}
+2026-04-07 18:01:10.802	INFO	render/drag.go:18	Drag enter signal received	{"x": 982, "y": 642}
+2026-04-07 18:01:10.968	INFO	render/drag.go:52	Panel file drop received	{"groupId": "workspace-root", "tabId": "connection:5baf9a31-888d-4a3a-8dd3-5e8f353b5915", "x": 725, "y": 550, "paths": ["/Users/wxk/Downloads/file-browser-0.1.0.1-alpha-darwin-arm64"]}
+2026-04-07 18:01:10.968	INFO	render/drag.go:32	Drop signal received	{"x": 725, "y": 550, "paths": ["/Users/wxk/Downloads/file-browser-0.1.0.1-alpha-darwin-arm64"]}
+2026-04-07 18:01:25.087	INFO	stdlog	httputil/reverseproxy.go:690	suppressing panic for copyResponse error in test; copy error: request has been stopped
+2026-04-07 18:01:52.968	INFO	render/drag.go:25	Drag leave signal received	{"x": 430, "y": 366}
+2026-04-07 18:01:52.976	INFO	render/drag.go:25	Drag leave signal received	{"x": 431, "y": 392}
+2026-04-07 18:01:52.991	INFO	render/drag.go:25	Drag leave signal received	{"x": 434, "y": 436}
+2026-04-07 18:01:52.995	INFO	render/drag.go:25	Drag leave signal received	{"x": 435, "y": 455}
+2026-04-07 18:01:53.015	INFO	render/drag.go:25	Drag leave signal received	{"x": 442, "y": 517}
+2026-04-07 18:01:53.032	INFO	render/drag.go:25	Drag leave signal received	{"x": 450, "y": 562}
+2026-04-07 18:01:53.049	INFO	render/drag.go:25	Drag leave signal received	{"x": 458, "y": 606}
+2026-04-07 18:01:53.067	INFO	render/drag.go:25	Drag leave signal received	{"x": 468, "y": 643}
+2026-04-07 18:01:53.560	INFO	render/drag.go:25	Drag leave signal received	{"x": 488, "y": 635}
+2026-04-07 18:01:53.977	INFO	render/drag.go:25	Drag leave signal received	{"x": 487, "y": 636}
+2026-04-07 18:01:54.418	INFO	render/drag.go:32	Drop signal received	{"x": 482, "y": 673, "paths": [""]}
+2026-04-07 18:02:34.987	INFO	render/drag.go:25	Drag leave signal received	{"x": 616, "y": 328}
+2026-04-07 18:02:34.996	INFO	render/drag.go:25	Drag leave signal received	{"x": 638, "y": 328}
+2026-04-07 18:02:35.002	INFO	render/drag.go:25	Drag leave signal received	{"x": 669, "y": 328}
+2026-04-07 18:02:35.007	INFO	render/drag.go:25	Drag leave signal received	{"x": 692, "y": 328}
+2026-04-07 18:02:35.278	INFO	render/drag.go:32	Drop signal received	{"x": 800, "y": 328, "paths": [""]}
+2026-04-07 18:02:39.357	INFO	render/manager.go:32	Render manager stopped
+2026-04-07 18:02:39.357	INFO	file-browser/app.go:82	App is shutting down
