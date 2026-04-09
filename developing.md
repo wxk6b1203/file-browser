@@ -2497,3 +2497,20 @@ connections:
 - Added `post.md` as a general-audience Chinese introduction to the project.
 - Covered product positioning, target users, current capabilities, and the AI-agent development background.
 - Included an explicit statement that more than 95% of the project code was completed by Codex / Claude and similar agents.
+
+## 2026-04-09 - Convert Master Workflow To Test-Only CI
+
+### Goal
+
+- Change the `master` GitHub Actions workflow from multi-platform artifact builds to a lightweight CI gate.
+- Only run tests and frontend type checking on pushes to `master`.
+
+### Completed Changes
+
+- Replaced the previous matrix build workflow with a single Ubuntu-based `test` job.
+- Removed Wails CLI installation, multi-platform matrix configuration, artifact packaging, and artifact upload steps.
+- Kept Node.js pinned to `24.14.0`.
+- The workflow now runs:
+  - `go test ./...`
+  - `npm run test:unit --prefix frontend`
+  - `npm run type-check --prefix frontend`
