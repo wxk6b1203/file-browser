@@ -2456,3 +2456,44 @@ connections:
 - `cd frontend && npm run test:unit -- src/composables/__tests__/connectionEntryDrop.spec.ts` 通过。
 - `cd frontend && npm run type-check` 通过。
 - `cd frontend && npm run build-only` 通过。
+
+## 2026-04-09 - Sync Explorer Tree After File Panel Delete
+
+### Goal
+
+- Keep the Explorer file/directory tree in sync when deleting entries from the central file panel.
+- Avoid global tree refresh; only touch the loaded parent node and any deleted directory subtree cache.
+
+### Frontend Review Notes
+
+- The file panel delete flow already removed entries locally from `items`, but it did not emit any directory-tree refresh signal afterward.
+- The Explorer tree now renders both files and directories, so a missing delete sync leaves the two views visibly inconsistent.
+- A full `loadChildren()` is unnecessary for deterministic local deletes when the parent node is already loaded.
+
+### Completed Changes
+
+- Added `ExplorerTree/treeMutation.ts` to centralize node-key generation and deterministic removal of deleted entries from loaded tree state.
+- Added `removeLoadedEntriesFromExplorerTree()` so file deletes remove the corresponding file node immediately, and directory deletes also drop cached subtree nodes.
+- Extended `ConnectionDirectoryRefreshDetail` with optional mutation metadata (`mutation`, `paths`) for local tree-state updates.
+- `ConnectionOverviewTab.confirmInlineDelete()` now emits a local mutation refresh event after a successful delete.
+- `ExplorerPanel.onDirectoryRefresh()` now handles delete mutations by patching `childrenByKey` in place instead of reloading the whole tree.
+- Added unit tests covering file-node removal and directory-subtree cleanup.
+
+### Verification
+
+- `cd frontend && npm run test:unit -- src/components/ExplorerTree/__tests__/treeMutation.spec.ts src/components/Workspace/__tests__/inlineDelete.spec.ts` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+## 2026-04-09 - Add User-Facing Intro Article
+
+### Goal
+
+- Add a user-facing project introduction article for publishing or reposting.
+- Explicitly document that more than 95% of the project code was completed with Codex / Claude style agents.
+
+### Completed Changes
+
+- Added `post.md` as a general-audience Chinese introduction to the project.
+- Covered product positioning, target users, current capabilities, and the AI-agent development background.
+- Included an explicit statement that more than 95% of the project code was completed by Codex / Claude and similar agents.

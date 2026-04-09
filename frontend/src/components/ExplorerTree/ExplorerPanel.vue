@@ -61,6 +61,7 @@ import { CONNECTION_ENTRY_DROP_LIFECYCLE_EVENT, type ConnectionEntryDropLifecycl
 import { useConnectionsStore } from '@/stores/connections'
 import { useWorkspaceStore } from '@/stores/workspace'
 import ExplorerTreeNode from './ExplorerTreeNode.vue'
+import { explorerNodeKey, removeLoadedEntriesFromExplorerTree } from './treeMutation'
 import type { ExplorerNode } from './types'
 
 const DIRECTORY_TYPE = 2
@@ -84,12 +85,7 @@ function normalizeFolderItems(input: folder.FileInfo[] | null | undefined): fold
   return Array.isArray(input) ? input : []
 }
 
-function nodeKey(kind: 'connection' | 'directory' | 'file', connectionId: string, path = '') {
-  if (kind === 'connection') {
-    return `connection:${connectionId}`
-  }
-  return `${kind}:${connectionId}:${normalizeRemotePath(path)}`
-}
+const nodeKey = explorerNodeKey
 
 function buildConnectionNode(connectionId: string): ExplorerNode {
   const item = connections.definitionMap.get(connectionId)
@@ -407,6 +403,16 @@ function onDirectoryRefresh(event: Event) {
     : nodeKey('connection', detail.connectionId)
 
   if (!(targetKey in childrenByKey.value)) {
+    return
+  }
+
+  if (detail.source === 'mutation' && detail.mutation === 'delete' && detail.paths?.length) {
+    childrenByKey.value = removeLoadedEntriesFromExplorerTree(
+      childrenByKey.value,
+      detail.connectionId,
+      targetPath,
+      detail.paths,
+    )
     return
   }
 

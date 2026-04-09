@@ -6,6 +6,8 @@ export interface ConnectionDirectoryRefreshDetail {
   source: 'transfer' | 'mutation'
   taskId: string
   origin?: string
+  mutation?: 'create' | 'delete' | 'rename'
+  paths?: string[]
 }
 
 export function emitConnectionDirectoryRefresh(detail: ConnectionDirectoryRefreshDetail) {
