@@ -2095,6 +2095,15 @@ async function confirmInlineDelete(item: folder.FileInfo) {
       selectionAnchorPath.value = activePath.value
     }
     removeItemsByPath([targetPath])
+    emitConnectionDirectoryRefresh({
+      connectionId: connectionId.value,
+      path: currentPath.value,
+      source: 'mutation',
+      taskId: `delete:${targetPath}`,
+      origin: directoryRefreshOrigin,
+      mutation: 'delete',
+      paths: [targetPath],
+    })
     ElMessage.success(t('workspace.fileBrowser.deleteSuccess'))
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : String(error))
