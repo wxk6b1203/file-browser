@@ -7,18 +7,19 @@
 </p>
 
 
-File Browser 是一个基于 Wails v2 的桌面文件管理器，后端使用 Go，前端使用 Vue 3。项目目标是把本地目录、SFTP 服务器、S3/OSS 对象存储等不同接入方式统一到同一个文件工作区里，并采用接近 VS Code 的交互模型：连接目录树、中央 Tab、分割面板、任务面板、通知面板、列表/图标视图和拖拽操作。
+File Browser 是一个基于 Wails v2 的桌面文件管理器，后端使用 Go，前端使用 Vue 3。项目目标是把本地目录、WebDAV 服务、SFTP 服务器、S3/OSS 对象存储等不同接入方式统一到同一个文件工作区里，并采用接近 VS Code 的交互模型：连接目录树、中央 Tab、分割面板、任务面板、通知面板、列表/图标视图和拖拽操作。
 
 当前支持的存储后端：
 
 - 本地文件系统
+- WebDAV
 - SFTP
 - Amazon S3 或兼容 S3 的对象存储
 - Alibaba Cloud OSS
 
 ## 功能概览
 
-- 支持 Local、SFTP、S3、OSS 多连接管理。
+- 支持 Local、WebDAV、SFTP、S3、OSS 多连接管理。
 - VS Code 风格骨架：左侧 Explorer、中央可分割 Tab、右侧任务/通知面板。
 - 文件面板支持列表视图和图标视图。
 - 列表视图支持字段显示、排序、列宽拖动、多选、键盘导航和内联创建/删除。
@@ -41,6 +42,7 @@ File Browser 是一个基于 Wails v2 的桌面文件管理器，后端使用 Go
 ├── fileops/               # 面向 UI 的文件操作服务
 ├── folder/                # 存储驱动抽象和具体驱动
 │   ├── local/             # 本地文件系统驱动
+│   ├── webdav/            # WebDAV 驱动
 │   ├── sftp/              # SFTP 驱动
 │   ├── s3/                # S3 驱动
 │   └── alibaba-oss/       # Alibaba Cloud OSS 驱动
@@ -97,6 +99,7 @@ wails generate module
 | 驱动 | 用途 | 说明 |
 |---|---|---|
 | `Local` | 本地文件系统 | `rootPath` 会把操作范围限定到某个本地目录。 |
+| `WebDAV` | 基于 HTTP(S) 的 WebDAV 存储 | 支持用户名/密码自动认证、Bearer Token、作用域根路径、请求超时和可选的不安全 TLS。 |
 | `SFTP` | SSH File Transfer Protocol | 支持密码、私钥文本、私钥文件路径三种认证输入。 |
 | `S3` | Amazon S3 或兼容对象存储 | 使用对象 key prefix 模拟目录。 |
 | `OSS` | Alibaba Cloud OSS | 使用对象 key prefix 模拟目录。 |
@@ -149,6 +152,16 @@ connections:
       username: example
       privateKeyPath: ~/.ssh/id_rsa
       rootPath: /home/example
+
+  - id: webdav-docs
+    name: WebDAV Documents
+    driver: WebDAV
+    enabled: true
+    config:
+      endpoint: https://dav.example.com/remote.php/dav/files/example
+      username: example
+      password: YOUR_PASSWORD
+      rootPath: Documents
 
   - id: s3-projects
     name: S3 Projects
@@ -226,6 +239,8 @@ npm run build-only
 
 驱动集成测试没有凭据时会自动跳过。
 
+WebDAV 驱动测试使用内存中的测试服务器，不依赖外部凭据。
+
 S3 集成测试环境变量：
 
 ```text
@@ -259,6 +274,7 @@ SFTP_DIAL_TIMEOUT_SEC
 ## 已知边界
 
 - SFTP 当前使用 `ssh.InsecureIgnoreHostKey()`，代码里已有支持 `known_hosts` 的 TODO。在未完成主机密钥校验前，不应把它视为适合不可信网络的加固实现。
+- WebDAV 可以连接匿名端点，也可以按服务端能力使用用户名/密码或 Bearer Token 认证。
 - S3/OSS 目录操作基于 prefix，通常比本地/SFTP 目录操作更重。
 - S3 单对象复制存在云厂商限制；超大对象的目录移动后续可能需要 multipart copy。
 - 项目仍在持续开发中，`developing.md` 记录了设计决策、执行情况和后续思路。

@@ -13,6 +13,7 @@ import (
 	_ "github.com/wxk6b1203/file-util-manager/folder/local"
 	_ "github.com/wxk6b1203/file-util-manager/folder/s3"
 	_ "github.com/wxk6b1203/file-util-manager/folder/sftp"
+	_ "github.com/wxk6b1203/file-util-manager/folder/webdav"
 )
 
 //go:embed all:frontend/dist

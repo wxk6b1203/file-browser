@@ -13,6 +13,15 @@ export const DRIVER_FIELD_SCHEMAS: Record<string, ConnectionFieldSchema[]> = {
   Local: [
     { key: 'rootPath', label: 'Root Path', kind: 'text', placeholder: 'C:/Users/wxk6b' },
   ],
+  WebDAV: [
+    { key: 'endpoint', label: 'Endpoint URL', kind: 'text', required: true, placeholder: 'https://dav.example.com/remote.php/dav/files/user' },
+    { key: 'username', label: 'Username', kind: 'text', placeholder: 'user' },
+    { key: 'password', label: 'Password', kind: 'password' },
+    { key: 'bearerToken', label: 'Bearer Token', kind: 'password' },
+    { key: 'rootPath', label: 'Root Path', kind: 'text', placeholder: '/Documents' },
+    { key: 'timeoutSec', label: 'Request Timeout', kind: 'number', min: 1, placeholder: '30' },
+    { key: 'insecureSkipVerify', label: 'Insecure TLS', kind: 'switch' },
+  ],
   S3: [
     { key: 'region', label: 'Region', kind: 'text', required: true, placeholder: 'ap-southeast-1' },
     { key: 'bucket', label: 'Bucket', kind: 'text', required: true, placeholder: 'my-bucket' },
@@ -52,6 +61,15 @@ export const DRIVER_FIELD_SCHEMAS: Record<string, ConnectionFieldSchema[]> = {
 export const DRIVER_DEFAULT_CONFIG: Record<string, Record<string, any>> = {
   Local: {
     rootPath: '',
+  },
+  WebDAV: {
+    endpoint: '',
+    username: '',
+    password: '',
+    bearerToken: '',
+    rootPath: '',
+    timeoutSec: 30,
+    insecureSkipVerify: false,
   },
   S3: {
     region: '',
