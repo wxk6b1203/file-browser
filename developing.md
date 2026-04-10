@@ -2514,3 +2514,78 @@ connections:
   - `go test ./...`
   - `npm run test:unit --prefix frontend`
   - `npm run type-check --prefix frontend`
+
+## 2026-04-10 - Add WebDAV Driver Support
+
+### Goal
+
+- Add WebDAV as a first-class connection type alongside Local / SFTP / S3 / OSS.
+- Reuse the existing file panel, explorer tree, search, and transfer fallback flow instead of creating WebDAV-specific frontend behavior.
+
+### Backend Design Notes
+
+- Reviewed `github.com/wxk6b1203/gowebdav` before implementation.
+- The library already provides the needed primitives for this project:
+  - `Connect`
+  - `ReadDir`
+  - `Stat`
+  - `ReadStream`
+  - `WriteStream`
+  - `Copy`
+  - `Rename`
+  - `RemoveAll`
+  - `MkdirAll`
+- Chose a conservative capability model:
+  - support common file operations, `Reader`, `Writer`, and `HealthChecker`
+  - do not expose `Presigner` or optimized multipart `Transferer`
+- Authentication model:
+  - username/password uses gowebdav auto negotiation (Basic / Digest)
+  - bearer token uses preemptive bearer auth
+  - empty credentials are still allowed for anonymous WebDAV endpoints
+
+### Completed Changes
+
+- Added new backend driver package: `folder/webdav`
+  - `options.go`
+  - `driver.go`
+  - `options_test.go`
+  - `driver_test.go`
+- Registered the new `WebDAV` driver in `main.go`.
+- Implemented scoped root-path handling, recursive listing, file read/write, copy/move/rename/delete, mkdir, and ping.
+- Added custom HTTP transport setup for timeout and optional insecure TLS verification.
+- Added local httptest-based driver tests using `golang.org/x/net/webdav`, so WebDAV support does not depend on an external test server.
+- Added WebDAV connection fields to the frontend connection form:
+  - endpoint
+  - username
+  - password
+  - bearer token
+  - root path
+  - request timeout
+  - insecure TLS toggle
+- Integrated WebDAV into the driver-specific path-field logic so it uses `rootPath` like Local and SFTP.
+
+### Verification
+
+- `go test ./folder/webdav ./connection ./fileops` 通过。
+- `go test ./...` 通过。
+- `cd frontend && npm run type-check` 通过。
+- `cd frontend && npm run test:unit -- src/__tests__/localeParity.spec.ts src/components/ExplorerTree/__tests__/treeMutation.spec.ts src/components/Workspace/__tests__/inlineDelete.spec.ts src/components/Workspace/__tests__/navigationHistory.spec.ts` 通过。
+- `cd frontend && npm run build-only` 通过。
+
+### Additional WebDAV Test Coverage
+
+- Added Basic Auth success coverage.
+- Added explicit authentication failure coverage.
+- Added invalid traversal path coverage (`../outside.txt` -> `ErrInvalidPath`).
+- Added `DriverOptions.Root` + `WebDAV.rootPath` merge coverage.
+- Added invalid endpoint scheme validation coverage.
+
+### Additional WebDAV Integration Tests
+
+- Added `fileops/webdav_integration_test.go` to cover create/list/delete through the WebDAV connection service path.
+- Added `search/service_test.go` to cover recursive WebDAV search with `rootPath` scoping, ensuring results outside the configured root are excluded.
+- Added `internal/testsupport/webdavtest` so WebDAV-backed integration tests can share one in-memory test server instead of duplicating setup.
+
+### README Updates
+
+- Updated `README.md` and `README_cn.md` to include WebDAV in the supported-backend list, feature summary, project layout, storage-driver table, configuration examples, test notes, and known-boundary descriptions.

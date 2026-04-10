@@ -225,7 +225,7 @@ const capabilityItems = computed(() => {
 })
 
 function scopedPathConfigKeyForDriver(driver: string) {
-  if (driver === 'Local' || driver === 'SFTP') {
+  if (driver === 'Local' || driver === 'SFTP' || driver === 'WebDAV') {
     return 'rootPath'
   }
   if (driver === 'S3' || driver === 'OSS') {

@@ -11,15 +11,16 @@ File Browser is a Wails v2 desktop file manager for local and remote storage. It
 The project currently targets these storage backends:
 
 - Local file system
+- WebDAV
 - SFTP
 - Amazon S3 or S3-compatible object storage
 - Alibaba Cloud OSS
 
-The long-term goal is a unified file management system where local paths, SSH servers, and object-storage prefixes can be opened and operated through the same UI model.
+The long-term goal is a unified file management system where local paths, WebDAV endpoints, SSH servers, and object-storage prefixes can be opened and operated through the same UI model.
 
 ## Highlights
 
-- Multi-connection workspace for Local, SFTP, S3, and OSS.
+- Multi-connection workspace for Local, WebDAV, SFTP, S3, and OSS.
 - VS Code style shell with an explorer, central tab groups, draggable split panes, right-side task and notification panels.
 - File panel with list view and icon view.
 - Sortable and configurable file list columns, column resizing, multi-select, keyboard navigation, and inline create/delete flows.
@@ -42,6 +43,7 @@ The long-term goal is a unified file management system where local paths, SSH se
 ├── fileops/               # High-level file operations used by the UI
 ├── folder/                # Storage driver abstraction and concrete drivers
 │   ├── local/             # Local file system driver
+│   ├── webdav/            # WebDAV driver
 │   ├── sftp/              # SFTP driver
 │   ├── s3/                # S3 driver
 │   └── alibaba-oss/       # Alibaba Cloud OSS driver
@@ -98,6 +100,7 @@ Important areas:
 | Driver | Purpose | Notes |
 |---|---|---|
 | `Local` | Local file system access | Root path is mapped to a scoped local directory. |
+| `WebDAV` | HTTP(S)-based WebDAV storage | Supports username/password auto auth, bearer token, scoped root path, request timeout, and optional insecure TLS. |
 | `SFTP` | SSH File Transfer Protocol | Supports password, private key text, and private key path. |
 | `S3` | Amazon S3 or compatible storage | Uses object prefixes as virtual directories. |
 | `OSS` | Alibaba Cloud OSS | Uses object prefixes as virtual directories. |
@@ -150,6 +153,16 @@ connections:
       username: example
       privateKeyPath: ~/.ssh/id_rsa
       rootPath: /home/example
+
+  - id: webdav-docs
+    name: WebDAV Documents
+    driver: WebDAV
+    enabled: true
+    config:
+      endpoint: https://dav.example.com/remote.php/dav/files/example
+      username: example
+      password: YOUR_PASSWORD
+      rootPath: Documents
 
   - id: s3-projects
     name: S3 Projects
@@ -227,6 +240,8 @@ npm run build-only
 
 Driver integration tests skip automatically when credentials are not configured.
 
+WebDAV driver tests use an in-memory test server and do not require external credentials.
+
 S3 integration test variables:
 
 ```text
@@ -260,6 +275,7 @@ SFTP_DIAL_TIMEOUT_SEC
 ## Known Boundaries
 
 - SFTP currently uses `ssh.InsecureIgnoreHostKey()` with a TODO to support `known_hosts` verification. Do not treat it as hardened for untrusted networks yet.
+- WebDAV can operate without credentials for anonymous endpoints, or with username/password and bearer token authentication depending on the server.
 - S3 and OSS directory operations are prefix-based and can be more expensive than local/SFTP directory operations.
 - S3 single-object copy has provider limits; very large object directory moves may require multipart copy support in the future.
 - The project is still under active development. `developing.md` records design decisions, implementation notes, and follow-up work.
