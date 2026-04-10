@@ -45,6 +45,9 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci --prefix frontend
 
+      - name: Build frontend assets for Go embed
+        run: npm run build-only --prefix frontend
+
       - name: Run Go tests
         run: go test ./...
 

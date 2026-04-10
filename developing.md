@@ -2589,3 +2589,15 @@ connections:
 ### README Updates
 
 - Updated `README.md` and `README_cn.md` to include WebDAV in the supported-backend list, feature summary, project layout, storage-driver table, configuration examples, test notes, and known-boundary descriptions.
+
+## 2026-04-10 - Fix Master Test Workflow For Embedded Frontend Assets
+
+### Goal
+
+- Fix the `master` test workflow after `go test ./...` failed to compile the root package because `main.go` embeds `frontend/dist`.
+
+### Completed Changes
+
+- Updated `.github/workflows/master-build.yml` so CI builds frontend assets before running `go test ./...`.
+- This is only to satisfy the `//go:embed all:frontend/dist` compile-time requirement for the root package.
+- The workflow remains test-only and still does not upload build artifacts.
