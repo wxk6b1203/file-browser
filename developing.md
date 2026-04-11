@@ -2601,3 +2601,14 @@ connections:
 - Updated `.github/workflows/master-build.yml` so CI builds frontend assets before running `go test ./...`.
 - This is only to satisfy the `//go:embed all:frontend/dist` compile-time requirement for the root package.
 - The workflow remains test-only and still does not upload build artifacts.
+
+## 2026-04-11 - Escape Cancels Inline Delete State In File Panel
+
+### Goal
+
+- Make `Escape` clear both the current selection and any active inline delete confirmation state in the file panel.
+
+### Completed Changes
+
+- Updated `ConnectionOverviewTab.onViewportKeydown()` so `Escape` now cancels inline delete state before clearing selection.
+- Local search close behavior remains higher priority and is unchanged.

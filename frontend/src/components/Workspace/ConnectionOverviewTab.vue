@@ -1602,6 +1602,9 @@ function onViewportKeydown(event: KeyboardEvent) {
       closeLocalSearch()
       return
     }
+    if (inlineDeletePaths.value.length > 0) {
+      cancelInlineDelete()
+    }
     clearSelection()
     return
   }
