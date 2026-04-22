@@ -267,6 +267,16 @@ func (a *App) PickDownloadDirectory() (string, error) {
 	return strings.TrimSpace(selectedPath), nil
 }
 
+func (a *App) PickUploadFile() (string, error) {
+	selectedPath, err := wailsRuntime.OpenFileDialog(a.ctx, wailsRuntime.OpenDialogOptions{
+		Title: "Select File to Upload",
+	})
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(selectedPath), nil
+}
+
 func (a *App) UploadConnectionLocalPath(connectionID string, remoteDir string, localPath string) ([]string, error) {
 	return a.transfer.UploadLocalPath(a.ctx, connectionID, remoteDir, localPath)
 }

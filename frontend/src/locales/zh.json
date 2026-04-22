@@ -203,6 +203,7 @@
       "copyPath": "复制路径",
       "copyPathSuccess": "路径已复制到剪贴板",
       "download": "下载",
+      "upload": "上传文件",
       "downloadTemp": "下载到临时目录",
       "saveAs": "另存为",
       "dropMoved": "已移动 {count} 项",

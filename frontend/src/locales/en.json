@@ -203,6 +203,7 @@
       "copyPath": "Copy Path",
       "copyPathSuccess": "Path copied to clipboard",
       "download": "Download",
+      "upload": "Upload File",
       "downloadTemp": "Download to Temp",
       "saveAs": "Save As",
       "dropMoved": "{count} item(s) moved",

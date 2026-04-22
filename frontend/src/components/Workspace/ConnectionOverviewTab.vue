@@ -25,6 +25,9 @@
             <i-ep-folder-add />
             {{ t('workspace.fileBrowser.newFolder') }}
           </el-button>
+          <el-button size="small" @click="uploadFile">
+            {{ t('workspace.fileBrowser.upload') }}
+          </el-button>
           <el-button size="small" @click="reload">
             <i-ep-refresh-right />
             {{ t('workspace.fileBrowser.refresh') }}
@@ -193,6 +196,7 @@
         class="file-browser__list-shell"
         :class="{ 'file-browser__drop-root': browserDropActive }"
         tabindex="0"
+        @contextmenu.prevent="onViewportContextMenu($event)"
         @keydown="onViewportKeydown"
         @dragover="onBrowserDragOver"
         @dragleave="onBrowserDragLeave"
@@ -340,6 +344,7 @@
         class="file-browser__grid"
         :class="{ 'file-browser__drop-root': browserDropActive }"
         tabindex="0"
+        @contextmenu.prevent="onViewportContextMenu($event)"
         @keydown="onViewportKeydown"
         @dragover="onBrowserDragOver"
         @dragleave="onBrowserDragLeave"
@@ -432,40 +437,50 @@
 
     <teleport to="body">
       <div
-        v-if="contextMenu.visible && contextMenuItem"
+        v-if="contextMenu.visible"
         ref="contextMenuRef"
         class="file-browser__context-menu"
         :style="contextMenuStyle"
         @contextmenu.prevent.stop
       >
-        <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('open')">
-          {{ t('workspace.fileBrowser.open') }}
-        </button>
-        <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('copy-path')">
-          {{ t('workspace.fileBrowser.copyPath') }}
-        </button>
-        <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('download')">
-          {{ t('workspace.fileBrowser.download') }}
-        </button>
-        <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('download-temp')">
-          {{ t('workspace.fileBrowser.downloadTemp') }}
-        </button>
-        <button
-          v-if="!isDirectory(contextMenuItem)"
-          type="button"
-          class="file-browser__context-menu-item"
-          @click="executeContextMenuAction('save-as')"
-        >
-          {{ t('workspace.fileBrowser.saveAs') }}
-        </button>
-        <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('rename')">
-          {{ t('workspace.fileBrowser.rename') }}
-        </button>
-        <div class="file-browser__context-menu-separator" />
-        <button type="button" class="file-browser__context-menu-item file-browser__context-menu-item--danger" @click="executeContextMenuAction('delete')">
-          <span>{{ t('workspace.fileBrowser.delete') }}</span>
-          <span class="file-browser__context-menu-shortcut">⌫</span>
-        </button>
+        <template v-if="contextMenuScope === 'item' && contextMenuItem">
+          <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('open')">
+            {{ t('workspace.fileBrowser.open') }}
+          </button>
+          <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('copy-path')">
+            {{ t('workspace.fileBrowser.copyPath') }}
+          </button>
+          <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('download')">
+            {{ t('workspace.fileBrowser.download') }}
+          </button>
+          <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('download-temp')">
+            {{ t('workspace.fileBrowser.downloadTemp') }}
+          </button>
+          <button
+            v-if="!isDirectory(contextMenuItem)"
+            type="button"
+            class="file-browser__context-menu-item"
+            @click="executeContextMenuAction('save-as')"
+          >
+            {{ t('workspace.fileBrowser.saveAs') }}
+          </button>
+          <button type="button" class="file-browser__context-menu-item" @click="executeContextMenuAction('rename')">
+            {{ t('workspace.fileBrowser.rename') }}
+          </button>
+          <div class="file-browser__context-menu-separator" />
+          <button type="button" class="file-browser__context-menu-item file-browser__context-menu-item--danger" @click="executeContextMenuAction('delete')">
+            <span>{{ t('workspace.fileBrowser.delete') }}</span>
+            <span class="file-browser__context-menu-shortcut">⌫</span>
+          </button>
+        </template>
+        <template v-else>
+          <button type="button" class="file-browser__context-menu-item" @click="executeBlankContextMenuAction('new-folder')">
+            {{ t('workspace.fileBrowser.newFolder') }}
+          </button>
+          <button type="button" class="file-browser__context-menu-item" @click="executeBlankContextMenuAction('upload-file')">
+            {{ t('workspace.fileBrowser.upload') }}
+          </button>
+        </template>
       </div>
     </teleport>
   </div>
@@ -475,11 +490,12 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { CreateConnectionDirectory, DeleteConnectionEntry, DownloadConnectionFile, DownloadConnectionFileToTemp, ListConnectionDirectory, OpenConnectionFile, RenameConnectionEntry, SaveConnectionFileAs } from '../../../wailsjs/go/main/App'
+import { CreateConnectionDirectory, DeleteConnectionEntry, DownloadConnectionFile, DownloadConnectionFileToTemp, ListConnectionDirectory, OpenConnectionFile, PickUploadFile, RenameConnectionEntry, SaveConnectionFileAs } from '../../../wailsjs/go/main/App'
 import { folder } from '../../../wailsjs/go/models'
 import { ClipboardSetText } from '../../../wailsjs/runtime/runtime'
 import { splitPanePanelKey } from '@/components/SplitPane/types'
 import { buildConnectionEntryDragPayload, buildConnectionEntryDropFeedback, canDropConnectionEntries, executeConnectionEntryDrop, labelForDropTarget, resolveConnectionEntryDragPayload } from '@/composables/connectionEntryDrop'
+import { PANEL_OS_FILE_DROP_EVENT, type PanelOSFileDropDetail } from '@/composables/useFileDrop'
 import { CONNECTION_CONFIG_REFRESH_EVENT, type ConnectionConfigRefreshDetail } from '@/composables/useConnectionConfigRefresh'
 import { normalizeRemotePath } from '@/composables/remotePath'
 import { CONNECTION_DIRECTORY_REFRESH_EVENT, emitConnectionDirectoryRefresh, type ConnectionDirectoryRefreshDetail } from '@/composables/useConnectionDirectoryRefresh'
@@ -503,6 +519,7 @@ const props = defineProps<{
 }>()
 
 type ListColumnKey = 'name' | 'modified' | 'size' | 'type'
+type ContextMenuScope = 'item' | 'blank'
 
 interface ListColumnDefinition {
   key: ListColumnKey
@@ -516,6 +533,7 @@ interface ContextMenuState {
   visible: boolean
   x: number
   y: number
+  scope: ContextMenuScope
   item: folder.FileInfo | null
 }
 
@@ -566,6 +584,7 @@ const contextMenu = ref<ContextMenuState>({
   visible: false,
   x: 0,
   y: 0,
+  scope: 'blank',
   item: null,
 })
 const dragSession = ref<{
@@ -732,6 +751,7 @@ const selectedItems = computed(() =>
   searchedItems.value.filter((item) => selectedPathSet.value.has(normalizeEntryPath(item.path))),
 )
 const contextMenuItem = computed(() => contextMenu.value.item)
+const contextMenuScope = computed(() => contextMenu.value.scope)
 const contextMenuStyle = computed(() => ({
   left: `${contextMenu.value.x}px`,
   top: `${contextMenu.value.y}px`,
@@ -1891,6 +1911,7 @@ function closeContextMenu() {
     visible: false,
     x: 0,
     y: 0,
+    scope: 'blank',
     item: null,
   }
 }
@@ -1921,7 +1942,28 @@ function onItemContextMenu(item: folder.FileInfo, event: MouseEvent) {
     visible: true,
     x: event.clientX,
     y: event.clientY,
+    scope: 'item',
     item,
+  }
+  void positionContextMenu()
+}
+
+function onViewportContextMenu(event: MouseEvent) {
+  const target = event.target
+  if (target instanceof HTMLElement && target.closest('[data-entry-path]')) return
+
+  clearNativeSelection()
+  clearPendingSingleClick()
+  cancelInlineDelete()
+  selectedPaths.value = []
+  selectionAnchorPath.value = null
+  activePath.value = null
+  contextMenu.value = {
+    visible: true,
+    x: event.clientX,
+    y: event.clientY,
+    scope: 'blank',
+    item: null,
   }
   void positionContextMenu()
 }
@@ -1931,6 +1973,43 @@ function executeContextMenuAction(command: string) {
   closeContextMenu()
   if (!item) return
   return onItemCommand(command, item)
+}
+
+function emitPanelUploadEvent(paths: string[], position?: { x: number; y: number }) {
+  if (paths.length === 0) return
+  window.dispatchEvent(new CustomEvent<PanelOSFileDropDetail>(PANEL_OS_FILE_DROP_EVENT, {
+    detail: {
+      groupId: '',
+      tabId: tabId.value,
+      x: position?.x ?? 0,
+      y: position?.y ?? 0,
+      paths,
+    },
+  }))
+}
+
+async function uploadFile(position?: { x: number; y: number }) {
+  try {
+    const localPath = (await PickUploadFile()).trim()
+    if (!localPath) return
+    emitPanelUploadEvent([localPath], position)
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : String(error))
+  }
+}
+
+function executeBlankContextMenuAction(command: 'new-folder' | 'upload-file') {
+  const position = {
+    x: contextMenu.value.x,
+    y: contextMenu.value.y,
+  }
+  closeContextMenu()
+  if (command === 'new-folder') {
+    return createDirectory()
+  }
+  if (command === 'upload-file') {
+    return uploadFile(position)
+  }
 }
 
 function onWindowPointerDown(event: PointerEvent) {

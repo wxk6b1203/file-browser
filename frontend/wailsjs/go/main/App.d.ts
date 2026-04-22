@@ -47,6 +47,8 @@ export function OpenLocalPath(arg1:string):Promise<void>;
 
 export function PickDownloadDirectory():Promise<string>;
 
+export function PickUploadFile():Promise<string>;
+
 export function RemoveTransferTask(arg1:string):Promise<void>;
 
 export function RenameConnectionEntry(arg1:string,arg2:string,arg3:string):Promise<folder.FileInfo>;

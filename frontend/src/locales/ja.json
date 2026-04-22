@@ -203,6 +203,7 @@
       "copyPath": "パスをコピー",
       "copyPathSuccess": "パスをクリップボードにコピーしました",
       "download": "ダウンロード",
+      "upload": "ファイルをアップロード",
       "downloadTemp": "一時ディレクトリへダウンロード",
       "saveAs": "名前を付けて保存",
       "dropMoved": "{count} 件の項目を移動しました",

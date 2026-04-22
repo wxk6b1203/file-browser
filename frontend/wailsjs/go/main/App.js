@@ -86,6 +86,10 @@ export function PickDownloadDirectory() {
   return window['go']['main']['App']['PickDownloadDirectory']();
 }
 
+export function PickUploadFile() {
+  return window['go']['main']['App']['PickUploadFile']();
+}
+
 export function RemoveTransferTask(arg1) {
   return window['go']['main']['App']['RemoveTransferTask'](arg1);
 }
